@@ -31,7 +31,7 @@ declare %private function local:extract-files($url as xs:anyURI) {
             fn:error(xs:QName('httperror'),
                 concat("Failed to retrieve list of files at ", $url))
         else
-            $doc/httpclient:body/html//td/a/@href[ends-with(., '.oifits')]
+            $doc/httpclient:body/html//td/a/@href[ends-with(., '.oifits') or ends-with(., '.fits') ]
 };
 
 (:~
@@ -57,18 +57,28 @@ declare %private function local:summary-data($url as xs:anyURI) {
                 <obs_collection> { $collection } </obs_collection> )
 };
 
-let $url := request:get-parameter("url", "")
+let $cat := request:get-parameter("cat", "")
+let $url := concat("http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=",encode-for-uri($cat))
+let $db_handle := upload:getDbHandle()
+
 return
-    <response> {
-        try {
-            for $file in local:extract-files(xs:anyURI($url))
+    <response> 
+        { comment {"vizier url: "||$url}}
+        {
+        let $urls := local:extract-files(xs:anyURI($url))
+        return
+            ( comment {"oifits urls: "||string-join($urls," ")},        
+            try {
+            for $file in $urls
                 return upload:upload-uri(
+                    $db_handle,
                     resolve-uri(data($file), $url),
                     (
                         (: published files -> L3 :) 
                         <calib_level> 3 </calib_level>, 
                         local:summary-data($url)))
-        } catch * {
+            } catch * {
             <error url="{$url}"> { $err:description } </error>
+            })
         }
-    } </response>
+    </response>
