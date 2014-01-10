@@ -150,7 +150,7 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
 };
 
 
-declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection FROM oidata2 AS t";
+declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection FROM " || $config:sql-table || " AS t";
 
 declare %private function app:collections() {
     let $data := tap:execute($app:collections-query, true())
@@ -180,6 +180,11 @@ declare function app:input-all($node as node(), $model as map(*), $all as xs:str
 };
 
 (:~
+ : Default ADQL request for the show page: display everything
+ :)
+declare variable $app:default-show-query := "SELECT * FROM " || $config:sql-table;
+
+(:~
  : Display the result of the query in a paginated table.
  : 
  : The query is passed to Astrogrid DSA and the returned VOTable is formatted
@@ -190,13 +195,11 @@ declare function app:input-all($node as node(), $model as map(*), $all as xs:str
  : @param perpage number of results displayed per page
  :)
 declare
-    %templates:default("query", "SELECT * FROM oidata2")
     %templates:default("page", 1)
     %templates:default("perpage", 25)
-function app:show($node as node(), $model as map(*), $query as xs:string, 
+function app:show($node as node(), $model as map(*), $query as xs:string?, 
                   $page as xs:integer, $perpage as xs:integer,$all as xs:string?) {
-                   
-    let $query := if($query) then $query else "SELECT * FROM oidata2"
+    let $query := if($query) then $query else $app:default-show-query
                    
     let $obs_collection := request:get-parameter("obs_collection", "")
     let $query := if ($obs_collection = '') then $query else concat($query, " AS t  WHERE t.obs_collection='", $obs_collection, "'")
@@ -232,7 +235,7 @@ function app:show($node as node(), $model as map(*), $query as xs:string,
 };
 
 (: Hard coded request to get the 3 last entries :)
-declare variable $app:latest-query := "SELECT DISTINCT TOP 3 t.target_name, t.access_url, t.subdate FROM oidata2 AS t ORDER BY t.subdate";
+declare variable $app:latest-query := "SELECT DISTINCT TOP 3 t.target_name, t.access_url, t.subdate FROM " || $config:sql-table || " AS t ORDER BY t.subdate";
 
 (:~
  : Create a list of the three latest files uploaded.

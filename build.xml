@@ -3,8 +3,31 @@
     <property name="project.version" value="0.1"/>
     <property name="project.app" value="oidb"/>
     <property name="build.dir" value="build"/>
-    <target name="xar">
+
+    <!-- Create a config module for the application from property file -->
+    <target name="config">
+        <!-- TODO: check for property file -->
         <mkdir dir="${build.dir}"/>
-        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/*"/>
+        <copy file="modules/config.xqm.in" tofile="${build.dir}/config.xqm" overwrite="true"/>
+        <!-- get substitution data from property file -->
+        <replace file="${build.dir}/config.xqm" propertyFile="${config.properties}">
+            <replacefilter token="@sql-url@" property="sql-url"/>
+            <replacefilter token="@sql-username@" property="sql-username"/>
+            <replacefilter token="@sql-password@" property="sql-password"/>
+            <replacefilter token="@sql-table@" property="sql-table"/>
+            <replacefilter token="@tap-dsa-url@" property="tap-dsa-url"/>
+        </replace>
+    </target>
+
+    <!-- Build a .XAR with custom config -->
+    <target name="xar" depends="config">
+        <mkdir dir="${build.dir}"/>
+        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/*,modules/config.xqm*">
+            <!-- include new config module -->
+            <mappedresources>
+                <fileset file="${build.dir}/config.xqm"/>
+                <globmapper from="*" to="modules/*"/>
+            </mappedresources>
+        </zip>
     </target>
 </project>

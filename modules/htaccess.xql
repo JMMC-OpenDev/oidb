@@ -9,11 +9,12 @@ xquery version "3.0";
  : URL (<success> or <error>).
  :)
 
+import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
 (: TODO: compute distinct access_url from adql ? :)
-declare variable $query := "SELECT t.access_url, t.data_rights, t.obs_release_date FROM oidata2 AS t";
+declare variable $query := "SELECT t.access_url, t.data_rights, t.obs_release_date FROM " || $config:sql-table || " AS t";
 
 declare option exist:serialize "method=text media-type=text/plain omit-xml-declaration=yes";
 
