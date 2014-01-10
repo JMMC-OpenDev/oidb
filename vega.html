@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <form class="form-inline" action="">
+        <select data-template="app:vega-select-star-hd"/>
+        <br/>
+        <button type="submit" class="btn">Search</button>
+    </form>
+    <h1>L3 data</h1>
+    <table class="table table-striped table-bordered table-hover">
+        <thead>
+            <th>ObjectName <br/> Identifiers</th>
+            <th>Observation Date <br/> MJD</th>
+            <th>Instrument + <br/> instrument mode</th>
+            <th>Wavelength range <br/> (microns)</th>
+            <th>Run/Program ID</th>
+            <th>Number of <br/> telescopes</th>
+            <th>Telescopes <br/> configuration</th>
+            <th>Special remarks</th>
+            <th>DOI</th>
+            <th>PI contact details</th>
+        </thead>
+        <tbody data-template="app:vega-L3"/>
+    </table>
+    <h1>L0 metadata</h1>
+    <table class="table table-striped table-bordered table-hover">
+        <thead>
+            <th>ObjectName <br/> Identifiers</th>
+            <th>Observation Date <br/> MJD</th>
+            <th>Instrument + <br/> instrument mode</th>
+            <th>Wavelength range <br/> (microns)</th>
+            <th>Number of <br/> telescopes</th>
+            <th>Telescopes <br/> configuration</th>
+            <th>Observation notes</th>
+            <th>PI contact details</th>
+        </thead>
+        <tbody data-template="app:vega-L0"/>
+    </table>
+</div>

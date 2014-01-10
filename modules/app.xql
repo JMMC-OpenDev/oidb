@@ -7,6 +7,8 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
+import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
+
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
 (:~
@@ -249,4 +251,71 @@ declare function app:latest($node as node(), $model as map(*)) {
             <span> { data($row/td[@colname='subdate']) } </span>
         </li>
     } </ul>
+};
+
+(:~
+ : Test for VEGA data integration
+ :)
+
+declare %private function app:vega-L3-row($row as node()) as node() {
+    <tr> {
+        $row/td[@colname='StarHD'], (: Object Name/Identifier :)
+        <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
+        <td> { 'VEGA' } { ' TBD' } </td>,
+        <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
+        $row/td[@colname='ProgNumber'], (: Run/Program ID :)
+        <td> { vega:number-of-telescopes($row) } </td>,
+        <td> { vega:telescopes-configuration($row) } </td>,
+        $row/td[@colname='CommentaireFileObs'], (: Special remarks, FIXME :)
+        <td> TBD </td>, (: DOI :)
+        <td> {
+            vega:get-user-name($row/td[@colname='DataPI']/text())
+        } </td> (: PI contact details :)
+    } </tr>
+};
+
+declare %private function app:vega-L0-row($row as node()) as node() {
+    <tr> {
+        $row/td[@colname='StarHD'], (: Object Name/Identifier :)
+        <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
+        <td> { 'VEGA' } { ' TBD' } </td>,
+        <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
+        <td> { vega:number-of-telescopes($row) } </td>,
+        <td> { vega:telescopes-configuration($row) } </td>,
+        $row/td[@colname='CommentaireFileObs'], (: observation notes, FIXME :)
+        <td> {
+            vega:get-user-name($row/td[@colname='DataPI']/text())
+        } </td> (: PI contact details :)
+    } </tr>
+};
+
+declare function app:vega-select-star-hd($node as node(), $model as map(*), $starHD as xs:string?) {
+    <select name="starHD">
+        <option value="">Select a star</option>
+        {
+            for $hd in vega:get-star-hds()
+            return <option value="{ $hd }">
+                { if ($starHD = $hd) then attribute { "selected"} { "selected" } else () }
+                { $hd }
+            </option>
+        }         
+    </select>
+};
+
+declare
+    %templates:default("starHD", "HD213306")
+function app:vega-L3($node as node(), $model as map(*), $starHD as xs:string) {
+    <tbody> {
+        for $row in doc('/db/apps/oidb/data/vega/published.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
+        return app:vega-L3-row($row)
+    } </tbody>
+};
+
+declare
+    %templates:default("starHD", "HD213306")
+function app:vega-L0($node as node(), $model as map(*), $starHD as xs:string) {
+    <tbody> {
+        for $row in doc('/db/apps/oidb/data/vega/wait-processing.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
+        return app:vega-L0-row($row)
+    } </tbody>
 };
