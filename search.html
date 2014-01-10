@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <form class="form-inline" action="">
-        <input name="query" placeholder="ADQL Query"/>
+        <input name="query" class="span8" placeholder="ADQL Query"/>
+        <br/>
+        <select data-template="app:select-collection"/>
+        <input data-template="app:input-all"/>
+        <br/>
         <button type="submit" class="btn">Search</button>
     </form>
-    <form class="form-inline" action="">
-        <select data-template="app:select-collection"/>
-        <button type="submit" class="btn">Show</button>
-    </form>
+    
+    Meta-data will try to follow VO4OI proposal and Ivoa:ObsCore document (get metadata description in the associated <a href="http://www.ivoa.net/documents/ObsCore/">doc</a> )
+    
     <table data-template="app:show"/>
 </div>

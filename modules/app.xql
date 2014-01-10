@@ -7,6 +7,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
+import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
 (:~
  : Add pagination elements to the page.
@@ -41,24 +42,29 @@ declare %private function app:pagination($query as xs:string, $page as xs:intege
  : @param $release_date date of public_release
  : @return a boolean, public or not
  :)
-declare function app:public-status($data_rights as xs:string, $release_date as xs:string) {
+declare function app:public-status($data_rights as xs:string?, $obs_release_date as xs:string?) as xs:boolean {
     switch ($data_rights)
         case "public"
             (: data is explicitly public :)
             return true()
         (: TODO: difference between secure and proprietary? :)
-        default
+        case "secure"
+        case "proprietary"
             (: or wait until release_date :)
-            return if ($release_date != '') then
+            return if ($obs_release_date != '') then
                 (: build a datetime from a SQL timestamp :)
-                let $release_date := dateTime(
-                    xs:date(substring-before($release_date, " ")),
-                    xs:time(substring-after($release_date, " ")))
+                let $obs_release_date := dateTime(
+                    xs:date(substring-before($obs_release_date, " ")),
+                    xs:time(substring-after($obs_release_date, " ")))
                 (: compare release date to current time :)
-                return if (current-dateTime() gt $release_date) then true() else false()
+                return if (current-dateTime() gt $obs_release_date) then true() else false()
             else 
                 (: never gonna be public :)
                 false()
+        default
+            (: never gonna be public :)
+            return false()
+            
 };
 
 (:~
@@ -75,16 +81,19 @@ declare function app:public-status($data_rights as xs:string, $release_date as x
  :)
 declare %private function app:format-access-url($url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?) {
     let $public := app:public-status($data_rights, $release_date)
-    return <a>
-        { attribute { "href" } { $url } }
-        { if ($public or $creator_name = '') then
+    return 
+        element {"a"} {
+        attribute { "href" } { $url }, 
+        if ($public or $creator_name = '') then
             ()
           else 
-            attribute { "rel" }                 { "tooltip" },
-            attribute { "data-original-title" } { concat("Contact ", $creator_name, " for availability") } }
-        { tokenize($url, "/")[last()] }
-        { if ($public) then () else <i class="icon-lock"/> }
-    </a>
+            (
+                attribute { "rel" }                 { "tooltip" },
+                attribute { "data-original-title" } { concat("Contact ", $creator_name, " for availability") }
+            ),
+         tokenize($url, "/")[last()] ,
+         if ($public) then () else <i class="icon-lock"/> 
+        }
 };
 
 (:~
@@ -96,6 +105,17 @@ declare %private function app:format-access-url($url as xs:string, $data_rights 
 declare %private function app:format-wavelengths($wl as xs:double) {
     format-number($wl * 1e6, ".00000000")
 };
+
+(:~
+ : Format a cell for a mjd value.
+ : 
+ : @param $mjd the date in mjd
+ : @return the date in a datetime format
+ :)
+declare %private function app:format-mjd($mjd as xs:double) {
+    <a href="#" title="{$mjd}">{substring(string(jmmc-dateutil:MJDtoISO8601($mjd)),0,20)}</a>
+};
+
 
 (:~
  : Transform a VOTable TableData rows into HTML
@@ -118,8 +138,11 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
                 case "em_min"
                 case "em_max"
                     return app:format-wavelengths(number(data($cell)))
+                case "t_min"
+                case "t_max"
+                    return app:format-mjd($cell)
                 default
-                    return data($cell)
+                    return translate(data($cell)," ","&#160;")
         } </td>
     } </tr>
 };
@@ -145,6 +168,15 @@ declare function app:select-collection($node as node(), $model as map(*), $obs_c
     </select>
 };
 
+declare function app:input-all($node as node(), $model as map(*), $all as xs:string?) {
+<label class="checkbox inline">            
+    <input class="templates:form-control" type="checkbox" name="all" value="all">
+        {if ($all) then attribute {"checked"} {""} else ()}
+    </input>
+    display all columns
+</label>
+};
+
 (:~
  : Display the result of the query in a paginated table.
  : 
@@ -158,17 +190,21 @@ declare function app:select-collection($node as node(), $model as map(*), $obs_c
 declare
     %templates:default("query", "SELECT * FROM oidata2")
     %templates:default("page", 1)
-    %templates:default("perpage", 10)
+    %templates:default("perpage", 25)
 function app:show($node as node(), $model as map(*), $query as xs:string, 
-                  $page as xs:integer, $perpage as xs:integer) {
-    (: default columns to display :)
-    let $columns := ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
-                      
-    let $collection := request:get-parameter("obs_collection", "")
-    let $query := if ($collection = '') then $query else concat($query, " AS t  WHERE t.obs_collection='", $collection, "'")
+                  $page as xs:integer, $perpage as xs:integer,$all as xs:string?) {
+                   
+    let $query := if($query) then $query else "SELECT * FROM oidata2"
+                   
+    let $obs_collection := request:get-parameter("obs_collection", "")
+    let $query := if ($obs_collection = '') then $query else concat($query, " AS t  WHERE t.obs_collection='", $obs_collection, "'")
                       
     (: make request to DSA for query :)
     let $data := tap:execute($query, true())
+
+    (: default columns to display :)
+    let $columns := if($all) then $data//th/@name/string() else ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
+    
 
     let $headers := $data//th[@name=$columns]
     (: limit rows to page :)
