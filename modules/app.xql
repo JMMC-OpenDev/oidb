@@ -213,8 +213,11 @@ function app:show($node as node(), $model as map(*), $query as xs:string,
     let $nrows   := count($data//tr)
 
     return <div>
-        { app:pagination($query, $page, ceiling($nrows div $perpage)) }
-        <table class="table table-striped table-bordered table-hover">
+  <!-- -->
+  <div>{ count($data//tr[td])  } observations from { count(distinct-values($data//td[@colname="access_url"])) } oifits files { let $private_obs :=$data//tr[not(app:public-status(td[@colname="data_rights"], td[@colname="obs_release_date"]))] return if($private_obs) then " ("||count(distinct-values($private_obs/td[@colname="access_url"])) || " private)"  else () }</div>
+  
+        <div>{ app:pagination($query, $page, ceiling($nrows div $perpage)) }</div>      
+        <div><table class="table table-striped table-bordered table-hover">
             <caption> Results for <code> { $query } </code> </caption>
             <thead>
                 { $headers }
@@ -222,7 +225,7 @@ function app:show($node as node(), $model as map(*), $query as xs:string,
             <tbody>
                 { app:transform-table($rows, $columns) }
             </tbody>
-        </table>
+        </table></div>
     </div>
 };
 
