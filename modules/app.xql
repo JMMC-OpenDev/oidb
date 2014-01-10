@@ -21,14 +21,14 @@ declare %private function app:pagination($query as xs:string, $page as xs:intege
     <ul class="pager">
         {
             if ($page > 1) then 
-                <li><a href="{ concat("?query=", $query, "&amp;page=", $page - 1) }">Previous</a></li>
+                <li><a href="{ concat("?query=", encode-for-uri($query), "&amp;page=", $page - 1) }">Previous</a></li>
             else 
                 () 
         }
         <li>Page { $page } / { $npages }</li>,
         { 
             if ($page < $npages) then 
-                <li><a href="{ concat("?query=", $query, "&amp;page=", $page + 1) }">Next</a></li>
+                <li><a href="{ concat("?query=", encode-for-uri($query), "&amp;page=", $page + 1) }">Next</a></li>
             else 
                 ()
         }
