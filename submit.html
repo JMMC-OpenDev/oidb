@@ -9,14 +9,14 @@
         <div class="alert alert-info">
             <strong>TODO:</strong> retrieve bibcode, collection name
         </div>
-        <input class="span10" name="url" placeholder="Paste the VizieR URL of the collection"/>
+        <input class="span6" name="cat" placeholder="Paste the catalog name"/>
         <br/>
         <button class="btn">Add collection</button>
     </form>
     <h2>Submit <abbr title="Uniform Resource Locator">URL</abbr>s of remote files</h2>
     <form method="POST" action="modules/upload-urls.xql">
         <div class="alert alert-info">
-            <strong>TODO:</strong> ask fields for collection name, contact info, public status, calib_level or bib reference
+            <strong>TODO:</strong> ask fields for collection name, contact info, public status (embargo delay choice (default implemented one is 1Year) after last observation time) , calib_level or bib reference
         </div>
         <input name="collection" placeholder="obs_collection"/>
         <input name="contact" placeholder="contact"/>
