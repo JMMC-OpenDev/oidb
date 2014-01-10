@@ -180,6 +180,21 @@ declare function app:input-all($node as node(), $model as map(*), $all as xs:str
 };
 
 (:~
+ : Return an element with counts of the number of observations, all OIFits 
+ : files and private OIFits files in the database.
+ : 
+ : @param $data a element with rows from a <votable>
+ : @return a <stats> element with attributes for counts.
+ :)
+declare %private function app:data-stats($data as node()) as node() {
+    <stats> {
+        attribute { "nobservations" } { count($data//tr[td]) },
+        attribute { "nprivatefiles" } { count(distinct-values($data//tr[not(app:public-status(td[@colname="data_rights"], td[@colname="obs_release_date"]))]/td[@colname="access_url"])) },
+        attribute { "noifitsfiles" }  { count(distinct-values($data//td[@colname="access_url"])) }
+    } </stats>
+};
+
+(:~
  : Default ADQL request for the show page: display everything
  :)
 declare variable $app:default-show-query := "SELECT * FROM " || $config:sql-table;
@@ -217,10 +232,13 @@ function app:show($node as node(), $model as map(*), $query as xs:string?,
     (: number of rows for pagination :)
     let $nrows   := count($data//tr)
 
+    let $stats := app:data-stats($data)
     return <div>
-  <!-- -->
-  <div>{ count($data//tr[td])  } observations from { count(distinct-values($data//td[@colname="access_url"])) } oifits files { let $private_obs :=$data//tr[not(app:public-status(td[@colname="data_rights"], td[@colname="obs_release_date"]))] return if($private_obs) then " ("||count(distinct-values($private_obs/td[@colname="access_url"])) || " private)"  else () }</div>
-  
+        <div> 
+            { string($stats/@nobservations) } observations from
+            { string($stats/@noifitsfiles) } oifits files
+            { if ($stats[@nprivatefiles='0']) then () else "(" || string($stats/@nprivatefiles) || " private)" }
+        </div>
         <div>{ app:pagination($query, $page, ceiling($nrows div $perpage)) }</div>      
         <div><table class="table table-striped table-bordered table-hover">
             <caption> Results for <code> { $query } </code> </caption>
