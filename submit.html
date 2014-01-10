@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div class="page-header">
+        <h1>Pushing data into the database</h1>
+    </div>
+    <h2>Submit L3 OIFits collection from <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>
+    </h2>
+    <form method="post" action="modules/upload-vizier.xql">
+        <div class="alert alert-info">
+            <strong>TODO:</strong> retrieve bibcode, collection name
+        </div>
+        <input class="span10" name="url" placeholder="Paste the VizieR URL of the collection"/>
+        <br/>
+        <button class="btn">Add collection</button>
+    </form>
+    <h2>Submit <abbr title="Uniform Resource Locator">URL</abbr>s of remote files</h2>
+    <form method="POST" action="modules/upload-urls.xql">
+        <div class="alert alert-info">
+            <strong>TODO:</strong> ask fields for collection name, contact info, public status, calib_level or bib reference
+        </div>
+        <input name="collection" placeholder="obs_collection"/>
+        <input name="contact" placeholder="contact"/>
+        <input name="calib_level" placeholder=""/>
+        <input name="bib_reference" placeholder=""/>
+        <textarea name="urls" placeholder="Fill with one url per file to upload (whitespace separated)" rows="8" class="span10"/>
+        <br/>
+        <button class="btn">Add URLs</button>
+    </form>
+    <h2>Upload metadata file</h2>
+    <form method="POST" action="modules/upload-meta.xql" enctype="multipart/form-data">
+        <div class="alert alert-info">
+            <strong>TODO:</strong> provide template or document required fields
+        </div>
+        <input class="span10" type="file" name="file" placeholder="Drop file here or click on the button to select a file to upload"/>
+        <br/>
+        <button class="btn">Add data</button>
+    </form>
+</div>
