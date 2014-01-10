@@ -10,4 +10,23 @@
     <target>oidb</target>
     <prepare>pre-install.xql</prepare>
     <finish/>
+    <deployed>2013-12-21T07:18:05.58+01:00</deployed>
+    <note>Pay attention to change modules/config.xqm 
+    with sql configuration variables: config:sql-url, config:sql-username, config:sql-password and config:sql-table 
+    with tap endpoint : config:TAP_DSA_URL
+    </note>
+    <changelog>
+        <change xmlns="" version="0.0">
+            <h3>WRITE IS THIS repo.xml MESSAGE DISPLAYED?</h3>
+            <ul>
+                <li>Accept an empty votable provided by TAP service (dsa)</li>
+                <li>Add release data for secure records without obs_release_date</li>
+                <li>To fix:
+                <ul>
+                t_min and t_max have the same values    
+                </ul>
+                </li>
+            </ul>
+        </change>
+    </changelog>
 </meta>
