@@ -13,13 +13,15 @@ import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "
 
 (: Split parameter into individual URLs :)
 let $urls := tokenize(request:get-parameter("urls", ""), "\s")
+let $db_handle := upload:getDbHandle()
+
 return
     <response> {
         for $url in $urls
         where $url
         return ( 
             try {
-                upload:upload-uri(xs:anyURI($url), ())
+                upload:upload-uri($db_handle, xs:anyURI($url), ())
             } catch * {
                 <error url="{$url}"> { $err:description } </error>
             })
