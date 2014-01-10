@@ -13,7 +13,7 @@ declare variable $tap:UCD_URL := "http://cdsws.u-strasbg.fr/axis/services/UCD?me
 
 (:~
  :)
-declare %private function tap:nodes-from-field-name($votable as node()) as node() {
+declare %private function tap:nodes-from-field-name($votable as node()?) as node() {
     let $headers := $votable//votable:FIELD
     let $header_names := for $header in $headers return data($header/@name)
 
