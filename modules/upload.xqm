@@ -73,7 +73,7 @@ declare function upload:getDbHandle() as xs:long{
 
 (:~
  : Put the data in the SQL database.
- : If the operatio fails, it returns the error message in a <error> element,
+ : If the operation fails, it returns the error message in a <error> element,
  : otherwise it returns a <success> element.
  :
  : @param $db_handle database handle 
