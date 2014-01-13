@@ -195,9 +195,9 @@ declare %private function app:data-stats($data as node()) as node() {
 };
 
 (:~
- : Default ADQL request for the show page: display everything
+ : Default ADQL request for the search page: display everything
  :)
-declare variable $app:default-show-query := "SELECT * FROM " || $config:sql-table;
+declare variable $app:default-search-query := "SELECT * FROM " || $config:sql-table;
 
 (:~
  : Display the result of the query in a paginated table.
@@ -212,9 +212,9 @@ declare variable $app:default-show-query := "SELECT * FROM " || $config:sql-tabl
 declare
     %templates:default("page", 1)
     %templates:default("perpage", 25)
-function app:show($node as node(), $model as map(*), $query as xs:string?, 
-                  $page as xs:integer, $perpage as xs:integer,$all as xs:string?) {
-    let $query := if($query) then $query else $app:default-show-query
+function app:search($node as node(), $model as map(*), $query as xs:string?, 
+                    $page as xs:integer, $perpage as xs:integer,$all as xs:string?) {
+    let $query := if($query) then $query else $app:default-search-query
                    
     let $obs_collection := request:get-parameter("obs_collection", "")
     let $query := if ($obs_collection = '') then $query else concat($query, " AS t  WHERE t.obs_collection='", $obs_collection, "'")
