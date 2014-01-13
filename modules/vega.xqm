@@ -120,16 +120,20 @@ declare function vega:get-star-hds() as item()* {
 
 (:~
  : Retrieve data from the VegaObs database and store locally.
- : It currently requests published data and process waiting data.
+ : It currently requests all data with status and status different from 'Trash'.
  : 
  : @return a sequence of path to new resources.
  :)
 declare function vega:pull() as item()* {
     let $collection := xmldb:create-collection("/db/apps/oidb/data", "vega")
     
-    let $published-data := vega:nodes-from-field-name(vega:get-observations-by-data-status('Published'))
-    let $wait-processing-data := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitProcessing'))
+    let $published        := vega:nodes-from-field-name(vega:get-observations-by-data-status('Published'))
+    let $wait-publication := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitPublication'))
+    let $wait-other-data  := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitOtherData'))
+    let $wait-processing  := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitProcessing'))
     return (
-        xmldb:store($collection, "published"       || ".xml", $published-data),
-        xmldb:store($collection, "wait-processing" || ".xml", $wait-processing-data))
+        xmldb:store($collection, "published"        || ".xml", $published),
+        xmldb:store($collection, "wait-publication" || ".xml", $wait-publication),
+        xmldb:store($collection, "wait-other-data"  || ".xml", $wait-other-data),
+        xmldb:store($collection, "wait-processing"  || ".xml", $wait-processing))
 };

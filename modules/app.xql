@@ -310,9 +310,25 @@ declare %private function app:vega-L0-row($row as node()) as node() {
     } </tr>
 };
 
+declare %private function app:vega-all-row($row as node()) as node() {
+    <tr> {
+        $row/td[@colname='StarHD'], (: Object Name/Identifier :)
+        <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
+        <td> { 'VEGA' } { ' TBD' } </td>,
+        <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
+        $row/td[@colname='ProgNumber'], (: Run/Program ID :)
+        <td> { vega:number-of-telescopes($row) } </td>,
+        <td> { vega:telescopes-configuration($row) } </td>,
+        <td> { $row/td[@colname='CommentaireFileObs']/text() } <br/> Status: { $row/td[@colname='DataStatus']/text() } </td>, (: Notes, FIXME :)
+        <td> {
+            vega:get-user-name($row/td[@colname='DataPI']/text())
+        } </td> (: PI contact details :)
+    } </tr>
+};
+
 declare function app:vega-select-star-hd($node as node(), $model as map(*), $starHD as xs:string?) {
     <select name="starHD">
-        <option value="">Select a star</option>
+        <option value="">Search by star</option>
         {
             for $hd in vega:get-star-hds()
             return <option value="{ $hd }">
@@ -338,5 +354,14 @@ function app:vega-L0($node as node(), $model as map(*), $starHD as xs:string) {
     <tbody> {
         for $row in doc('/db/apps/oidb/data/vega/wait-processing.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
         return app:vega-L0-row($row)
+    } </tbody>
+};
+
+declare function app:vega-all($node as node(), $model as map(*), $starHD as xs:string?) {
+    <tbody> {
+        let $rows := collection('/db/apps/oidb/data/vega')//votable/tr
+        let $rows := if ($starHD) then $rows[./td[@colname='StarHD' and ./text()=$starHD]] else $rows
+        for $row in $rows
+        return app:vega-all-row($row)
     } </tbody>
 };
