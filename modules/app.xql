@@ -127,7 +127,14 @@ declare %private function app:format-mjd($mjd as xs:double) {
  :)
 declare %private function app:transform-table($rows as node()*, $columns as xs:string*) as item()* {
     for $row in $rows
-    return <tr> {
+    return <tr> 
+        <td> {
+            element {"a"} {
+            attribute { "href" } { "show.html?id=" || $row/td[@colname='id'] },
+            <i class="icon-zoom-in"/>
+            }
+        } </td>
+        {
         for $cell in $row/td[@colname=$columns]
         return <td> {
             switch ($cell/@colname)
@@ -226,7 +233,7 @@ function app:search($node as node(), $model as map(*), $query as xs:string?,
     let $columns := if($all) then $data//th/@name/string() else ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
     
 
-    let $headers := $data//th[@name=$columns]
+    let $headers := ( <th/>, $data//th[@name=$columns] )
     (: limit rows to page :)
     let $rows    := subsequence($data//tr, 1 + ($page - 1) * $perpage, $perpage)
     (: number of rows for pagination :)
@@ -250,6 +257,32 @@ function app:search($node as node(), $model as map(*), $query as xs:string?,
             </tbody>
         </table></div>
     </div>
+};
+
+(:~
+ : Display all columns from the selected row.
+ : 
+ : A query with the identifier for the row is passed to Astrogrid DSA and the
+ : returned VOTable is formatted as an HTML table.
+ : 
+ : @param $node
+ : @param $model
+ : @param $id the row identifier
+ : @return a <table> filled with data from the raw row
+ :)
+declare function app:show($node as node(), $model as map(*), $id as xs:integer) {
+    let $query := "SELECT * FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
+    (: make request to DSA for query :)
+    let $data := tap:execute($query, true())
+
+    return <table class="table table-striped table-bordered table-hover">
+        <!-- <caption> Details for { $id } </caption> -->
+        {
+            for $th at $i in $data//th[@name!='id']
+            let $td := $data//td[position()=$i]
+            return <tr> { ( $th, $td ) } </tr>
+        }
+    </table>
 };
 
 (: Hard coded request to get the 3 last entries :)
