@@ -22,8 +22,11 @@
     <!-- Build a .XAR with custom config -->
     <target name="xar" depends="config">
         <mkdir dir="${build.dir}"/>
-        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar" excludes="${build.dir}/*,modules/config.xqm*">
-            <!-- include new config module -->
+        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar">
+            <exclude name="${build.dir}/*"/>
+            <!-- ignore local config... -->
+            <exclude name="modules/config.xqm"/>
+            <!-- ... but include new custom config module -->
             <mappedresources>
                 <fileset file="${build.dir}/config.xqm"/>
                 <globmapper from="*" to="modules/*"/>
