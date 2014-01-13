@@ -118,3 +118,9 @@ declare variable $config:sql-table := "oidata2";
  : AstroGrid  DSA request URL
  :)
 declare variable $config:TAP_DSA_URL := "http://localhost:8080/test-dsa/TAP/sync?REQUEST=doQuery&amp;LANG=ADQL&amp;QUERY=";
+
+(:~
+ : AstroGrid Cone Search request URL
+ :)
+declare variable $config:CS_DSA_URL := "http://apps.jmmc.fr/proto-oidb-dsa/SubmitCone?DSACATTAB=protooidb.alldb&amp;Format=VOTable&amp;TargetResponse=true";
+(: declare variable $config:CS_DSA_URL := "http://localhost:8080/test-dsa/SubmitCone?DSACATTAB=INSERT_CATALOG_NAME.oidata&amp;Format=VOTable&amp;TargetResponse=true"; :)

@@ -117,3 +117,8 @@ declare variable $config:sql-table := "@sql-table@";
  : AstroGrid  DSA request URL
  :)
 declare variable $config:TAP_DSA_URL := "@tap-dsa-url@";
+
+(:~
+ : AstroGrid Cone Search request URL
+ :)
+declare variable $config:CS_DSA_URL := "@cs-dsa-url@";
