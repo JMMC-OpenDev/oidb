@@ -234,8 +234,8 @@ function app:search($node as node(), $model as map(*), $query as xs:string?,
     
 
     let $headers := ( <th/>, $data//th[@name=$columns] )
-    (: limit rows to page :)
-    let $rows    := subsequence($data//tr, 1 + ($page - 1) * $perpage, $perpage)
+    (: limit rows to page - skip row of headers :)
+    let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
     (: number of rows for pagination :)
     let $nrows   := count($data//tr)
 
