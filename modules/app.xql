@@ -331,6 +331,7 @@ declare function app:vega-select-star-hd($node as node(), $model as map(*), $sta
         <option value="">Search by star</option>
         {
             for $hd in vega:get-star-hds()
+            order by $hd
             return <option value="{ $hd }">
                 { if ($starHD = $hd) then attribute { "selected"} { "selected" } else () }
                 { $hd }
