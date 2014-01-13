@@ -24,6 +24,8 @@
         <mkdir dir="${build.dir}"/>
         <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar">
             <exclude name="${build.dir}/*"/>
+            <!-- do not bundle data in the deployment archive -->
+            <exclude name="data/**"/>
             <!-- ignore local config... -->
             <exclude name="modules/config.xqm"/>
             <!-- ... but include new custom config module -->
