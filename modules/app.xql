@@ -14,23 +14,30 @@ import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateu
 (:~
  : Add pagination elements to the page.
  : 
- : @param $query the ADQL query
  : @param $page the current page number
  : @param $npages the total number to pages returned for the request
  : @return an XHTML fragment with pagination elements
  :)
-declare %private function app:pagination($query as xs:string, $page as xs:integer, $npages as xs:integer) {
+declare %private function app:pagination($page as xs:integer, $npages as xs:integer) {
+    (: rebuild a string with all parameters but 'page' :)
+    let $parameters := string-join(
+        for $n in request:get-parameter-names() 
+        where $n != 'page' 
+        return string-join(($n, request:get-parameter($n, "")), "="),
+        "&amp;")
+    
+    return
     <ul class="pager">
         {
             if ($page > 1) then 
-                <li><a href="{ concat("?query=", encode-for-uri($query), "&amp;page=", $page - 1) }">Previous</a></li>
+                <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page - 1 ), "&amp;")) }">Previous</a></li>
             else 
                 () 
         }
         <li>Page { $page } / { $npages }</li>,
         { 
             if ($page < $npages) then 
-                <li><a href="{ concat("?query=", encode-for-uri($query), "&amp;page=", $page + 1) }">Next</a></li>
+                <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page + 1 ), "&amp;")) }">Next</a></li>
             else 
                 ()
         }
@@ -246,7 +253,7 @@ function app:search($node as node(), $model as map(*), $query as xs:string?,
             { string($stats/@noifitsfiles) } oifits files
             { if ($stats[@nprivatefiles='0']) then () else "(" || string($stats/@nprivatefiles) || " private)" }
         </div>
-        <div>{ app:pagination($query, $page, ceiling($nrows div $perpage)) }</div>      
+        <div>{ app:pagination($page, ceiling($nrows div $perpage)) }</div>      
         <div><table class="table table-striped table-bordered table-hover">
             <caption> Results for <code> { $query } </code> </caption>
             <thead>
