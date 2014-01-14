@@ -370,7 +370,21 @@ declare function app:vega-select-star-hd($node as node(), $model as map(*), $sta
     <select name="starHD">
         <option value="">Search by star</option>
         {
-            for $hd in vega:get-star-hds()
+            for $hd in vega:get-star-hds(('Published', 'WaitProcessing'))
+            order by $hd
+            return <option value="{ $hd }">
+                { if ($starHD = $hd) then attribute { "selected"} { "selected" } else () }
+                { $hd }
+            </option>
+        }         
+    </select>
+};
+
+declare function app:vega-select-all-star-hd($node as node(), $model as map(*), $starHD as xs:string?) {
+    <select name="starHD">
+        <option value="">Search by star</option>
+        {
+            for $hd in vega:get-all-star-hds()
             order by $hd
             return <option value="{ $hd }">
                 { if ($starHD = $hd) then attribute { "selected"} { "selected" } else () }
