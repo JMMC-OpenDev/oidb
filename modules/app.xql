@@ -287,7 +287,16 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
         {
             for $th at $i in $data//th[@name!='id']
             let $td := $data//td[position()=$i]
-            return <tr> { ( $th, $td ) } </tr>
+            return <tr> { $th } {
+                if ($td[@colname='access_url']) then 
+                    <td> <a href="{ $td/text() }"> { tokenize($td/text(), "/")[last()] }</a></td>
+                else if ($td[@colname='obs_collection' and starts-with($td/text(), 'J/')]) then
+                    <td> <a href="{ concat("http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=", encode-for-uri($td/text())) }">{ $td/text() }</a></td>
+                else if ($td[@colname='bib_reference']) then
+                    <td> <a href="{ concat("http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib?", encode-for-uri($td/text())) }">{ $td/text() }</a></td>
+                else
+                    $td
+            } </tr>
         }
     </table>
 };
