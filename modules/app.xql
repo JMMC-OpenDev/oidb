@@ -185,6 +185,29 @@ declare function app:select-collection($node as node(), $model as map(*), $obs_c
     </select>
 };
 
+declare variable $app:instruments-query := "SELECT DISTINCT t.instrument_name FROM " || $config:sql-table || " AS t";
+
+declare %private function app:instruments() {
+    let $data := tap:execute($app:instruments-query, true())
+    return distinct-values(
+        for $i in $data//td[@colname='instrument_name']/text()
+        (: separate instrument name from mode, FIXME :)
+        return tokenize($i, '[^A-Za-z0-9]')[1])
+};
+
+declare function app:select-instrument($node as node(), $model as map(*), $instrument_name as xs:string?) {
+    <select name="instrument_name">
+        <option disabled="disabled" selected="selected">All instruments</option>
+        {
+            for $ins in app:instruments()
+            return <option value="{ $ins }">
+                { if ($instrument_name = $ins) then attribute { "selected"} { "selected" } else () }
+                { $ins }
+            </option>
+        }         
+    </select>
+};
+
 declare function app:input-all($node as node(), $model as map(*), $all as xs:string?) {
 <label class="checkbox inline">            
     <input class="templates:form-control" type="checkbox" name="all" value="all">
@@ -238,6 +261,12 @@ declare %private function app:pre-defined-search() as node() {
         (: Search for collection by name :)
         let $collection := request:get-parameter("obs_collection", "")
         let $query      := concat($app:default-search-query, " AS t WHERE t.obs_collection='", $collection, "'")
+        return tap:execute($query, true())
+    else if ($search = 'instrument') then
+        (: Search for observations with the specified instrument :)
+        let $instrument := request:get-parameter("instrument_name", "")
+        let $query      := concat($app:default-search-query, " AS t WHERE t.instrument_name LIKE '", $instrument, "%'")
+        let $x := util:log('warn', $query)
         return tap:execute($query, true())
     else
         (: default or custom ADQL query :)

@@ -36,6 +36,14 @@
     </form>
     <form class="row form-inline" action="">
         <div class="span11">
+            Observed with&#160;
+            <select data-template="app:select-instrument"/>
+            <input type="hidden" name="search" value="instrument"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="span11">
             Custom query&#160;
             <input name="query" type="text" placeholder="ADQL Query"/>
         </div>
