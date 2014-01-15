@@ -368,7 +368,12 @@ declare %private function app:vega-all-row($row as node()) as node() {
         $row/td[@colname='ProgNumber'], (: Run/Program ID :)
         <td> { vega:number-of-telescopes($row) } </td>,
         <td> { vega:telescopes-configuration($row) } </td>,
-        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } <br/> Status: { $row/td[@colname='DataStatus']/text() } </td>, (: Notes, FIXME :)
+        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } </td>, (: Notes, FIXME :)
+        <td>
+            {
+                if ($row/td[@colname='DataStatus'][text()='Published']) then <i class="icon-check"/> else ()
+            }
+        </td>, (: Published :)
         <td> {
             vega:get-user-name($row/td[@colname='DataPI']/text())
         } </td> (: PI contact details :)
