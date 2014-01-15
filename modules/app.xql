@@ -250,6 +250,19 @@ declare %private function app:pre-defined-search() as node() {
         let $sdec    := number(request:get-parameter("s_dec", 0))
         let $sradius := number(request:get-parameter("s_radius", 0))
         return cs:execute($sra, $sdec, $sradius, true())
+    else if ($search = 'misc') then
+        let $type  := request:get-parameter("type", "")
+        let $query := if ($type = "monochromatic") then
+                $app:default-search-query || " AS t WHERE t.nb_channels=1"
+            else if ($type = "polychromatic") then
+                $app:default-search-query || " AS t WHERE t.nb_channels>1"
+            else if ($type = "kbandonly") then
+                $app:default-search-query || " AS t WHERE t.em_min>1.925E-6 AND t.em_max<2.825E-6"
+            else if ($type = "hband") then
+                $app:default-search-query || " AS t WHERE t.em_max>1.925E-6 AND t.em_min<2.825E-6"
+            else
+                $app:default-search-query
+        return tap:execute($query, true())
     else if ($search = 'nmeasurements') then
         (: Search for minimal number of measurements :)
         let $nvis  := number(request:get-parameter("nvis", 0))

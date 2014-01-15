@@ -18,6 +18,16 @@
     </form>
     <form class="row form-inline" action="">
         <div class="span11">
+            <input name="type" value="monochromatic" type="radio">Monochromatic</input>,
+            <input name="type" value="polychromatic" type="radio">Polychromatic</input>,
+            <input name="type" value="kbandonly" type="radio">K band only</input>,
+            <input name="type" value="hband" type="radio">contains H band measurements</input>,
+            <input type="hidden" name="search" value="misc"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="span11">
             Containing at least&#160;
             <input name="nvis" type="number" size="2" value="0"/> VIS and&#160;
             <input name="nvis2" type="number" size="2" value="0"/> VIS2 and&#160;
