@@ -431,6 +431,7 @@ declare function app:vega-all($node as node(), $model as map(*), $starHD as xs:s
         let $rows := collection('/db/apps/oidb/data/vega')//votable/tr
         let $rows := if ($starHD) then $rows[./td[@colname='StarHD' and ./text()=$starHD]] else $rows
         for $row in $rows
+        order by $row/td[@colname='StarHD']/text()
         return app:vega-all-row($row)
     } </tbody>
 };
