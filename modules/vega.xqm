@@ -110,6 +110,29 @@ declare function vega:telescopes-configuration($row as node()) as xs:string {
 };
 
 (:~
+ : Return a string with instrument node for the given row.
+ : 
+ : Based on description by Denis Mourard in message on the jmmc-tech-group ML.
+ : 
+ : @param $row the description of the observation
+ : @return a string with instrument mode
+ :)
+declare function vega:instrument-mode($row as node()) as xs:string {
+    let $grating   := number($row/td[@colname='Grating']/text())
+    let $lambda    := number($row/td[@colname='Lambda']/text())
+    let $configcam := $row/td[@colname='ConfigCam']/text()
+    let $polar     := $row/td[@colname='Polar']/text()
+    return concat(
+        if ($grating=100) then 'LR'
+        else if ($grating=300) then 'MR'
+        else if ($grating=1800) then 'HR' else '??',
+        $lambda,
+        '-',
+        $configcam,
+        if ($polar='POLAR_OFF') then '' else '-Polar')
+};
+
+(:~
  : Return a list of all star names in the VEGA dataset with a particular data status.
  : 
  : @param $dataStatus a sequence of status

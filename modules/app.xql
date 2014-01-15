@@ -322,7 +322,7 @@ declare %private function app:vega-L3-row($row as node()) as node() {
     <tr> {
         $row/td[@colname='StarHD'], (: Object Name/Identifier :)
         <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
-        <td> { 'VEGA' } { ' TBD' } </td>,
+        <td> { 'VEGA' } &#160; { vega:instrument-mode($row) } </td>,
         <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
         $row/td[@colname='ProgNumber'], (: Run/Program ID :)
         <td> { vega:number-of-telescopes($row) } </td>,
@@ -339,7 +339,7 @@ declare %private function app:vega-L0-row($row as node()) as node() {
     <tr> {
         $row/td[@colname='StarHD'], (: Object Name/Identifier :)
         <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
-        <td> { 'VEGA' } { ' TBD' } </td>,
+        <td> { 'VEGA' } &#160; { vega:instrument-mode($row) } </td>,
         <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
         <td> { vega:number-of-telescopes($row) } </td>,
         <td> { vega:telescopes-configuration($row) } </td>,
@@ -354,7 +354,7 @@ declare %private function app:vega-all-row($row as node()) as node() {
     <tr> {
         $row/td[@colname='StarHD'], (: Object Name/Identifier :)
         <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
-        <td> { 'VEGA' } { ' TBD' } </td>,
+        <td> { 'VEGA' } &#160; { vega:instrument-mode($row) } </td>,
         <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
         $row/td[@colname='ProgNumber'], (: Run/Program ID :)
         <td> { vega:number-of-telescopes($row) } </td>,
