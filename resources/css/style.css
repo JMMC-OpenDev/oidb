@@ -1,1 +1,5 @@
 /* Application styles could go here */
+
+input {
+    width: auto !important;
+}

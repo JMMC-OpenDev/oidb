@@ -1,14 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <form class="form-inline" action="">
-        <input name="query" class="span8" placeholder="ADQL Query"/>
-        <br/>
-        <select data-template="app:select-collection"/>
-        <input data-template="app:input-all"/>
-        <br/>
-        <button type="submit" class="btn">Search</button>
+    <form class="row form-inline" action="">
+        <div class="span11">
+            All data.
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
     </form>
-    
+    <form class="row form-inline" action="">
+        <div class="span11">
+            Located in sky area at&#160;
+            RA[deg] =            <input name="s_ra" type="number" size="3" value="0"/>,
+            DEC[deg] =           <input name="s_dec" type="number" size="3" value="0"/>,
+            Search radius[deg] = <input name="s_radius" type="number" size="1" value="0"/>.
+            <input type="hidden" name="search" value="conesearch"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="span11">
+            Containing at least&#160;
+            <input name="nvis" type="number" size="2" value="0"/> VIS and&#160;
+            <input name="nvis2" type="number" size="2" value="0"/> VIS2 and&#160;
+            <input name="nt3" type="number" size="2" value="0"/> T3 measurements.
+            <input type="hidden" name="search" value="nmeasurements"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="span11">
+            From collection&#160;
+            <select data-template="app:select-collection"/>
+            <input type="hidden" name="search" value="collection"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="span11">
+            Custom query&#160;
+            <input name="query" type="text" placeholder="ADQL Query"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <h1>Results</h1>
+
     Meta-data will try to follow VO4OI proposal and Ivoa:ObsCore document (get metadata description in the associated <a href="http://www.ivoa.net/documents/ObsCore/">doc</a> )
     
     <table data-template="app:search"/>
