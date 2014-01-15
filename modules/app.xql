@@ -336,7 +336,7 @@ declare %private function app:vega-L3-row($row as node()) as node() {
         $row/td[@colname='ProgNumber'], (: Run/Program ID :)
         <td> { vega:number-of-telescopes($row) } </td>,
         <td> { vega:telescopes-configuration($row) } </td>,
-        $row/td[@colname='CommentaireFileObs'], (: Special remarks, FIXME :)
+        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } </td>, (: Special remarks, FIXME :)
         <td> TBD </td>, (: DOI :)
         <td> {
             vega:get-user-name($row/td[@colname='DataPI']/text())
@@ -352,7 +352,7 @@ declare %private function app:vega-L0-row($row as node()) as node() {
         <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
         <td> { vega:number-of-telescopes($row) } </td>,
         <td> { vega:telescopes-configuration($row) } </td>,
-        $row/td[@colname='CommentaireFileObs'], (: observation notes, FIXME :)
+        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } </td>, (: observation notes, FIXME :)
         <td> {
             vega:get-user-name($row/td[@colname='DataPI']/text())
         } </td> (: PI contact details :)
@@ -368,7 +368,7 @@ declare %private function app:vega-all-row($row as node()) as node() {
         $row/td[@colname='ProgNumber'], (: Run/Program ID :)
         <td> { vega:number-of-telescopes($row) } </td>,
         <td> { vega:telescopes-configuration($row) } </td>,
-        <td> { $row/td[@colname='CommentaireFileObs']/text() } <br/> Status: { $row/td[@colname='DataStatus']/text() } </td>, (: Notes, FIXME :)
+        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } <br/> Status: { $row/td[@colname='DataStatus']/text() } </td>, (: Notes, FIXME :)
         <td> {
             vega:get-user-name($row/td[@colname='DataPI']/text())
         } </td> (: PI contact details :)
