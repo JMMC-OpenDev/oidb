@@ -24,8 +24,8 @@ declare %private function app:pagination($page as xs:integer, $npages as xs:inte
     let $parameters := string-join(
         for $n in request:get-parameter-names() 
         where $n != 'page' 
-        return string-join(($n, encode-for-uri(request:get-parameter($n, ""))), "="),
-        "&amp;")
+        return for $p in request:get-parameter($n, "")
+            return string-join(($n, encode-for-uri($p)), "="), "&amp;")
     
     return
     <ul class="pager">
