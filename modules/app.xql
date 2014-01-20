@@ -250,6 +250,13 @@ declare %private function app:pre-defined-search() as node() {
         let $sdec    := number(request:get-parameter("s_dec", 0))
         let $sradius := number(request:get-parameter("s_radius", 0))
         return cs:execute($sra, $sdec, $sradius, true())
+    else if ($search = 'level') then
+        let $levels := request:get-parameter('l', ())
+        let $query := string-join((
+            $app:default-search-query || " AS t ",
+            string-join(for $level in $levels return "t.calib_level=" || $level, " OR ")),
+            " WHERE ")
+        return tap:execute($query, true())
     else if ($search = 'misc') then
         let $type  := request:get-parameter("type", "")
         let $query := if ($type = "monochromatic") then
