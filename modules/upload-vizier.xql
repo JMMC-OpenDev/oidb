@@ -84,6 +84,7 @@ return
         { comment {"vizier url: "||$url}}
         {
         let $urls := local:extract-files(xs:anyURI($url))
+        let $summary-data := local:summary-data($url)
         return
             ( comment {"oifits urls: "||string-join($urls," ")},        
             try {
@@ -94,7 +95,7 @@ return
                     (
                         (: published files -> L3 :) 
                         <calib_level> 3 </calib_level>, 
-                        local:summary-data($url)))
+                        $summary-data))
             } catch * {
             <error url="{$url}"> { $err:description } </error>
             })
