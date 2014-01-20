@@ -14,6 +14,8 @@ import module namespace httpclient="http://exist-db.org/xquery/httpclient";
 
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
 
+declare namespace abstracts="http://ads.harvard.edu/schema/abs/1.1/abstracts";
+
 (:~
  : Return a list of URLs to OIFits files from a VizieR catalog.
  : 
@@ -52,9 +54,25 @@ declare %private function local:summary-data($url as xs:anyURI) {
             let $collection := data($data//tr[position() = 1]/td[position() = 1])
             (: FIXME: page structure, element name :)
             let $bibref := data($data//A[starts-with(@HREF, "http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib")])
+            let $author := local:first-author($bibref)
             return (
                 <bib_reference> { $bibref } </bib_reference>,
+                <obs_creator_name> { $author } </obs_creator_name>,
                 <obs_collection> { $collection } </obs_collection> )
+};
+
+(: Base url for the SAO/NASA ADS :)
+declare variable $local:ADS_URL := "http://adsabs.harvard.edu/cgi-bin/nph-abs_connect?data_type=XML&amp;ref_stems="; 
+
+(:~
+ : Retrieve first author of publication with specified Bibcode.
+ : 
+ : @param $bibcode
+ : @return the name of the first author or empty string if not found
+ :)
+declare %private function local:first-author($bibref as xs:string) {
+    let $url := concat($local:ADS_URL, encode-for-uri($bibref))
+    return doc($url)//abstracts:author[1]/text()
 };
 
 let $cat := request:get-parameter("cat", "")
