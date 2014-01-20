@@ -280,7 +280,11 @@ declare %private function app:pre-defined-search() as node() {
     else if ($search = 'collection') then 
         (: Search for collection by name :)
         let $collection := request:get-parameter("obs_collection", "")
-        let $query      := concat($app:default-search-query, " AS t WHERE t.obs_collection='", $collection, "'")
+        let $author     := request:get-parameter("author", "")
+        let $query      := if ($collection != '') then
+                concat($app:default-search-query, " AS t WHERE t.obs_collection='", $collection, "'")
+            else
+                concat($app:default-search-query, " AS t WHERE t.t.obs_creator_name LIKE '%", $author,"%'")
         return tap:execute($query, true())
     else if ($search = 'instrument') then
         (: Search for observations with the specified instrument :)
