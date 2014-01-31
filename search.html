@@ -67,6 +67,33 @@
     </form>
     <form class="row form-inline" action="">
         <div class="span11">
+            Target name&#160;
+            <input name="target_name" type="text" class="templates:form-control"/>
+            <script type="text/javascript">
+                $('input[name="target_name"]')
+                    .attr('autocomplete', 'off')
+                    .typeahead( { 
+                        source: function(query, process) {
+                            jQuery.ajax({
+                                url: './modules/autocomplete.xql',
+                                type: 'GET',
+                                dataType: 'json',
+                                data: { 'column': 'target_name', 'search': query },
+                                success: function (resp) {
+                                    var items = [];
+                                    jQuery.each(resp, function (index, item) {
+                                        items.push(item);
+                                    });
+                                    return process(items);
+                                }});
+                        }});
+            </script>
+            <input type="hidden" name="search" value="targetname"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="span11">
             Custom query&#160;
             <input name="query" type="text" placeholder="ADQL Query" class="templates:form-control"/>
         </div>

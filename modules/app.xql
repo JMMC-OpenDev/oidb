@@ -290,7 +290,10 @@ declare %private function app:pre-defined-search() as node() {
         (: Search for observations with the specified instrument :)
         let $instrument := request:get-parameter("instrument_name", "")
         let $query      := concat($app:default-search-query, " AS t WHERE t.instrument_name LIKE '", $instrument, "%'")
-        let $x := util:log('warn', $query)
+        return tap:execute($query, true())
+    else if ($search = 'targetname') then
+        let $targetname := request:get-parameter("target_name", "")
+        let $query      := concat($app:default-search-query, " AS t WHERE t.target_name LIKE '%", $targetname, "%'")
         return tap:execute($query, true())
     else
         (: default or custom ADQL query :)
