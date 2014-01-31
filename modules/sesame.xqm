@@ -56,7 +56,7 @@ declare function sesame:resolve($names as xs:string+) as node() {
             (: check there is something returned for each name :)
             for $name in $names
             let $target := $response//httpclient:body/Sesame/Target[./name=$name]
-            return if (exists($target)) then
+            return if (exists($target) and exists($target/Resolver)) then
                     sesame:target($target)
                 else
                     <warning> No result for {$name} </warning>
