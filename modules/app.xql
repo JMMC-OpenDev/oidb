@@ -280,7 +280,7 @@ declare %private function app:pre-defined-search() as node() {
     else if ($search = 'collection') then 
         (: Search for collection by name :)
         let $collection := request:get-parameter("obs_collection", "")
-        let $author     := request:get-parameter("author", "")
+        let $author     := request:get-parameter("obs_creator_name", "")
         let $query      := if ($collection != '') then
                 concat($app:default-search-query, " AS t WHERE t.obs_collection='", $collection, "'")
             else

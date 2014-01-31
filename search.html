@@ -53,7 +53,7 @@
             <select data-template="app:select-collection"/>
             <input type="hidden" name="search" value="collection"/>
             or first author is&#160;
-            <input name="author" type="text" class="templates:form-control"/>
+            <input name="obs_creator_name" type="text" class="templates:form-control typeahead"/>
         </div>
         <button type="submit" class="span1 btn">Search</button>
     </form>
@@ -68,26 +68,7 @@
     <form class="row form-inline" action="">
         <div class="span11">
             Target name&#160;
-            <input name="target_name" type="text" class="templates:form-control"/>
-            <script type="text/javascript">
-                $('input[name="target_name"]')
-                    .attr('autocomplete', 'off')
-                    .typeahead( { 
-                        source: function(query, process) {
-                            jQuery.ajax({
-                                url: './typeahead/target_name',
-                                type: 'GET',
-                                dataType: 'json',
-                                data: { 'search': query },
-                                success: function (resp) {
-                                    var items = [];
-                                    jQuery.each(resp, function (index, item) {
-                                        items.push(item);
-                                    });
-                                    return process(items);
-                                }});
-                        }});
-            </script>
+            <input name="target_name" type="text" class="templates:form-control typeahead"/>
             <input type="hidden" name="search" value="targetname"/>
         </div>
         <button type="submit" class="span1 btn">Search</button>
@@ -99,6 +80,26 @@
         </div>
         <button type="submit" class="span1 btn">Search</button>
     </form>
+    <script type="text/javascript">
+        // turn on suggestion with Boostrap typeahead on text inputs
+        $('input.typeahead')
+            .attr('autocomplete', 'off')
+            .typeahead( { 
+                source: function(query, process) {
+                    jQuery.ajax({
+                        url: './typeahead/' + this.$element.attr('name'),
+                        type: 'GET',
+                        dataType: 'json',
+                        data: { 'search': query },
+                        success: function (resp) {
+                            var items = [];
+                            jQuery.each(resp, function (index, item) {
+                                items.push(item);
+                            });
+                            return process(items);
+                        }});
+                }});
+    </script>
     <h1>Results</h1>
 
     Meta-data will try to follow VO4OI proposal and Ivoa:ObsCore document (get metadata description in the associated <a href="http://www.ivoa.net/documents/ObsCore/">doc</a> )
