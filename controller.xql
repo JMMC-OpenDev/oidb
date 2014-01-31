@@ -33,6 +33,14 @@ else if (contains($exist:path, "/$shared/")) then
             <set-header name="Cache-Control" value="max-age=3600, must-revalidate"/>
         </forward>
     </dispatch>
+else if (starts-with($exist:path, "/typeahead")) then
+    (: forward to autocomplete for data source of typeahead enabled fields :)
+    (: /typeahead/xxx?search=yy for suggestions like yy on column xxx of database :)
+    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+        <forward url="{$exist:controller}/modules/autocomplete.xql">
+            <add-parameter name="column" value="{$exist:resource}"/>
+        </forward>
+    </dispatch>
 else
     (: everything else is passed through :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">

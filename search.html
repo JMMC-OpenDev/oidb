@@ -75,10 +75,10 @@
                     .typeahead( { 
                         source: function(query, process) {
                             jQuery.ajax({
-                                url: './modules/autocomplete.xql',
+                                url: './typeahead/target_name',
                                 type: 'GET',
                                 dataType: 'json',
-                                data: { 'column': 'target_name', 'search': query },
+                                data: { 'search': query },
                                 success: function (resp) {
                                     var items = [];
                                     jQuery.each(resp, function (index, item) {
