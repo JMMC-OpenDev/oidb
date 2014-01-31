@@ -18,6 +18,15 @@
     </form>
     <form class="row form-inline" action="">
         <div class="span11">
+            Near target&#160;
+            <input name="target_name" type="text" class="templates:form-control typeahead"/>,
+            Search radius[deg] = <input name="s_radius" type="number" size="1" value="1" class="templates:form-control"/>.
+            <input type="hidden" name="search" value="conesearch2"/>
+        </div>
+        <button type="submit" class="span1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="span11">
             <input name="type" value="monochromatic" type="radio" class="templates:form-control">Monochromatic</input>,
             <input name="type" value="polychromatic" type="radio" class="templates:form-control">Polychromatic</input>,
             <input name="type" value="kbandonly" type="radio" class="templates:form-control">K band only</input>,
@@ -62,14 +71,6 @@
             Observed with&#160;
             <select data-template="app:select-instrument"/>
             <input type="hidden" name="search" value="instrument"/>
-        </div>
-        <button type="submit" class="span1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="span11">
-            Target name&#160;
-            <input name="target_name" type="text" class="templates:form-control typeahead"/>
-            <input type="hidden" name="search" value="targetname"/>
         </div>
         <button type="submit" class="span1 btn">Search</button>
     </form>

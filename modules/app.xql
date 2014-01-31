@@ -10,6 +10,8 @@ import module namespace cs="http://apps.jmmc.fr/exist/apps/oidb/conesearch" at "
 
 import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
 
+import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
+
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
 (:~
@@ -233,6 +235,31 @@ declare %private function app:data-stats($data as node()) as node() {
 };
 
 (:~
+ : Resolve target from name and return its coordinates.
+ : 
+ : It is using the database first and if not found, try with the Sesame name
+ : resolver.
+ : 
+ : @param $name the name of the target
+ : @return an empty sequence if unknown target or sequence with sra and sdec
+ :)
+declare %private function app:target-coords($target as xs:string) {
+    if ($target != '') then
+        (: first try resolution on database :)
+        let $query := "SELECT TOP 1 t.s_ra, t.s_dec FROM " || $config:sql-table || " AS t WHERE t.target_name='" || $target || "'"
+        let $result := tap:execute($query, false())//*:TD/text()
+        return if (empty($result)) then
+            (: no result in database, resolve name with Sesame :)
+            try { sesame:resolve($target)//target/(@s_ra, @s_dec) } catch * { () }
+        else
+            (: target found in database :)
+            $result
+    else
+        (: incorrect target name :)
+        ()
+};
+
+(:~
  : Default ADQL request for the search page: display everything
  :)
 declare variable $app:default-search-query := "SELECT * FROM " || $config:sql-table;
@@ -250,6 +277,17 @@ declare %private function app:pre-defined-search() as node() {
         let $sdec    := number(request:get-parameter("s_dec", 0))
         let $sradius := number(request:get-parameter("s_radius", 0))
         return cs:execute($sra, $sdec, $sradius, true())
+    else if ($search ='conesearch2') then
+        let $name    := request:get-parameter("target_name", "")
+        let $sradius := number(request:get-parameter("s_radius", 1))
+        let $sra-sdec := app:target-coords($name)
+        return if (empty($sra-sdec)) then
+            (: no coordinates found for given name :)
+            (: TODO: print message :)
+            let $msg := util:log('info', "Target '" || $name || "' not found")
+            return <x/>
+        else
+            cs:execute($sra-sdec[1], $sra-sdec[2], $sradius, true())
     else if ($search = 'level') then
         let $levels := request:get-parameter('l', ())
         let $query := string-join((
@@ -290,10 +328,6 @@ declare %private function app:pre-defined-search() as node() {
         (: Search for observations with the specified instrument :)
         let $instrument := request:get-parameter("instrument_name", "")
         let $query      := concat($app:default-search-query, " AS t WHERE t.instrument_name LIKE '", $instrument, "%'")
-        return tap:execute($query, true())
-    else if ($search = 'targetname') then
-        let $targetname := request:get-parameter("target_name", "")
-        let $query      := concat($app:default-search-query, " AS t WHERE t.target_name LIKE '%", $targetname, "%'")
         return tap:execute($query, true())
     else
         (: default or custom ADQL query :)
