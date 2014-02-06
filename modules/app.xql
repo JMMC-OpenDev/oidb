@@ -21,7 +21,7 @@ import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateu
  : @param $npages the total number to pages returned for the request
  : @return an XHTML fragment with pagination elements
  :)
-declare %private function app:pagination($page as xs:integer, $npages as xs:integer) {
+declare %private function app:pagination($page as xs:integer, $npages as xs:integer) as node() {
     (: rebuild a string with all parameters but 'page' :)
     let $parameters := string-join(
         for $n in request:get-parameter-names() 
@@ -366,13 +366,14 @@ function app:search($node as node(), $model as map(*),
     let $nrows   := count($data//tr)
 
     let $stats := app:data-stats($data)
+    let $npages := ceiling($nrows div $perpage)
     return <div>
         <div> 
             { string($stats/@nobservations) } observations from
             { string($stats/@noifitsfiles) } oifits files
             { if ($stats[@nprivatefiles='0']) then () else "(" || string($stats/@nprivatefiles) || " private)" }
         </div>
-        <div>{ app:pagination($page, ceiling($nrows div $perpage)) }</div>      
+        <div>{ app:pagination($page, $npages) }</div>      
         <div><table class="table table-striped table-bordered table-hover">
             <!-- <caption> Results for <code> { $query } </code> </caption> -->
             <thead>
@@ -382,6 +383,7 @@ function app:search($node as node(), $model as map(*),
                 { app:transform-table($rows, $columns) }
             </tbody>
         </table></div>
+        <div>{ app:pagination($page, $npages) }</div>      
     </div>
 };
 
