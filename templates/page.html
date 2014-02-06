@@ -5,53 +5,49 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <meta data-template="config:app-meta"/>
         <link rel="shortcut icon" href="resources/images/favicon.ico"/>
-        <link rel="stylesheet" type="text/css" href="$shared/resources/css/bootstrap.min.css"/>
-        <link rel="stylesheet" type="text/css" href="$shared/resources/css/bootstrap-responsive.min.css"/>
+        <link rel="stylesheet" type="text/css" href="resources/css/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-theme.min.css"/>
         <link rel="stylesheet" type="text/css" href="resources/css/style.css"/>
         <script type="text/javascript" src="$shared/resources/scripts/jquery/jquery-1.7.1.min.js"/>
-        <script type="text/javascript" src="$shared/resources/scripts/loadsource.js"/>
-        <script type="text/javascript" src="$shared/resources/scripts/bootstrap.min.js"/>
+        <script type="text/javascript" src="resources/scripts/bootstrap.min.js"/>
+        <script type="text/javascript" src="resources/scripts/sampjs/samp.js"/>
+        <script type="text/javascript" src="resources/scripts/samp-broadcast.js"/>
     </head>
     <body id="body">
-        <div class="navbar">
-            <div class="navbar-inner">
-                <div class="container">
-                    <a data-template="config:app-title" class="brand" href="./index.html">App Title</a>
-                    <ul class="nav">
-                        <li class="dropdown" id="about">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Home <b class="caret"/>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li>
-                                    <a href="index.html">Home</a>
-                                </li>
-                                <li>
-                                    <a href="search.html">
-                                        <i class="icon-search"/> Search</a>
-                                </li>
-                                <li>
-                                    <a href="submit.html">
-                                        <i class="icon-upload"/> Submit new data</a>
-                                </li>
-                                <li class="divider"/>
-                                <li>
-                                    <a href="about.html">
-                                        <i class="icon-info-sign"/> About</a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                    <ul class="nav pull-right">
-                        <li>
-                            <a href="#">
-                                <i class="icon-warning-sign"/>
-                                <span class="text-warning"> prototype under development, do not use in production</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="navbar-header">
+                <!-- Brand and toggle get grouped for better mobile display -->
+                <a data-template="config:app-title" class="navbar-brand" href="#">App Title</a>
             </div>
-        </div>
+            <ul class="nav navbar-nav">
+                <li class="dropdown" id="about">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Home <b class="caret"/>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="index.html">Home</a>
+                        </li>
+                        <li>
+                            <a href="search.html">
+                                <span class="glyphicon glyphicon-search"/> Search</a>
+                        </li>
+                        <li>
+                            <a href="vega.html">
+                                <span class="glyphicon glyphicon-search"/> Search VEGA dataset</a>
+                        </li>
+                        <li>
+                            <a href="submit.html">
+                                <span class="glyphicon glyphicon-upload"/> Submit new data</a>
+                        </li>
+                        <li class="divider"/>
+                        <li>
+                            <a href="about.html">
+                                <i class="glyphicon glyphicon-info-sign"/> About</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
         <div id="content" class="container-fluid"/>
         <script type="text/javascript">
             $(document).ready(function() {
