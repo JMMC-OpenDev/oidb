@@ -47,6 +47,23 @@ function about:version($node as node(), $model as map(*)) as xs:string {
 };
 
 (:~
+ : Return the current version number of the application as an attribute.
+ : 
+ : It does not rely on model like about:version above.
+ : 
+ : @param $node
+ : @param $model
+ : @param $attrname the name wanted forthe returned attribute
+ : @return an attribute of given name with value equal to application version.
+ :)
+declare
+    %templates:wrap
+function about:version-as-attribute($node as node(), $model as map(*), $attrname as xs:string) as attribute() {
+    let $changes := doc($config:app-root || '/repo.xml')//change
+    return attribute { $attrname }  { $changes[@version=max($changes/@version)]/@version }
+};
+
+(:~
  : Return the changelog associated with a verion.
  : 
  : It makes use of the current $model map to get the change.
