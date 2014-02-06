@@ -138,12 +138,15 @@ declare %private function app:format-mjd($mjd as xs:double) {
 declare %private function app:transform-table($rows as node()*, $columns as xs:string*) as item()* {
     for $row in $rows
     return <tr> 
-        <td> {
-            element {"a"} {
-            attribute { "href" } { "show.html?id=" || $row/td[@colname='id'] },
-            <i class="icon-zoom-in"/>
-            }
-        } </td>
+        <td>
+            <div class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li role="presentation"><a href="show.html?id={$row/td[@colname='id']}"><i class="glyphicon glyphicon-zoom-in"/> Details</a></li>
+                    <li class="divider" role="presentation"></li>
+                </ul>
+            </div>
+        </td>
         {
         for $cell in $row/td[@colname=$columns]
         return <td> {
@@ -162,8 +165,9 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
                     return app:format-mjd($cell)
                 default
                     return translate(data($cell)," ","&#160;")
-        } </td>
-    } </tr>
+            } </td>
+        }
+    </tr>
 };
 
 
