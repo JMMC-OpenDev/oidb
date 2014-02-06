@@ -45,7 +45,7 @@ declare variable $sesame:SCHEMA := doc('/db/apps/oidb/resources/schemas/sesame_4
  :)
 declare function sesame:resolve($names as xs:string+) as node() {
     <sesame> {
-        let $uri := concat($sesame:SESAME_URL, string-join($names, '&amp;'))
+        let $uri := concat($sesame:SESAME_URL, string-join(for $name in $names return encode-for-uri($name), '&amp;'))
         let $response := httpclient:get($uri, false(), <headers/>)
         
         return if ($response/@statusCode != 200 or $response/httpclient:body/@type != "xml") then
