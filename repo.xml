@@ -10,17 +10,19 @@
     <target>oidb</target>
     <prepare>pre-install.xql</prepare>
     <finish/>
-    <deployed>2013-12-21T07:18:05.58+01:00</deployed>
     <note>Pay attention to change modules/config.xqm 
     with sql configuration variables: config:sql-url, config:sql-username, config:sql-password and config:sql-table 
     with tap endpoint : config:TAP_DSA_URL
     </note>
     <changelog>
-        <change xmlns="" version="0.0">
-            <h3>WRITE IS THIS repo.xml MESSAGE DISPLAYED?</h3>
+        <change xmlns="" version="0.1">
+            <h3>Prototype prior to first group meeting</h3>
             <ul>
-                <li>Accept an empty votable provided by TAP service (dsa)</li>
-                <li>Add release data for secure records without obs_release_date</li>
+                <li>Add SAMP export (SAMPjs)</li>
+                <li>Add detail page with full display of metadata</li>
+                <li>Add predefined searches (Cone Search with name resolver)</li>
+                <li>Add pagination of results</li>
+                <li>Initial test with user authentification</li>
                 <li>To fix:
                 <ul>
                 t_min and t_max have the same values    
@@ -28,5 +30,14 @@
                 </li>
             </ul>
         </change>
+        <change xmlns="" version="0.0">
+            <h3>Initial prototype</h3>
+            <ul>
+                <li>First tries to ingest remote data (VEGA, CDS collections, PIONIER)</li>
+                <li>Accept an empty votable provided by TAP service (dsa)</li>
+                <li>Add release data for secure records without obs_release_date</li>
+            </ul>
+        </change>
     </changelog>
+    <repo:deployed xmlns:repo="http://exist-db.org/xquery/repo">2014-01-10T13:04:03.27+01:00</repo:deployed>
 </meta>
