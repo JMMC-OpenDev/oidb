@@ -32,7 +32,7 @@ declare variable $sesame:SESAME_URL := "http://cdsweb.u-strasbg.fr/cgi-bin/nph-s
 (:declare variable $sesame:SESAME_URL := "http://vizier.cfa.harvard.edu/viz-bin/nph-sesame/-ox/S?";:)
 
 (: Sesame 4X XML Schema for validation :)
-declare variable $sesame:SCHEMA := doc('/db/apps/oidb/data/schemas/sesame_4x.xsd');
+declare variable $sesame:SCHEMA := doc('/db/apps/oidb/resources/schemas/sesame_4x.xsd');
 
 (:~
  : Resolve names with Sesame.
