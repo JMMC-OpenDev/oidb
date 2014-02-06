@@ -9,6 +9,8 @@ xquery version "3.0";
  :)
 module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega";
 
+import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+
 import module namespace util="http://exist-db.org/xquery/util";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
@@ -17,6 +19,9 @@ declare namespace xsd="http://org.apache.axis2/xsd";
 
 (: Base url for the VegaWS service - HTTP port :)
 declare variable $vega:VEGAWS_URL := "http://vegaobs-ws.oca.eu/axis2/services/VegaWs.VegaWsHttpport/VegaWs/";
+
+(: Base URI for the storage of VEGA data :)
+declare variable $vega:data-root := $config:data-root || '/vega';
 
 (:~
  : Make use of the VegaObs web service to retrieve the list of user.
@@ -139,7 +144,7 @@ declare function vega:instrument-mode($row as node()) as xs:string {
  : @return a sequence of names
  :)
 declare function vega:get-star-hds($dataStatus as xs:string*) as item()* {
-    let $collection := collection('/db/apps/oidb/data/vega')
+    let $collection := collection($vega:data-root)
     let $status := if (empty($dataStatus)) then 
             distinct-values($collection//td[@colname='DataStatus']/text()) 
         else
@@ -160,11 +165,10 @@ declare function vega:get-all-star-hds() as item()* {
  : Retrieve data from the VegaObs database and store locally.
  : It currently requests all data with status and status different from 'Trash'.
  : 
+ : @param $collection destination collection where to put data
  : @return a sequence of path to new resources.
  :)
-declare function vega:pull() as item()* {
-    let $collection := xmldb:create-collection("/db/apps/oidb/data", "vega")
-    
+ declare function vega:pull($collection as xs:string) as item()* {
     let $published        := vega:nodes-from-field-name(vega:get-observations-by-data-status('Published'))
     let $wait-publication := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitPublication'))
     let $wait-other-data  := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitOtherData'))

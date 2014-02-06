@@ -29,7 +29,8 @@ declare variable $config:app-root :=
         substring-before($modulePath, "/modules")
 ;
 
-declare variable $config:data-root := $config:app-root || "/data";
+(: store data in collection not overwritten when installing app :)
+declare variable $config:data-root := $config:app-root || "-data";
 
 declare variable $config:repo-descriptor := doc(concat($config:app-root, "/repo.xml"))/repo:meta;
 

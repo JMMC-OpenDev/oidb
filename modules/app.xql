@@ -537,7 +537,7 @@ declare
     %templates:default("starHD", "HD213306")
 function app:vega-L3($node as node(), $model as map(*), $starHD as xs:string) {
     <tbody> {
-        for $row in doc('/db/apps/oidb/data/vega/published.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
+        for $row in doc($vega:data-root || '/published.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
         return app:vega-L3-row($row)
     } </tbody>
 };
@@ -546,14 +546,14 @@ declare
     %templates:default("starHD", "HD213306")
 function app:vega-L0($node as node(), $model as map(*), $starHD as xs:string) {
     <tbody> {
-        for $row in doc('/db/apps/oidb/data/vega/wait-processing.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
+        for $row in doc($vega:data-root || '/wait-processing.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
         return app:vega-L0-row($row)
     } </tbody>
 };
 
 declare function app:vega-all($node as node(), $model as map(*), $starHD as xs:string?) {
     <tbody> {
-        let $rows := collection('/db/apps/oidb/data/vega')//votable/tr
+        let $rows := collection($vega:data-root)//votable/tr
         let $rows := if ($starHD) then $rows[./td[@colname='StarHD' and ./text()=$starHD]] else $rows
         for $row in $rows
         order by $row/td[@colname='StarHD']/text()
