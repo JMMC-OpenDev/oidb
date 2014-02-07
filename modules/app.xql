@@ -128,6 +128,36 @@ declare %private function app:format-mjd($mjd as xs:double) {
     <a href="#" title="{$mjd}">{substring(string(jmmc-dateutil:MJDtoISO8601($mjd)),0,20)}</a>
 };
 
+(:~
+ : Helper to build an URL for a given target on SIMBAD.
+ : 
+ : @param $name
+ : @return an URL to SIMBAD for the specified target as string
+ :)
+declare %private function app:simbad-url($name as xs:string) as xs:string {
+    concat("http://simbad.u-strasbg.fr/simbad/sim-id?NbIdent=1&amp;submit=submit+id&amp;Ident=NAME%20", encode-for-uri($name))
+};
+
+(:~
+ : Helper to build an URL for the page at CDS describing the paper
+ : corresponding to the given bibliographic reference.
+ : 
+ : @param $bibref 
+ : @return an URL to CDS bibliographic service as string
+ :)
+declare %private function app:cdsbib-url($bibref as xs:string) as xs:string {
+    concat("http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib?", encode-for-uri($bibref))
+};
+
+(:~
+ : Helper to build an URL to a given catalogue on VizieR.
+ : 
+ : @param $catalogue catalogue name
+ : @return an URL to the VizieR astronomical catalogue as string
+ :)
+declare %private function app:vizcat-url($catalogue as xs:string) as xs:string {
+    concat("http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=", encode-for-uri($catalogue))
+};
 
 (:~
  : Transform a VOTable TableData rows into HTML
@@ -143,6 +173,14 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/></a>
                 <ul class="dropdown-menu" role="menu">
                     <li role="presentation"><a href="show.html?id={$row/td[@colname='id']}"><i class="glyphicon glyphicon-zoom-in"/> Details</a></li>
+                    <li role="presentation"><a href="{ app:simbad-url($row/td[@colname='target_name']) }"><i class="glyphicon glyphicon-globe"/> View in SIMBAD</a></li>
+                    {
+                        let $bibref := $row/td[@colname='bib_reference']
+                        return if ($bibref) then
+                            <li role="presentation"><a href="{ app:cdsbib-url($bibref) }"><i class="glyphicon glyphicon-book"/> Paper at CDS</a></li>
+                        else
+                            ()
+                    }
                     <li class="divider" role="presentation"></li>
                 </ul>
             </div>
@@ -416,9 +454,9 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                 if ($td[@colname='access_url']) then 
                     <td> <a href="{ $td/text() }"> { tokenize($td/text(), "/")[last()] }</a></td>
                 else if ($td[@colname='obs_collection' and starts-with($td/text(), 'J/')]) then
-                    <td> <a href="{ concat("http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=", encode-for-uri($td/text())) }">{ $td/text() }</a></td>
+                    <td> <a href="{ app:vizcat-url($td/text()) }">{ $td/text() }</a></td>
                 else if ($td[@colname='bib_reference']) then
-                    <td> <a href="{ concat("http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib?", encode-for-uri($td/text())) }">{ $td/text() }</a></td>
+                    <td> <a href="{ app:cdsbib-url($td/text()) }">{ $td/text() }</a></td>
                 else
                     $td
             } </tr>
