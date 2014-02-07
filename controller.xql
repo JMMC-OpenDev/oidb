@@ -1,5 +1,9 @@
 xquery version "3.0";
 
+import module namespace request="http://exist-db.org/xquery/request";
+
+import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "modules/login.xqm";
+
 declare variable $exist:path external;
 declare variable $exist:resource external;
 declare variable $exist:controller external;
@@ -15,9 +19,44 @@ else if ($exist:path eq "/") then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="index.html"/>
     </dispatch>
+else if ($exist:path eq "/submit.html") then
+    (: require authentification for submitting new data :)
+    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+        { 
+            login:set-user(),
+            if (request:get-attribute("user")) then
+                (: user logged in, can proceeed to submit page :)
+                ()
+            else
+                (: unknown user, log in first :)
+                <forward url="{$exist:controller}/login.html"/>
+        }
+        <view>
+            <forward url="{$exist:controller}/modules/view.xql">
+                <set-header name="Cache-Control" value="no-cache"/>
+            </forward>
+        </view>
+    </dispatch>
+else if (starts-with($exist:path, '/modules/upload-')) then (
+    (: also protect the submit endpoints to prevent anonymous submit :)
+    login:set-user(),
+    if (request:get-attribute("user")) then
+        <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+            <cache-control cache="yes"/>
+        </dispatch>
+    else
+        (: unauthenticated direct access to endpoint :)
+        <response>
+            <error>Authentication required</error>
+        </response>
+    )
 else if (ends-with($exist:resource, ".html")) then
     (: the html page is run through view.xql to expand templates :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+        {
+            (: user may have signed out :)
+            login:set-user()
+        }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
                 <!-- hide prototype warning on the feedback page -->

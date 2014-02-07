@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div id="login">
+        <form action="" method="post" name="login" class="login">
+            <!-- <div class="alert-error/alert-success/alert-info"></div> -->
+            <fieldset id="body">
+                <fieldset>
+                    <label for="email">Username</label>
+                    <div class="controls">
+                        <div class="input-group">
+                            <span class="input-group-addon glyphicon glyphicon-user"/>
+                            <input placeholder="Username" type="text" name="user" id="user" class="form-control"/>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <label for="password">Password</label>
+                    <div class="controls">
+                        <div class="input-group">
+                            <span class="input-group-addon glyphicon glyphicon-lock"/>
+                            <input placeholder="Password" type="password" name="password" id="password" class="form-control"/>
+                        </div>
+                    </div>
+                </fieldset>
+            </fieldset>
+            <!-- <a href="javascript:void(0);" onclick="toggleVisibility('forgot_wrap', 'login_wrap');">Forgot your password?</a> -->
+            <div class="form-group">
+                <input class="btn btn-primary btn-lg" name="commit" type="submit" id="login" value="Log in"/>
+                    <!--
+                    <div class="span3" style="padding-top:10px">
+                        <label class="checkbox" for="user_remember_me">
+                            <input name="user[remember_me]" type="hidden" value="0"/>
+                            <input id="user_remember_me" name="user[remember_me]" type="checkbox" value="1"/>
+                            Remember me on this computer
+                        </label>
+                    </div>
+                    -->
+            </div>
+        </form>
+    </div>
+</div>
