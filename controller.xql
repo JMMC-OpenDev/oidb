@@ -21,7 +21,7 @@ else if (ends-with($exist:resource, ".html")) then
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
                 <!-- hide prototype warning on the feedback page -->
-                <add-parameter name="warning" value="{ if ($exist:resource = "feedback.html") then "" else true() }"/>
+                <set-attribute name="warning" value="{ if ($exist:resource = "feedback.html") then "" else true() }"/>
             </forward>
         </view>
 		<error-handler>
