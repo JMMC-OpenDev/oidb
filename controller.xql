@@ -33,6 +33,7 @@ else if ($exist:path eq "/submit.html") then
         }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
+                <set-attribute name="warning" value="true"/>
                 <set-header name="Cache-Control" value="no-cache"/>
             </forward>
         </view>
