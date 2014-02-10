@@ -37,4 +37,32 @@
         <input type="hidden" name="applicationSpecificInformation" value="None"/>
         <button type="submit" class="btn btn-default">Submit</button>
     </form>
+    <script type="text/javascript">
+        // search for a cookie of the given name
+        function get_cookie(name) {
+            var cookies = document.cookie.split(';');
+            for (var i in cookies) {
+                var cookie = cookies[i];
+                if (cookie.indexOf(name + "=") == 0) {
+                    return cookie.slice(name.length + 1);
+                }
+            }
+            return false;
+        };
+
+        // on load, try filling the email field with persisted value
+        $(function () {
+            var email = get_cookie("email");
+            if (email) $('#userEmail').val(email);
+        });
+        // on submit, persist the email of the user for 15 days as cookie
+        $('form').submit(function (event) {
+            var d = new Date();
+            d.setTime(d.getTime()+(15*24*60*60*1000));
+            document.cookie = 
+                "email=" + $("#userEmail").val() + "; " +
+                "expires=" + d.toGMTString() + "; " +
+                "path=" + window.location.pathname;
+        });
+    </script>
 </div>
