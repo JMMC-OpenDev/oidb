@@ -34,12 +34,13 @@ import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace util = "http://exist-db.org/xquery/util";
 
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
+import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 (: Retrieve file from multi-part request :)
 let $uploaded-file := request:get-uploaded-file-data('file')
 let $data := util:parse(util:base64-decode(xs:string($uploaded-file)))
 let $db_handle := upload:getDbHandle()
-return
+let $response :=
     <response> {
         try {
             (: optional elements :)
@@ -62,3 +63,5 @@ return
             <error> { $err:description } </error>
         }
     } </response>
+
+return ( log:submit($response), $response )

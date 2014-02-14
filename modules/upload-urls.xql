@@ -10,12 +10,13 @@ xquery version "3.0";
  :)
 
 import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
+import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 (: Split parameter into individual URLs :)
 let $urls := tokenize(request:get-parameter("urls", ""), "\s")
 let $db_handle := upload:getDbHandle()
 
-return
+let $response :=
     <response> {
         for $url in $urls
         where $url
@@ -26,3 +27,5 @@ return
                 <error url="{$url}"> { $err:description } </error>
             })
     } </response>
+
+return (log:submit($response), $response)

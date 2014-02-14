@@ -13,6 +13,7 @@ xquery version "3.0";
 import module namespace httpclient="http://exist-db.org/xquery/httpclient";
 
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
+import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 declare namespace abstracts="http://ads.harvard.edu/schema/abs/1.1/abstracts";
 
@@ -79,7 +80,7 @@ let $cat := request:get-parameter("cat", "")
 let $url := concat("http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=",encode-for-uri($cat))
 let $db_handle := upload:getDbHandle()
 
-return
+let $response :=
     <response> 
         { comment {"vizier url: "||$url}}
         {
@@ -101,3 +102,5 @@ return
             })
         }
     </response>
+
+return ( log:submit($response), $response )
