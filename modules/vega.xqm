@@ -134,7 +134,7 @@ declare function vega:instrument-mode($row as node()) as xs:string {
         $lambda,
         '-',
         $configcam,
-        if ($polar='POLAR_OFF') then '' else '-Polar')
+        if ($polar='POL_OFF') then '' else '-Polar')
 };
 
 (:~
