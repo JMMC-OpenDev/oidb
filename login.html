@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div id="login">
-        <form action="" method="post" name="login" class="login">
+        <form action="" method="post" name="login" class="login col-md-2">
             <!-- <div class="alert-error/alert-success/alert-info"></div> -->
             <fieldset id="body">
                 <fieldset>
@@ -23,9 +23,12 @@
                     </div>
                 </fieldset>
             </fieldset>
-            <!-- <a href="javascript:void(0);" onclick="toggleVisibility('forgot_wrap', 'login_wrap');">Forgot your password?</a> -->
+            <div>
+                <a href="https://apps.jmmc.fr/account/#getPW">Forgot your password?</a>
+            </div>
             <div class="form-group">
-                <input class="btn btn-primary btn-lg" name="commit" type="submit" id="login" value="Log in"/>
+                <button class="btn btn-primary btn-lg btn-block" name="commit" type="submit" id="login">Log in</button>
+                <a href="https://apps.jmmc.fr/account/#register" class="btn btn-default btn-lg active btn-block" role="button">Register</a>
                     <!--
                     <div class="span3" style="padding-top:10px">
                         <label class="checkbox" for="user_remember_me">
