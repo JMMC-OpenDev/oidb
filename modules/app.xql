@@ -598,3 +598,28 @@ declare function app:vega-all($node as node(), $model as map(*), $starHD as xs:s
         return app:vega-all-row($row)
     } </tbody>
 };
+
+(:~
+ : Add a new attribute of given name and value to the node.
+ : 
+ : @param $elt the element
+ : @param the name of the attribute
+ : @param the value of the attribute
+ : @return a copy of the passed element with the new attribute
+ :)
+declare %private function app:add-attribute($elt as element(), $name as xs:string, $value as xs:string?) as element() {
+    element { node-name($elt) } { $elt/@*, attribute { $name } { $value }, $elt/node() }
+};
+
+import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "login.xqm";
+
+(:~
+ : Set the value of the passed input element to the email of the current user.
+ : 
+ : @param $node
+ : @param $model
+ : @return a copy of the element with email as default value
+ :)
+declare function app:input-user-email($node as node(), $model as map(*)) {
+    app:add-attribute($node, 'value', login:user-email())
+};

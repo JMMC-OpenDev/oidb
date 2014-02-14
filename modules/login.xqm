@@ -72,3 +72,14 @@ declare function login:set-user() as empty() {
             (: already logged in? :)
             login:get-credentials()
 };
+
+(:~
+ : Return the email address of the current user, if any.
+ : 
+ : @return an email address or nothing if no user
+ :)
+declare function login:user-email() as xs:string? {
+    let $user := session:get-attribute("user")
+    (: using email to ask for the email! :)
+    return jmmc-auth:getInfo($user)//email
+};
