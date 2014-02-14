@@ -14,6 +14,11 @@ import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xq
 
 (: Split parameter into individual URLs :)
 let $urls := tokenize(request:get-parameter("urls", ""), "\s")
+(:  other parameters, turned into additional metadata :)
+let $more-columns := ("obs_collection", "calib_level", "bib_reference", "obs_creator_name")
+let $more :=
+    for $p in request:get-parameter-names()[.=$more-columns]
+    return element { $p } { request:get-parameter($p, '') }
 let $db_handle := upload:getDbHandle()
 
 let $response :=
@@ -22,7 +27,7 @@ let $response :=
         where $url
         return ( 
             try {
-                upload:upload-uri($db_handle, xs:anyURI($url), ())
+                upload:upload-uri($db_handle, xs:anyURI($url), $more)
             } catch * {
                 <error url="{$url}"> { $err:description } </error>
             })
