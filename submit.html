@@ -3,36 +3,102 @@
     <div class="page-header">
         <h1>Pushing data into the database</h1>
     </div>
-    <h2>Submit L3 OIFits collection from <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>
-    </h2>
-    <form method="post" action="modules/upload-vizier.xql">
-        <div class="alert alert-info">
-            <strong>TODO:</strong> retrieve bibcode, collection name
+    <div class="panel panel-default">
+        <h2 class="panel-heading">From OIFits files...</h2>
+        <form action="modules/upload-urls.xql" method="post" name="oifits" class="panel-body">
+            <p>
+                Add public, remotely available OIFits files. The files are retrieved from the specified URLs and analyzed to extract the relevant metadata for the database.
+                At the moment the submitted material is considered public.
+            </p>
+            <fieldset>
+                <label for="obs_collection">Collection name</label>
+                <div class="controls">
+                    <input name="obs_collection" type="text"/>
+                </div>
+            </fieldset>
+            <fieldset>
+                <label for="calib_level">Calibration level (0,1,2,3)</label>
+                <div class="controls">
+                    <input name="calib_level" type="number" min="0" max="3" step="1"/>
+                </div>
+            </fieldset>
+            <fieldset>
+                <label for="bib_reference">Bibliographic reference</label>
+                <div class="controls">
+                    <input name="bib_reference" type="text"/>
+                </div>
+            </fieldset>
+            <!-- add data_rights and obs_release_data -->
+            <fieldset>
+                <label for="obs_creator_name">Creator name</label>
+                <div class="controls">
+                    <input name="obs_creator_name" type="text"/>
+                </div>
+            </fieldset>
+            <fieldset>
+                <label for="urls">File URLs</label>
+                <div class="controls">
+                    <textarea name="urls" placeholder="One URL per file to analyze, whitespace separated" rows="8" class="col-md-12"/>
+                </div>
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-primary btn-lg" name="submit" type="submit" id="oifits">Add</button>
+            </div>
+        </form>
+    </div>
+    <div class="panel panel-default">
+        <h2 class="panel-heading">From a collection of OIFits files on <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>...</h2>
+        <form action="modules/upload-vizier.xql" method="post" name="vizier" class="panel-body">
+            <p>
+                The <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a> database contains catalogs of observations associated with paper.
+                Given the id of such a catalog, the service can retrieve the files and other data from the associated catalog description.
+                See also ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/549">#549 - Permit upload of OIFits L3 collection attached to article</a>.
+            </p>
+            <p>
+                For example catalog named <a href="http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=J%2FA%2BA%2F545%2FA130">J/A+A/545/A130</a>.
+            </p>
+            <!-- <div class="alert-error/alert-success/alert-info"></div> -->
+            <fieldset>
+                <label for="cat">Catalog</label>
+                <div class="controls">
+                    <input name="cat" placeholder="Paste the catalog name"/>
+                </div>
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-primary btn-lg" name="submit" type="submit" id="vizier">Add</button>
+            </div>
+        </form>
+    </div>
+    <div class="panel panel-default">
+        <h2 class="panel-heading">From metadata file...</h2>
+        <form action="modules/upload-meta.xql" method="post" name="metadata" class="panel-body">
+            <p>
+                The user can also choose to process his observations locally and upload only their metadata by submitting a file of metadata in XML format.
+            </p>
+            <p>
+                A <a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbPionier">wiki page</a> is documenting the file format.
+                See also ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/550">#550 - Upload of preprocessed metadata (L0, L2, L3)</a>.
+            </p>
+            <fieldset>
+                <label for="file">Metadata file</label>
+                <input name="file" type="file" placeholder="Drop file here or select a file to upload"/>
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-primary btn-lg" name="submit" type="submit" id="metadata">Upload</button>
+            </div>
+        </form>
+    </div>
+    <div class="panel panel-default">
+        <h2 class="panel-heading">From an external database/service...</h2>
+        <div class="panel-body">
+            <p>
+                The service can retrieve data from other databases and services.
+                At the moment only the retrieval of VEGA observation from the <a href="http://vegaobs-ws.oca.eu/">VegaObs database and Web Service</a> is implemented.
+                This operation is manual and performed by an administrator of the application.
+            </p>
+            <p>
+                See ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/557">#557 - Provide system to upload from external databases</a> and this <a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbVega">wiki page</a>.
+            </p>
         </div>
-        <input class="span6" name="cat" placeholder="Paste the catalog name"/>
-        <br/>
-        <button class="btn">Add collection</button>
-    </form>
-    <h2>Submit <abbr title="Uniform Resource Locator">URL</abbr>s of remote files</h2>
-    <form method="POST" action="modules/upload-urls.xql">
-        <div class="alert alert-info">
-            <strong>TODO:</strong> ask fields for collection name, contact info, public status (embargo delay choice (default implemented one is 1Year) after last observation time) , calib_level or bib reference
-        </div>
-        <input name="collection" placeholder="obs_collection"/>
-        <input name="contact" placeholder="contact"/>
-        <input name="calib_level" placeholder=""/>
-        <input name="bib_reference" placeholder=""/>
-        <textarea name="urls" placeholder="Fill with one url per file to upload (whitespace separated)" rows="8" class="span10"/>
-        <br/>
-        <button class="btn">Add URLs</button>
-    </form>
-    <h2>Upload metadata file</h2>
-    <form method="POST" action="modules/upload-meta.xql" enctype="multipart/form-data">
-        <div class="alert alert-info">
-            <strong>TODO:</strong> provide template or document required fields
-        </div>
-        <input class="span10" type="file" name="file" placeholder="Drop file here or click on the button to select a file to upload"/>
-        <br/>
-        <button class="btn">Add data</button>
-    </form>
+    </div>
 </div>
