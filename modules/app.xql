@@ -176,7 +176,7 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
                     <li role="presentation"><a href="{ app:simbad-url($row/td[@colname='target_name']) }"><i class="glyphicon glyphicon-globe"/> View in SIMBAD</a></li>
                     {
                         let $bibref := $row/td[@colname='bib_reference']
-                        return if ($bibref) then
+                        return if ($bibref/node()) then
                             <li role="presentation"><a href="{ app:cdsbib-url($bibref) }"><i class="glyphicon glyphicon-book"/> Paper at CDS</a></li>
                         else
                             ()
@@ -455,8 +455,8 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     <td> <a href="{ $td/text() }"> { tokenize($td/text(), "/")[last()] }</a></td>
                 else if ($td[@colname='obs_collection' and starts-with($td/text(), 'J/')]) then
                     <td> <a href="{ app:vizcat-url($td/text()) }">{ $td/text() }</a></td>
-                else if ($td[@colname='bib_reference']) then
-                    <td> <a href="{ app:cdsbib-url($td/text()) }">{ $td/text() }</a></td>
+                else if ($td[@colname='bib_reference']/node()) then
+                    <td> <a href="{ app:cdsbib-url($td) }">{ $td/text() }</a></td>
                 else
                     $td
             } </tr>
