@@ -43,7 +43,7 @@ else if (starts-with($exist:path, '/modules/upload-')) then (
     login:set-user(),
     if (request:get-attribute("user")) then
         <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-            <cache-control cache="yes"/>
+            <cache-control cache="no"/>
         </dispatch>
     else
         (: unauthenticated direct access to endpoint :)
