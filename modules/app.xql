@@ -139,14 +139,14 @@ declare %private function app:simbad-url($name as xs:string) as xs:string {
 };
 
 (:~
- : Helper to build an URL for the page at CDS describing the paper
- : corresponding to the given bibliographic reference.
+ : Helper to build an URL for the page at the ADS abstract service for
+ : the given bibliographic reference.
  : 
  : @param $bibref 
- : @return an URL to CDS bibliographic service as string
+ : @return an URL to CDS's ADS as string
  :)
-declare %private function app:cdsbib-url($bibref as xs:string) as xs:string {
-    concat("http://cdsbib.u-strasbg.fr/cgi-bin/cdsbib?", encode-for-uri($bibref))
+declare %private function app:adsbib-url($bibref as xs:string) as xs:string {
+    concat("http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?", encode-for-uri($bibref))
 };
 
 (:~
@@ -177,7 +177,7 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
                     {
                         let $bibref := $row/td[@colname='bib_reference']
                         return if ($bibref/node()) then
-                            <li role="presentation"><a href="{ app:cdsbib-url($bibref) }"><i class="glyphicon glyphicon-book"/> Paper at CDS</a></li>
+                            <li role="presentation"><a href="{ app:adsbib-url($bibref) }"><i class="glyphicon glyphicon-book"/> Paper at ADS</a></li>
                         else
                             ()
                     }
@@ -456,7 +456,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                 else if ($td[@colname='obs_collection' and starts-with($td/text(), 'J/')]) then
                     <td> <a href="{ app:vizcat-url($td/text()) }">{ $td/text() }</a></td>
                 else if ($td[@colname='bib_reference']/node()) then
-                    <td> <a href="{ app:cdsbib-url($td) }">{ $td/text() }</a></td>
+                    <td> <a href="{ app:adsbib-url($td) }">{ $td/text() }</a></td>
                 else
                     $td
             } </tr>
