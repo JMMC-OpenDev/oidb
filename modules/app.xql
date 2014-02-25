@@ -209,11 +209,14 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
 };
 
 
-declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection FROM " || $config:sql-table || " AS t";
+declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection, t.obs_creator_name FROM " || $config:sql-table || " AS t";
 
 declare %private function app:collections() {
     let $data := tap:execute($app:collections-query, true())
-    return $data//td/text()
+    for $tr in $data//tr
+    return element { "collection" } {
+        attribute { "name"} { $tr/td[@colname='obs_collection']/text() },
+        $tr/td[@colname='obs_creator_name']/text() }
 };
 
 declare function app:select-collection($node as node(), $model as map(*), $obs_collection as xs:string?) {
@@ -221,9 +224,13 @@ declare function app:select-collection($node as node(), $model as map(*), $obs_c
         <option disabled="disabled" selected="selected">All collections</option>
         {
             for $col in app:collections()
-            return <option value="{ $col }">
-                { if ($obs_collection = $col) then attribute { "selected"} { "selected" } else () }
-                { $col }
+            return <option value="{ $col/@name }">
+                { if ($obs_collection = $col/@name) then attribute { "selected"} { "selected" } else () }
+                { if ($col/text()) then
+                    $col/@name || " - " || $col/text()
+                else
+                    data($col/@name)
+                }
             </option>
         }         
     </select>
