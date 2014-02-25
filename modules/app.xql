@@ -336,7 +336,7 @@ declare %private function app:pre-defined-search() as node() {
             $app:default-search-query || " AS t ",
             string-join(for $level in $levels return "t.calib_level=" || $level, " OR ")),
             " WHERE ")
-        return tap:execute($query, true())
+        return tap:execute($query || " ORDER BY t.subdate DESC", true())
     else if ($search = 'misc') then
         let $type  := request:get-parameter("type", "")
         let $query := if ($type = "monochromatic") then
@@ -349,14 +349,14 @@ declare %private function app:pre-defined-search() as node() {
                 $app:default-search-query || " AS t WHERE t.em_max>1.925E-6 AND t.em_min<2.825E-6"
             else
                 $app:default-search-query
-        return tap:execute($query, true())
+        return tap:execute($query || " ORDER BY t.subdate DESC", true())
     else if ($search = 'nmeasurements') then
         (: Search for minimal number of measurements :)
         let $nvis  := number(request:get-parameter("nvis", 0))
         let $nvis2 := number(request:get-parameter("nvis2", 0))
         let $nt3   := number(request:get-parameter("nt3", 0))
         let $query := concat($app:default-search-query, " AS t WHERE t.nb_vis>=", $nvis, " AND t.nb_vis2>=", $nvis2, " AND t.nb_t3>=", $nt3)
-        return tap:execute($query, true())
+        return tap:execute($query || " ORDER BY t.subdate DESC", true())
     else if ($search = 'collection') then 
         (: Search for collection by name :)
         let $collection := request:get-parameter("obs_collection", "")
@@ -365,15 +365,15 @@ declare %private function app:pre-defined-search() as node() {
                 concat($app:default-search-query, " AS t WHERE t.obs_collection='", $collection, "'")
             else
                 concat($app:default-search-query, " AS t WHERE t.t.obs_creator_name LIKE '%", $author,"%'")
-        return tap:execute($query, true())
+        return tap:execute($query || " ORDER BY t.subdate DESC", true())
     else if ($search = 'instrument') then
         (: Search for observations with the specified instrument :)
         let $instrument := request:get-parameter("instrument_name", "")
         let $query      := concat($app:default-search-query, " AS t WHERE t.instrument_name LIKE '", $instrument, "%'")
-        return tap:execute($query, true())
+        return tap:execute($query || " ORDER BY t.subdate DESC", true())
     else
         (: default or custom ADQL query :)
-        let $query := request:get-parameter("query", $app:default-search-query)
+        let $query := request:get-parameter("query", $app:default-search-query || " AS t ORDER BY t.subdate DESC")
         return tap:execute($query, true())
 };
 
