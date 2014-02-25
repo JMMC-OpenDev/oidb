@@ -86,21 +86,24 @@ let $response :=
         {
         let $urls := local:extract-files(xs:anyURI($url))
         let $summary-data := local:summary-data($url)
-        return
-            ( comment {"oifits urls: "||string-join($urls," ")},        
-            try {
+        return ( 
             for $file in $urls
-                return upload:upload-uri(
-                    $db_handle,
-                    resolve-uri(data($file), $url),
-                    (
-                        (: published files -> L3 :) 
-                        <calib_level> 3 </calib_level>, 
-                        $summary-data))
-            } catch * {
-            <error url="{$url}"> { $err:description } </error>
-            })
-        }
+            return (
+                comment {"oifits urls: " || string-join($urls," ")},        
+                try { (
+                    upload:upload-uri(
+                        $db_handle,
+                        resolve-uri(data($file), $url),
+                        (
+                            (: published files -> L3 :) 
+                            <calib_level> 3 </calib_level>, 
+                            $summary-data
+                        )),
+                    <success url="{$url}">Successfully uploaded catalog</success>
+                ) } catch * {
+                    <error url="{$url}"> { $err:description } </error>
+                } )
+        ) }
     </response>
 
 return ( log:submit($response), $response )

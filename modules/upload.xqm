@@ -61,6 +61,8 @@ declare %private function upload:insert-statement($metadata as node()*) {
 
 (:~
  : Provide a db handle to be forwarded to variaous upload functions
+ : 
+ : @return the connection handle
  :)
 declare function upload:getDbHandle() as xs:long{
     let $db_handle := sql:get-connection(
@@ -73,55 +75,40 @@ declare function upload:getDbHandle() as xs:long{
 
 (:~
  : Put the data in the SQL database.
- : If the operation fails, it returns the error message in a <error> element,
- : otherwise it returns a <success> element.
+ : 
+ : If the operation fails, it generates an error.
  :
  : @param $db_handle database handle 
  : @param $metadata a sequence of nodes with the metadata
- : @return <success> or <error> element
+ : @error failed to upload (SQL exception)
+ : @return nothing
  :)
 declare function upload:upload($db_handle as xs:long, $metadata as node()*) {
     let $statement := upload:insert-statement($metadata)
     let $result := sql:execute($db_handle, $statement, false())
     return
         if ($result/name() = "sql:exception") then
-            <error>
-                Failed to upload file: { $result//sql:message/text() }
-                query: {$statement}
-            </error>
+            error(xs:QName('upload:SQLInsert'),
+                "Failed to upload: " || $result//sql:message/text() || ", query: " || $statement)
         else
-            <success>
-                Uploaded file successfully
-            </success>
-};
-
-(:~
- : Save one metadata record into database with additional info (contact an dataset ID).
- : 
- : @param $db_handle database handle 
- : @param $metadata a node with elements as metadata
- : @param $url the URI to the source file
- : @param $collection an optional identifier for a containing dataset
- : @param $contact an optional contact info to associate to data
- : @return <success> or <error> element
- :)
-declare function upload:upload-file($db_handle as xs:long, $metadata as node(), $url as xs:anyURI, $collection as xs:string?, $contact as xs:string?) {
-    upload:upload(
-                    $db_handle,
-                    ($metadata/*, <access_url> { $url } </access_url>)
-                )
+            ()
 };
 
 (:~
  : Save metadata from file at URL into database.
+ : 
  : The file at the URL is processed with OIFitsViewer to extract metadata.
+ : If an error occurs when saving a row, the process is stopped and an 
+ : error is generated.
  : 
  : TODO: check errors if viewer fails
+ : TODO: wrap in transaction, rollback if error
  : 
  : @param $db_handle database handle
  : @param $url the URL where to retrieve the file
  : @param $more additionnal metadata not in the file
- : @return <success> or <error> element
+ : @error failed to upload (SQL exception) (from upload:upload)
+ : @return ignore
  :)
 declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $more as node()*) {
     let $data := util:parse(oi:viewer($url))

@@ -46,19 +46,19 @@ let $response :=
             (: optional elements :)
             let $obs_collection := $data//obs_collection
             let $obs_creator_name := $data//obs_creator_name
-            
-            for $file in $data//oifits
+
+            return (
+                for $file in $data//oifits
                 let $filename := $file/filename/text()
-                (: where to download the original file 
-                   TODO replace by a proxy/redirect script that could then log requests even on remote sites
-                :)
+                (: where to download the original file :)
                 let $url      := resolve-uri($filename, $data//baseurl||"/")
             
                 for $target in $file/metadata/target
-                   return upload:upload(
-                        $db_handle, 
-                        ($target/*, <access_url> { $url } </access_url>, $obs_collection, $obs_creator_name)
-                        )
+                return upload:upload(
+                    $db_handle, 
+                    ($target/*, <access_url> { $url } </access_url>, $obs_collection, $obs_creator_name)),
+                <success>Successfully uploaded metadata file</success>
+            )
         } catch * {
             <error> { $err:description } </error>
         }

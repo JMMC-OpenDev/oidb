@@ -27,7 +27,10 @@ let $response :=
         where $url
         return ( 
             try {
-                upload:upload-uri($db_handle, xs:anyURI($url), $more)
+                (
+                    upload:upload-uri($db_handle, xs:anyURI($url), $more),
+                    <success url="{$url}">Successfully upload file</success>
+                )
             } catch * {
                 <error url="{$url}"> { $err:description } </error>
             })
