@@ -616,10 +616,21 @@ import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "lo
 (:~
  : Set the value of the passed input element to the email of the current user.
  : 
- : @param $node
+ : @param $elt
  : @param $model
  : @return a copy of the element with email as default value
  :)
-declare function app:input-user-email($node as node(), $model as map(*)) {
-    app:add-attribute($node, 'value', login:user-email())
+declare function app:input-user-email($elt as element(), $model as map(*)) {
+    app:add-attribute($elt, 'value', login:user-email())
+};
+
+(:~
+ : Set the value of the passed input element to the name of the current user.
+ : 
+ : @param $elt
+ : @param $model
+ : @return a copy of the element with name as default value
+ :)
+declare function app:input-user-name($elt as element(), $model as map(*)) {
+    app:add-attribute($elt, 'value', login:user-name())
 };

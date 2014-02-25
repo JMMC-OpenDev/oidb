@@ -74,12 +74,31 @@ declare function login:set-user() as empty() {
 };
 
 (:~
+ : Retrieve info from JMMC authentication database for the current
+ : user.
+ : 
+ : @return account data for the current user
+ :)
+declare %private function login:user-info() as node()+ {
+    let $user := session:get-attribute("user")
+    return jmmc-auth:getInfo($user)
+};
+
+(:~
  : Return the email address of the current user, if any.
  : 
  : @return an email address or nothing if no user
  :)
 declare function login:user-email() as xs:string? {
-    let $user := session:get-attribute("user")
     (: using email to ask for the email! :)
-    return jmmc-auth:getInfo($user)//email
+    login:user-info()//email
+};
+
+(:~
+ : Return the name of the current user, if any.
+ : 
+ : @return thename of the user or nothing if no user
+ :)
+declare function login:user-name() as xs:string? {
+    login:user-info()//name
 };
