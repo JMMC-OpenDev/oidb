@@ -23,7 +23,7 @@ declare %private function tap:nodes-from-field-name($votable as node()?) as node
             { $field/@name } 
             { data($field/@name) } 
             { if($field/@ucd)  then ( <br/>, <a href="{ concat($tap:UCD_URL,data($field/@ucd)) }"> { data($field/@ucd) } </a>) else () }
-            { if($field/@unit) then ( <br/>, <span> [ { data($field/@unit) } ] </span> ) else () }
+            <!-- { if($field/@unit) then ( <br/>, <span> [ { data($field/@unit) } ] </span> ) else () } -->
         </th> 
         } </tr> {       
         for $row in  $votable//votable:TABLEDATA/votable:TR
