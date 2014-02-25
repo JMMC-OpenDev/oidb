@@ -465,7 +465,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
 };
 
 (: Hard coded request to get the 3 last entries :)
-declare variable $app:latest-query := "SELECT DISTINCT TOP 3 t.target_name, t.access_url, t.subdate FROM " || $config:sql-table || " AS t ORDER BY t.subdate";
+declare variable $app:latest-query := "SELECT DISTINCT TOP 3 t.target_name, t.access_url, t.subdate FROM " || $config:sql-table || " AS t ORDER BY t.subdate DESC";
 
 (:~
  : Create a list of the three latest files uploaded.
