@@ -147,6 +147,41 @@ declare function vega:get-star-hds() as item()* {
     return distinct-values($collection//td[@colname='StarHD']/text())
 };
 
+(:~ Vega modes from ASPRO2 configuration :)
+declare variable $vega:aspro-modes :=
+    doc('http://apps.jmmc.fr/~swmgr/AsproOIConfigurations/ASPRO2-CONF_2013_1015/model/CHARA.xml')//focalInstrument[./name='VEGA_4T']/mode;
+(:declare variable $vega:aspro-modes := doc('/db/apps/oidb-data/vega/ASPRO2-CONF_2013_1015_CHARA.xml')//focalInstrument[./name='VEGA_4T']/mode;:)
+
+(:~
+ : Find the instrument mode corresponding to the given configuration.
+ : 
+ : It makes use of ASPRO configuration file and it is matching
+ : grating and lambda values to the mode description.
+ : 
+ : @param $grating grating used for the observation
+ : @param $lambda wavelength planified for the observation
+ : @return a node from ASPRO configuration with mode description
+ : @error instrument mode not found
+ :)
+declare %private function vega:instrument-mode-2($grating as xs:string, $lambda as xs:string) as node() {
+    (: select mode based on gratign and lambda :)
+    let $mode := $vega:aspro-modes[./parameter[./name='GRATING' and ./value=$grating] and ./parameter[./name='LAMBDA' and ./value=$lambda]]
+    return if (exists($mode)) then
+        $mode
+    else
+        error(xs:QName('vega:error'), 'Instrument mode not found (grating=' || $grating || ',lambda=' || $lambda || ')')
+};
+
+(:~
+ : Return wavelength limits for given mode.
+ : 
+ : @param $mode ASPRO mode
+ : @return a sequence of min and max wavelength in µm
+ :)
+declare %private function vega:wavelength-minmax($mode as node()) as item()* {
+    ( $mode/waveLengthMin/text(), $mode/waveLengthMax/text() )
+};
+
 (:~
  : Retrieve data from the VegaObs database and store locally.
  : It currently requests all data with status and status different from 'Trash'.
