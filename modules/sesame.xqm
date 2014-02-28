@@ -5,10 +5,13 @@ xquery version "3.0";
  : position information and type from Sesame Name Resolver
  : (http://cds.u-strasbg.fr/cgi-bin/Sesame/).
  : 
- : Be kind: split your big queries and throttle the requests!
+ : It builds up a cache of previous resolutions to avoid repetitive queries
+ : to Sesame.
  :)
 module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame";
 
+(: The cache of resolved stars :)
+declare variable $sesame:resolved := doc($config:data-root || 'sesame.xml');
 
 (:~
  : Return a target element with data on name, position and type as attributes.
@@ -43,22 +46,43 @@ declare variable $sesame:SCHEMA := doc('/db/apps/oidb/resources/schemas/sesame_4
  : @error Failed to retrieve data from Sesame
  : @error Invalid response from Sesame
  :)
+declare function sesame:resolve-sesame($names as xs:string+) as item()* {
+    let $uri := concat($sesame:SESAME_URL, string-join(for $name in $names return encode-for-uri($name), '&amp;'))
+    let $response := httpclient:get($uri, false(), <headers/>)
+    
+    return if ($response/@statusCode != 200 or $response/httpclient:body/@type != "xml") then
+        error(xs:QName('sesame:HTTP'), 'Failed to retrieve data from Sesame')
+    (: @todo response not always valid, see HD166014, report upstream? :)
+(:    else if (not(validation:validate($response//httpclient:body/Sesame, $sesame:SCHEMA))) then:)
+(:        error(xs:QName('sesame:validation'), 'Invalid response from Sesame' || $response):)
+    else
+        (: check there is something returned for each name :)
+        for $name in $names
+        let $target := $response//httpclient:body/Sesame/Target[./name=$name]
+        return if (exists($target) and exists($target/Resolver)) then
+                sesame:target($target)
+            else
+                <warning> No result for {$name} </warning>
+};
+
+(:~
+ : Resolve star names.
+ : 
+ : It returns the coordinates and the object type corresponding to
+ : the specified names.
+ : 
+ : It builds a local cache of previous request. If there are unknown
+ : names, the function queries the Sesame service with these names and
+ : updates the cache.
+ : 
+ : @param $names a set of star names to resolve
+ : @return a <sesame> element a <target> with data for each input name.
+ :)
 declare function sesame:resolve($names as xs:string+) as node() {
-    <sesame> {
-        let $uri := concat($sesame:SESAME_URL, string-join(for $name in $names return encode-for-uri($name), '&amp;'))
-        let $response := httpclient:get($uri, false(), <headers/>)
-        
-        return if ($response/@statusCode != 200 or $response/httpclient:body/@type != "xml") then
-            error(xs:QName('sesame:HTTP'), 'Failed to retrieve data from Sesame')
-        else if (not(validation:validate($response//httpclient:body/Sesame, $sesame:SCHEMA))) then
-            error(xs:QName('sesame:validation'), 'Invalid response from Sesame')
-        else
-            (: check there is something returned for each name :)
-            for $name in $names
-            let $target := $response//httpclient:body/Sesame/Target[./name=$name]
-            return if (exists($target) and exists($target/Resolver)) then
-                    sesame:target($target)
-                else
-                    <warning> No result for {$name} </warning>
-    } </sesame>
+    (: check cache to see if already resolved :)
+    let $unresolved := $names[not(.=$sesame:resolved//target/@name)]
+    return
+        (: build up a cache with current resolutions :)
+        if (exists($unresolved)) then update insert sesame:resolve-sesame($unresolved) into $sesame:resolved/sesame else (),
+        <sesame> { $sesame:resolved//target[@name=$names] } </sesame>
 };
