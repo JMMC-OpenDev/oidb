@@ -131,7 +131,7 @@ declare function vega:instrument-mode($row as node()) as xs:string {
         if ($grating=100) then 'LR'
         else if ($grating=300) then 'MR'
         else if ($grating=1800) then 'HR' else '??',
-        $lambda,
+        floor($lambda),
         '-',
         $configcam,
         if ($polar='POL_OFF') then '' else '-Polar')
