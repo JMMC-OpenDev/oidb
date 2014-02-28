@@ -138,27 +138,13 @@ declare function vega:instrument-mode($row as node()) as xs:string {
 };
 
 (:~
- : Return a list of all star names in the VEGA dataset with a particular data status.
- : 
- : @param $dataStatus a sequence of status
- : @return a sequence of names
- :)
-declare function vega:get-star-hds($dataStatus as xs:string*) as item()* {
-    let $collection := collection($vega:data-root)
-    let $status := if (empty($dataStatus)) then 
-            distinct-values($collection//td[@colname='DataStatus']/text()) 
-        else
-            $dataStatus
-    return distinct-values($collection//td[@colname='DataStatus' and .=$status]/../td[@colname='StarHD']/text())
-};
-
-(:~
  : Return a list of all star names in the VEGA dataset.
  : 
  : @return a sequence of names
  :)
-declare function vega:get-all-star-hds() as item()* {
-    vega:get-star-hds(())
+declare function vega:get-star-hds() as item()* {
+    let $collection := collection($vega:data-root)
+    return distinct-values($collection//td[@colname='StarHD']/text())
 };
 
 (:~

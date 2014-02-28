@@ -502,23 +502,6 @@ declare function app:latest($node as node(), $model as map(*)) {
  : Test for VEGA data integration
  :)
 
-declare %private function app:vega-L3-row($row as node()) as node() {
-    <tr> {
-        $row/td[@colname='StarHD'], (: Object Name/Identifier :)
-        <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
-        <td> { 'VEGA' } <br/> { vega:instrument-mode($row) } </td>,
-        <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
-        $row/td[@colname='ProgNumber'], (: Run/Program ID :)
-        <td> { vega:number-of-telescopes($row) } </td>,
-        <td> { vega:telescopes-configuration($row) } </td>,
-        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } </td>, (: Special remarks, FIXME :)
-        <td> TBD </td>, (: DOI :)
-        <td> {
-            vega:get-user-name($row/td[@colname='DataPI']/text())
-        } </td> (: PI contact details :)
-    } </tr>
-};
-
 declare %private function app:vega-L0-row($row as node()) as node() {
     <tr> {
         $row/td[@colname='StarHD'], (: Object Name/Identifier :)
@@ -559,7 +542,7 @@ declare function app:vega-select-star-hd($node as node(), $model as map(*), $sta
     <select name="starHD">
         <option value="">Search by star</option>
         {
-            for $hd in vega:get-star-hds(('Published', 'WaitProcessing'))
+            for $hd in vega:get-star-hds()
             order by $hd
             return <option value="{ $hd }">
                 { if ($starHD = $hd) then attribute { "selected"} { "selected" } else () }
@@ -567,36 +550,13 @@ declare function app:vega-select-star-hd($node as node(), $model as map(*), $sta
             </option>
         }         
     </select>
-};
-
-declare function app:vega-select-all-star-hd($node as node(), $model as map(*), $starHD as xs:string?) {
-    <select name="starHD">
-        <option value="">Search by star</option>
-        {
-            for $hd in vega:get-all-star-hds()
-            order by $hd
-            return <option value="{ $hd }">
-                { if ($starHD = $hd) then attribute { "selected"} { "selected" } else () }
-                { $hd }
-            </option>
-        }         
-    </select>
-};
-
-declare
-    %templates:default("starHD", "HD213306")
-function app:vega-L3($node as node(), $model as map(*), $starHD as xs:string) {
-    <tbody> {
-        for $row in doc($vega:data-root || '/published.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
-        return app:vega-L3-row($row)
-    } </tbody>
 };
 
 declare
     %templates:default("starHD", "HD213306")
 function app:vega-L0($node as node(), $model as map(*), $starHD as xs:string) {
     <tbody> {
-        for $row in doc($vega:data-root || '/wait-processing.xml')//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
+        for $row in collection($vega:data-root)//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
         return app:vega-L0-row($row)
     } </tbody>
 };
