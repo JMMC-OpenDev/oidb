@@ -14,6 +14,11 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace util="http://exist-db.org/xquery/util";
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
+import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
+import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
+
+import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
+
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 declare namespace xsd="http://org.apache.axis2/xsd";
 
