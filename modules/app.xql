@@ -197,9 +197,9 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
                         data($row/td[@colname='obs_release_date']),
                         data($row/td[@colname='obs_creator_name']))
                 case "s_ra"
-                    return jmmc-astro:format-sexagesimal(jmmc-astro:to-hms($cell))
+                    return jmmc-astro:to-hms($cell)
                 case "s_dec"
-                    return jmmc-astro:format-sexagesimal(jmmc-astro:to-dms($cell))
+                    return jmmc-astro:to-dms($cell)
                 case "em_min"
                 case "em_max"
                     return app:format-wavelengths(number(data($cell)))
