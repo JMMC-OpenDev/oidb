@@ -206,6 +206,11 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
                 case "t_min"
                 case "t_max"
                     return app:format-mjd($cell)
+                case "nb_channels"
+                case "nb_vis"
+                case "nb_vis2"
+                case "nb_t3"
+                    return if(data($cell) = -1) then '-' else data($cell)
                 default
                     return translate(data($cell)," ","&#160;")
             } </td>
