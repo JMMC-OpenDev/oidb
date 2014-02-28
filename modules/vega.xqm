@@ -183,6 +183,91 @@ declare %private function vega:wavelength-minmax($mode as node()) as item()* {
 };
 
 (:~
+ : Turn a data row from VegaObs into an item in the database.
+ : 
+ : It parses and extracts data from the data row and transform
+ : it before uploading to the database.
+ : 
+ : @param $data a VegaObs data row
+ : @return ignore
+ : @error unknown instrument mode
+ : @error unable to resolve star name
+ : @error failed to upload data
+ :)
+declare %private function vega:upload($handle as xs:long, $data as node()*) {
+    (: determine wavelength limits from mode and ASPRO config :)
+(:    let $mode        := vega:instrument-mode-2($data/td[@colname='Grating'], $data/td[@colname='Lambda']):)
+(:    let $minmax-wl   := map(function ($x) { $x div 1e6 }, vega:wavelength-minmax($mode)):)
+    let $lambda      := number($data/td[@colname='Lambda'])
+    let $data-pi     := vega:get-user-name($data/td[@colname='DataPI'])
+    (: resolve star coordinates from star name with Sesame :)
+    let $target-name := $data/td[@colname='StarHD']/text()
+    let $ra-dec      := data(sesame:resolve($target-name)/target/(@s_ra,@s_dec))
+    let $date        := jmmc-dateutil:ISO8601toMJD( 
+        (: change the time delimiter in Date for ISO8601 :)
+        xs:dateTime(translate($data/td[@colname='Date'], ' ', 'T')))
+    
+    (: build a metadata fragment from row data and upload it :)
+    return upload:upload($handle, ( 
+        (: all entries are L0, even dataStatus=Published :)
+        <calib_level>0</calib_level>,
+        <target_name>{ $target-name }</target_name>,
+        <obs_collection>VegaObs Import</obs_collection>,
+        <obs_creator_name>{ $data-pi }</obs_creator_name>,
+        <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
+        <access_url> -/- </access_url>, (: FIXME no file :)
+        <s_ra>  { $ra-dec[1] } </s_ra>,
+        <s_dec> { $ra-dec[2] } </s_dec>,
+        <t_min> { $date } </t_min>, (: FIXME :)
+        <t_max> { $date } </t_max>, (: FIXME :)
+        <t_exptime>0</t_exptime>, (: FIXME :)
+(:        <em_min> { $minmax-wl[1] } </em_min>,:)
+        <em_min>{ $lambda }</em_min>,
+(:        <em_max> { $minmax-wl[2] } </em_max>,:)
+        <em_max>{ $lambda }</em_max>,
+        <em_res_power> -1 </em_res_power>, (: FIXME :)
+        <facility_name>MtW.CHARA</facility_name>,
+        <instrument_name>VEGA</instrument_name>,
+        (: FIXME :)
+        <nb_channels> -1 </nb_channels>,
+        <nb_vis> -1 </nb_vis>,
+        <nb_vis2> -1 </nb_vis2>,
+        <nb_t3> -1 </nb_t3>
+    ))
+};
+
+(:~
+ : Import observations from the VegaObs database of the given data status.
+ : 
+ : @param $dataStatus 'WaitProcessing', 'WaitOtherData', 'WaitPublication', 'Published'
+ : @return a <response> element 
+ :)
+declare function vega:pull-by-status($status as xs:string) {
+    <response data-status="{ $status }"> {
+        try {
+            let $data := vega:nodes-from-field-name(vega:get-observations-by-data-status($status))
+            let $handle := upload:getDbHandle()
+            for $row in $data//tr
+            let $obsid := $row/td[@colname='ID']
+            return try {
+                ( vega:upload($handle, $row), <success obsid="{ $obsid }"/> )
+            } catch * {
+                <error obsid="{ $obsid }"> { $err:description } </error>
+            }
+        } catch exerr:EXXQDY0002 {
+            (: XML VOTable parse error :)
+            let $message := $err:value//message
+            return <error> 
+                { $err:description } <br/> { 'Line ' || $message/@line || ", column" || $message/@column || ':' || $err:value//message }
+            </error>
+        } catch * {
+            (: unknown parse error :)
+            <error>{ $err:description }</error>
+        }
+    } </response>
+};
+
+(:~
  : Retrieve data from the VegaObs database and store locally.
  : It currently requests all data with status and status different from 'Trash'.
  : 
