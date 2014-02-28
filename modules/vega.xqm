@@ -66,18 +66,15 @@ declare function vega:get-user-name($id as xs:string*) as xs:string {
  : 
  : @param $dataStatus 'WaitProcessing', 'WaitOtherData', 'WaitPublication', 'Published' or 'Trash'
  : @return a <VOTABLE> of observations.
+ : @error failed to parse returned data
  :)
-declare %private function vega:get-observations-by-data-status($dataStatus as xs:string) as node()* {
+declare %private function vega:get-observations-by-data-status($dataStatus as xs:string) as node() {
     let $uri  := concat($vega:VEGAWS_URL, 'getObservationsVOTableByDataStatus', '?dataStatus=', $dataStatus)
     let $data := httpclient:get($uri, false(), <headers/>)//httpclient:body
 
-    return try {
-        util:parse(
-            (: remove leading 'null' :)
-            substring($data//xsd:return/text(), 5))
-    } catch * {
-        <error/>
-    }
+    return util:parse(
+            (: remove leading 'null', proper entity escape :)
+            replace(substring($data//xsd:return/text(), 5), '&amp;', '&amp;amp;'))
 };
 
 (:~
