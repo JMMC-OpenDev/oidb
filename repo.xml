@@ -15,6 +15,20 @@
     with tap endpoint : config:TAP_DSA_URL
     </note>
     <changelog>
+        <change xmlns="" version="0.2">
+            <h3/>
+            <ul>
+                <li>Preliminary import of VEGA dataset to the main database</li>
+                <li>Improved submit form and status reporting</li>
+                <li>Logging of submission</li>
+                <li>Display of observation coordinates in sexagesimal</li>
+                <li>To fix:
+                    <ul>
+                        <li>t_min and t_max have the same values on data imported from OIFits files</li>
+                    </ul>
+                </li>
+            </ul>
+        </change>
         <change xmlns="" version="0.1">
             <h3>Prototype prior to first group meeting</h3>
             <ul>
@@ -23,11 +37,6 @@
                 <li>Add predefined searches (Cone Search with name resolver)</li>
                 <li>Add pagination of results</li>
                 <li>Initial test with user authentification</li>
-                <li>To fix:
-                <ul>
-                t_min and t_max have the same values    
-                </ul>
-                </li>
             </ul>
         </change>
         <change xmlns="" version="0.0">
