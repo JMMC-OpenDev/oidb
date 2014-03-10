@@ -16,9 +16,9 @@
     </note>
     <changelog>
         <change xmlns="" version="0.2">
-            <h3/>
+            <h3>February version</h3>
             <ul>
-                <li>Preliminary import of VEGA dataset to the main database</li>
+                <li>Preliminary import of VEGA dataset to the main database (<a href="http://www.jmmc.fr/twiki/bin/save/Jmmc/Software/OiDbVega">detailed process</a>)</li>
                 <li>Improved submit form and status reporting</li>
                 <li>Logging of submission</li>
                 <li>Display of observation coordinates in sexagesimal</li>
