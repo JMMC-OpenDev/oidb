@@ -79,7 +79,7 @@ declare function login:set-user() as empty() {
  : 
  : @return account data for the current user
  :)
-declare %private function login:user-info() as node()+ {
+declare %private function login:user-info() as node()? {
     let $user := session:get-attribute("user")
     return jmmc-auth:getInfo($user)
 };
