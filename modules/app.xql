@@ -219,7 +219,7 @@ declare %private function app:transform-table($rows as node()*, $columns as xs:s
 };
 
 
-declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection, t.obs_creator_name FROM " || $config:sql-table || " AS t";
+declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection, t.obs_creator_name FROM " || $config:sql-table || " AS t WHERE NOT t.obs_collection='VegaObs Import'";
 
 declare %private function app:collections() {
     let $data := tap:execute($app:collections-query, true())
@@ -233,7 +233,7 @@ declare function app:select-collection($node as node(), $model as map(*), $obs_c
     <select name="obs_collection">
         <option disabled="disabled" selected="selected">All collections</option>
         {
-            for $col in app:collections()
+            for $col in ( app:collections(), <x name="VegaObs Import"/>)
             return <option value="{ $col/@name }">
                 { if ($obs_collection = $col/@name) then attribute { "selected"} { "selected" } else () }
                 { if ($col/text()) then
