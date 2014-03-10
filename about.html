@@ -4,7 +4,14 @@
     <div data-template="about:changelog">
         Current version: <span data-template="about:version"/>
         <div data-template="templates:each" data-template-from="changes" data-template-to="change">
-            <div data-template="about:change"/>
+            <div>
+                <hr/>
+                <div>
+                    <b>Version <span data-template="about:change-version"/>
+                    </b>
+                </div>
+                <div data-template="about:change"/>
+            </div>
         </div>
     </div>
     <h2>Credits</h2>

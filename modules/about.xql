@@ -76,3 +76,8 @@ declare function about:change($node as node(), $model as map(*)) as node()* {
     (: change is a HTML fragment in repo.xml, return children :)
     $model("change")/*
 };
+
+declare function about:change-version($node as node(), $model as map(*)) as xs:string {
+    data($model("change")/@version)
+};
+
