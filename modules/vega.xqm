@@ -26,7 +26,7 @@ declare namespace xsd="http://org.apache.axis2/xsd";
 declare variable $vega:VEGAWS_URL := "http://vegaobs-ws.oca.eu/axis2/services/VegaWs.VegaWsHttpport/VegaWs/";
 
 (: Base URI for the storage of VEGA data :)
-declare variable $vega:data-root := $config:data-root || '/vega';
+declare variable $vega:data-root := '/db/apps/oidb-data/vega';
 
 (:~
  : Make use of the VegaObs web service to retrieve the list of user.
@@ -224,10 +224,10 @@ declare %private function vega:upload($handle as xs:long, $data as node()*) {
         <t_max> { $date } </t_max>, (: FIXME :)
         <t_exptime>0</t_exptime>, (: FIXME :)
 (:        <em_min> { $minmax-wl[1] } </em_min>,:)
-        <em_min>{ $lambda }</em_min>,
+        <em_min>{ $lambda * 1e-9 }</em_min>,
 (:        <em_max> { $minmax-wl[2] } </em_max>,:)
-        <em_max>{ $lambda }</em_max>,
-        <em_res_power> -1 </em_res_power>, (: FIXME :)
+        <em_max>{ $lambda * 1e-9 }</em_max>,
+        <em_res_power>-1</em_res_power>, (: FIXME :)
         <facility_name>MtW.CHARA</facility_name>,
         <instrument_name>VEGA</instrument_name>,
         (: FIXME :)

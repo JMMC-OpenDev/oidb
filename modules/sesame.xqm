@@ -11,7 +11,7 @@ xquery version "3.0";
 module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame";
 
 (: The cache of resolved stars :)
-declare variable $sesame:resolved := doc($config:data-root || 'sesame.xml');
+declare variable $sesame:resolved := doc('/db/apps/oidb-data/sesame.xml');
 
 (:~
  : Return a target element with data on name, position and type as attributes.
