@@ -16,37 +16,112 @@ import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateu
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 
 (:~
- : Add pagination elements to the page.
+ : Create a model for the context of the node with statistics on results.
  : 
- : @param $page the current page number
- : @param $npages the total number to pages returned for the request
- : @return an XHTML fragment with pagination elements
+ : @param $node  the node starting the context
+ : @param $model the current model
+ : @return a new model with statistics
  :)
-declare %private function app:pagination($page as xs:integer, $npages as xs:integer) as node() {
-    (: rebuild a string with all parameters but 'page' :)
-    let $parameters := string-join(
-        for $n in request:get-parameter-names() 
-        where $n != 'page' 
-        return for $p in request:get-parameter($n, "")
-            return string-join(($n, encode-for-uri($p)), "="), "&amp;")
-    
-    return
-    <ul class="pager">
-        {
-            if ($page > 1) then 
-                <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page - 1 ), "&amp;")) }">Previous</a></li>
-            else 
-                () 
-        }
-        <li>Page { $page } / { $npages }</li>,
-        { 
-            if ($page < $npages) then 
-                <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page + 1 ), "&amp;")) }">Next</a></li>
-            else 
-                ()
-        }
-    </ul>
+declare
+    %templates:wrap
+function app:stats($node as node(), $model as map(*)) as map(*) {
+    map:new(for $x in $model('stats')/@* return map:entry(name($x), string($x)))    
 };
+
+(:~
+ : Replace a node with the column description from a VOTable header.
+ : 
+ : @param $node  the node to replace with header data
+ : @param $model the current model
+ :)
+declare function app:column-header($node as node(), $model as map(*)) {
+    let $header := $model('header')
+    return $header/child::node()
+};
+
+(:~
+ : Build the URLs to other pages and services for a given data row
+ : 
+ : It creates URL for:
+ : - the page showing the details of the observation
+ : - Simbad page of the target
+ : - the page of the paper at ADS
+ : 
+ : @param $data VOTable row
+ : @return a sequence of urls for the given row
+ :)
+declare %private function app:action-urls($data as node()) as map(*) {
+    let $id     := $data/td[@colname='id']
+    let $target := $data/td[@colname='target_name']/text()
+    let $bibref := $data/td[@colname='bib_reference']/text()
+    return map:new((
+        if ($id)     then map:entry('show-url',  'show.html?id=' || $id)   else (),
+        if ($target) then map:entry('simbad-url', app:simbad-url($target)) else (),
+        if ($bibref) then map:entry('ads-url',    app:adsbib-url($bibref)) else ()
+    ))
+};
+
+(:~
+ : Iterate over each data row, updating the model for subsequent templating.
+ : 
+ : It creates a new node for each row and template processes
+ : each extending the model with the row data and urls.
+ : 
+ : @param $node  the node to use as pattern for each rows
+ : @param $model the current model
+ : @return a sequence of nodes, one for each row
+ :  :)
+declare function app:each-row($node as node(), $model as map(*)) as node()* {
+    for $row in $model('rows')
+    return
+        element { node-name($node) } {
+            $node/@*,
+            templates:process($node/node(), map:new(($model, map:entry('row', $row), app:action-urls($row))))
+        }
+};
+
+(:~
+ : Create and format cells for a given row of data.
+ : 
+ : Data formatting depends on the column type.
+ : 
+ : @param $node  a placeholder
+ : @param $model the current model with row data
+ : @return a sequence of <td/> elements for the current row
+ :)
+declare function app:row-cells($node as node(), $model as map(*)) {
+    let $row     := $model('row')
+    let $columns := $model('headers')/text()
+    return
+        for $cell in $row/td[@colname=$columns]
+        return <td> {
+            switch ($cell/@colname)
+                case "access_url"
+                    return app:format-access-url(
+                        data($cell),
+                        data($row/td[@colname='data_rights']),
+                        data($row/td[@colname='obs_release_date']),
+                        data($row/td[@colname='obs_creator_name']))
+                case "s_ra"
+                    return jmmc-astro:to-hms($cell)
+                case "s_dec"
+                    return jmmc-astro:to-dms($cell)
+                case "em_min"
+                case "em_max"
+                    return app:format-wavelengths(number(data($cell)))
+                case "t_min"
+                case "t_max"
+                    return app:format-mjd($cell)
+                case "nb_channels"
+                case "nb_vis"
+                case "nb_vis2"
+                case "nb_t3"
+                    return if(data($cell) = -1) then '-' else data($cell)
+                default
+                    return translate(data($cell)," ","&#160;")
+            } </td>
+};
+
 
 (:~
  : Given curation data, check if data is public or not.
@@ -160,64 +235,6 @@ declare %private function app:vizcat-url($catalogue as xs:string) as xs:string {
     concat("http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=", encode-for-uri($catalogue))
 };
 
-(:~
- : Transform a VOTable TableData rows into HTML
- : 
- : @param $rows a sequence of votable:TR to render
- : @return an HTML <tr>
- :)
-declare %private function app:transform-table($rows as node()*, $columns as xs:string*) as item()* {
-    for $row in $rows
-    return <tr> 
-        <td>
-            <div class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/></a>
-                <ul class="dropdown-menu" role="menu">
-                    <li role="presentation"><a href="show.html?id={$row/td[@colname='id']}"><i class="glyphicon glyphicon-zoom-in"/> Details</a></li>
-                    <li role="presentation"><a href="{ app:simbad-url($row/td[@colname='target_name']) }"><i class="glyphicon glyphicon-globe"/> View in SIMBAD</a></li>
-                    {
-                        let $bibref := $row/td[@colname='bib_reference']
-                        return if ($bibref/node()) then
-                            <li role="presentation"><a href="{ app:adsbib-url($bibref) }"><i class="glyphicon glyphicon-book"/> Paper at ADS</a></li>
-                        else
-                            ()
-                    }
-                    <li class="divider" role="presentation"></li>
-                </ul>
-            </div>
-        </td>
-        {
-        for $cell in $row/td[@colname=$columns]
-        return <td> {
-            switch ($cell/@colname)
-                case "access_url"
-                    return app:format-access-url(
-                        data($cell),
-                        data($row/td[@colname='data_rights']),
-                        data($row/td[@colname='obs_release_date']),
-                        data($row/td[@colname='obs_creator_name']))
-                case "s_ra"
-                    return jmmc-astro:to-hms($cell)
-                case "s_dec"
-                    return jmmc-astro:to-dms($cell)
-                case "em_min"
-                case "em_max"
-                    return app:format-wavelengths(number(data($cell)))
-                case "t_min"
-                case "t_max"
-                    return app:format-mjd($cell)
-                case "nb_channels"
-                case "nb_vis"
-                case "nb_vis2"
-                case "nb_t3"
-                    return if(data($cell) = -1) then '-' else data($cell)
-                default
-                    return translate(data($cell)," ","&#160;")
-            } </td>
-        }
-    </tr>
-};
-
 
 declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection, t.obs_creator_name FROM " || $config:sql-table || " AS t WHERE NOT t.obs_collection='VegaObs Import'";
 
@@ -267,15 +284,6 @@ declare function app:select-instrument($node as node(), $model as map(*), $instr
             </option>
         }         
     </select>
-};
-
-declare function app:input-all($node as node(), $model as map(*), $all as xs:string?) {
-<label class="checkbox inline">            
-    <input class="templates:form-control" type="checkbox" name="all" value="all">
-        {if ($all) then attribute {"checked"} {""} else ()}
-    </input>
-    display all columns
-</label>
 };
 
 (:~
@@ -397,53 +405,41 @@ declare %private function app:pre-defined-search() as node() {
 (:~
  : Display the result of the query in a paginated table.
  : 
- : The query is passed to Astrogrid DSA and the returned VOTable is formatted
- : as an HTML table.
+ : The query is passed to Astrogrid DSA and the returned VOTable
+ : content is put in the model for further template processing.
  : 
  : @param $node
  : @param $model
- : @param $page offset into query result (page * perpage)
+ : @param $page    offset into query result (page * perpage)
  : @param $perpage number of results displayed per page
- : @param $all display all columns or only a subset
+ : @param $all     display all columns or only a subset
+ : @return a new model with search results for presentation
  :)
 declare
     %templates:default("page", 1)
     %templates:default("perpage", 25)
 function app:search($node as node(), $model as map(*),
-                    $page as xs:integer, $perpage as xs:integer,$all as xs:string?) {
+                    $page as xs:integer, $perpage as xs:integer, $all as xs:string?) as map(*) {
     (: Search database, use request parameters :)
-    let $data := app:pre-defined-search()
+    let $data    := app:pre-defined-search()
 
     (: default columns to display :)
-    let $columns := if($all) then $data//th/@name/string() else ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
-    
+    let $columns := if($all) then
+            $data//th/@name/string()
+        else
+            ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
+    let $stats   := app:data-stats($data)
 
-    let $headers := ( <th/>, $data//th[@name=$columns] )
+    let $headers := $data//th[@name=$columns]
     (: limit rows to page - skip row of headers :)
     let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
-    (: number of rows for pagination :)
-    let $nrows   := count($data//tr)
 
-    let $stats := app:data-stats($data)
-    let $npages := ceiling($nrows div $perpage)
-    return <div>
-        <div> 
-            { string($stats/@nobservations) } observations from
-            { string($stats/@noifitsfiles) } oifits files
-            { if ($stats[@nprivatefiles='0']) then () else "(" || string($stats/@nprivatefiles) || " private)" }
-        </div>
-        <div>{ app:pagination($page, $npages) }</div>      
-        <div><table class="table table-striped table-bordered table-hover">
-            <!-- <caption> Results for <code> { $query } </code> </caption> -->
-            <thead>
-                { $headers }
-            </thead>
-            <tbody>
-                { app:transform-table($rows, $columns) }
-            </tbody>
-        </table></div>
-        <div>{ app:pagination($page, $npages) }</div>      
-    </div>
+    return map {
+        'headers' :=    $headers,
+        'rows' :=       $rows,
+        'stats' :=      $stats,
+        'pagination' := map { 'page' := $page, 'npages' := ceiling(count($data//tr) div $perpage) }
+    }
 };
 
 (:~
