@@ -57,3 +57,35 @@ declare function helpers:model-value-attribute($node as node(), $model as map(*)
         templates:process($node/node(), $model)
     }
 };
+
+(:~
+ : Insert pagination elements in a list element.
+ : 
+ : @param $node  the parent node where to insert the pagination link
+ : @param $model the current model
+ : @return a set of pagination links in list elements
+ :)
+declare
+    %templates:wrap
+function helpers:pagination($node as node(), $model as map(*)) {
+    let $page   := $model('pagination')('page')
+    let $npages := $model('pagination')('npages')
+    
+    let $parameters := string-join(
+        for $n in request:get-parameter-names() 
+        where $n != 'page' 
+        return for $p in request:get-parameter($n, "")
+            return string-join(($n, encode-for-uri($p)), "="), "&amp;")
+    
+    return (
+        if ($page > 1) then 
+            <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page - 1 ), "&amp;")) }">Previous</a></li>
+        else 
+            (),
+        <li>Page { $page } / { $npages }</li>,
+        if ($page < $npages) then 
+            <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page + 1 ), "&amp;")) }">Next</a></li>
+        else 
+            ()
+    )
+};
