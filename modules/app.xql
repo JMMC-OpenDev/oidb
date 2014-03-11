@@ -507,22 +507,7 @@ declare function app:latest($node as node(), $model as map(*)) {
  : Test for VEGA data integration
  :)
 
-declare %private function app:vega-L0-row($row as node()) as node() {
-    <tr> {
-        $row/td[@colname='StarHD'], (: Object Name/Identifier :)
-        <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
-        <td> { 'VEGA' } <br/> { vega:instrument-mode($row) } </td>,
-        <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
-        <td> { vega:number-of-telescopes($row) } </td>,
-        <td> { vega:telescopes-configuration($row) } </td>,
-        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } </td>, (: observation notes, FIXME :)
-        <td> {
-            vega:get-user-name($row/td[@colname='DataPI']/text())
-        } </td> (: PI contact details :)
-    } </tr>
-};
-
-declare %private function app:vega-all-row($row as node()) as node() {
+declare %private function app:vega-row($row as node()) as node() {
     <tr> {
         $row/td[@colname='StarHD'], (: Object Name/Identifier :)
         <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
@@ -557,22 +542,13 @@ declare function app:vega-select-star-hd($node as node(), $model as map(*), $sta
     </select>
 };
 
-declare
-    %templates:default("starHD", "HD213306")
-function app:vega-L0($node as node(), $model as map(*), $starHD as xs:string) {
-    <tbody> {
-        for $row in collection($vega:data-root)//votable/tr[./td[@colname='StarHD' and ./text()=$starHD]]
-        return app:vega-L0-row($row)
-    } </tbody>
-};
-
-declare function app:vega-all($node as node(), $model as map(*), $starHD as xs:string?) {
+declare function app:vega($node as node(), $model as map(*), $starHD as xs:string?) {
     <tbody> {
         let $rows := collection($vega:data-root)//votable/tr
         let $rows := if ($starHD) then $rows[./td[@colname='StarHD' and ./text()=$starHD]] else $rows
         for $row in $rows
         order by $row/td[@colname='StarHD']/text()
-        return app:vega-all-row($row)
+        return app:vega-row($row)
     } </tbody>
 };
 
