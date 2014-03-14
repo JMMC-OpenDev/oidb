@@ -5,8 +5,8 @@ module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates";
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
+import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
-import module namespace cs="http://apps.jmmc.fr/exist/apps/oidb/conesearch" at "conesearch.xqm";
 
 import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
 
@@ -66,6 +66,10 @@ declare %private function app:action-urls($data as node()) as map(*) {
  : 
  : It creates a new node for each row and template processes
  : each extending the model with the row data and urls.
+ : 
+ : @note
+ : This function differs from templates:each in that it adds row-specific data
+ : to the model.
  : 
  : @param $node  the node to use as pattern for each rows
  : @param $model the current model
@@ -284,6 +288,43 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
     return map:new(map:entry('instruments', $instruments))
 };
 
+declare variable $app:data-pis-query := "SELECT DISTINCT t.obs_creator_name FROM " || $config:sql-table || " AS t";
+
+(:~
+ : Build a list of dataPIs and put it in the model for templating.
+ : 
+ : It creates a 'datapis' entry in the model for the children of the node.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with dataPI names
+ :)
+declare
+    %templates:wrap
+function app:data-pis($node as node(), $model as map(*)) as map(*) {
+    let $data := tap:execute($app:data-pis-query, true())
+    let $datapis := $data//td[@colname='obs_creator_name']/text()
+    return map:new(($model, map:entry('datapis', $datapis)))
+};
+
+(:~
+ : Return of HTML input elements for each of the wavelength bands.
+ : 
+ : @param $node  the node to use as pattern for each rows
+ : @param $model the current model
+ : @return a sequence of nodes, one for each band
+ :)
+declare function app:input-each-band($node as node(), $model as map(*)) as node()* {
+    for $n in jmmc-astro:band-names()
+    (: one element for each band, process templates inside the node :)
+    return element { node-name($node) } {
+            $node/@*,
+            attribute { 'value' } { $n },
+            if ($n = $model('band')) then attribute { 'checked'} { 'checked' } else (),
+            templates:process($node/node(), map:new(($model, map:entry('band', $n))))
+        }
+};
+
 (:~
  : Return an element with counts of the number of observations, all OIFits 
  : files and private OIFits files in the database.
@@ -325,82 +366,6 @@ declare %private function app:target-coords($target as xs:string) {
 };
 
 (:~
- : Default ADQL request for the search page: display everything
- :)
-declare variable $app:default-search-query := "SELECT * FROM " || $config:sql-table;
-
-(:~
- : Perform one of the predefined request based on request parameters.
- : 
- : @return a <votable>, possibly empty if no results
- :)
-declare %private function app:pre-defined-search() as node() {
-    let $search := request:get-parameter("search", "")
-    return if ($search = 'conesearch') then
-        (: Cone Search search :)
-        let $sra     := number(request:get-parameter("s_ra", 0))
-        let $sdec    := number(request:get-parameter("s_dec", 0))
-        let $sradius := number(request:get-parameter("s_radius", 0))
-        return cs:execute($sra, $sdec, $sradius, true())
-    else if ($search ='conesearch2') then
-        let $name    := request:get-parameter("target_name", "")
-        let $sradius := number(request:get-parameter("s_radius", 1))
-        let $sra-sdec := app:target-coords($name)
-        return if (empty($sra-sdec)) then
-            (: no coordinates found for given name :)
-            (: TODO: print message :)
-            let $msg := util:log('info', "Target '" || $name || "' not found")
-            return <x/>
-        else
-            cs:execute($sra-sdec[1], $sra-sdec[2], $sradius, true())
-    else if ($search = 'level') then
-        let $levels := request:get-parameter('l', ())
-        let $query := string-join((
-            $app:default-search-query || " AS t ",
-            string-join(for $level in $levels return "t.calib_level=" || $level, " OR ")),
-            " WHERE ")
-        return tap:execute($query || " ORDER BY t.subdate DESC", true())
-    else if ($search = 'misc') then
-        let $type  := request:get-parameter("type", "")
-        let $query := if ($type = "monochromatic") then
-                $app:default-search-query || " AS t WHERE t.nb_channels=1"
-            else if ($type = "polychromatic") then
-                $app:default-search-query || " AS t WHERE t.nb_channels>1"
-            else if ($type = "kbandonly") then
-                $app:default-search-query || " AS t WHERE t.em_min>1.925E-6 AND t.em_max<2.825E-6"
-            else if ($type = "hband") then
-                $app:default-search-query || " AS t WHERE t.em_max>1.925E-6 AND t.em_min<2.825E-6"
-            else
-                $app:default-search-query
-        return tap:execute($query || " ORDER BY t.subdate DESC", true())
-    else if ($search = 'nmeasurements') then
-        (: Search for minimal number of measurements :)
-        let $nvis  := number(request:get-parameter("nvis", 0))
-        let $nvis2 := number(request:get-parameter("nvis2", 0))
-        let $nt3   := number(request:get-parameter("nt3", 0))
-        let $query := concat($app:default-search-query, " AS t WHERE t.nb_vis>=", $nvis, " AND t.nb_vis2>=", $nvis2, " AND t.nb_t3>=", $nt3)
-        return tap:execute($query || " ORDER BY t.subdate DESC", true())
-    else if ($search = 'collection') then 
-        (: Search for collection by name :)
-        let $collection := request:get-parameter("obs_collection", "")
-        let $author     := request:get-parameter("obs_creator_name", "")
-        let $query      := if ($collection != '') then
-                concat($app:default-search-query, " AS t WHERE t.obs_collection='", $collection, "'")
-            else
-                concat($app:default-search-query, " AS t WHERE t.t.obs_creator_name LIKE '%", $author,"%'")
-        return tap:execute($query || " ORDER BY t.subdate DESC", true())
-    else if ($search = 'instrument') then
-        (: Search for observations with the specified instrument :)
-        let $instrument := request:get-parameter("instrument_name", "")
-        let $query      := concat($app:default-search-query, " AS t WHERE t.instrument_name LIKE '", $instrument, "%'")
-        return tap:execute($query || " ORDER BY t.subdate DESC", true())
-    else
-        (: default or custom ADQL query :)
-        let $query := request:get-parameter("query", $app:default-search-query || " AS t ORDER BY t.subdate DESC")
-        return tap:execute($query, true())
-};
-
-(:~
  : Display the result of the query in a paginated table.
  : 
  : The query is passed to Astrogrid DSA and the returned VOTable
@@ -419,13 +384,15 @@ declare
 function app:search($node as node(), $model as map(*),
                     $page as xs:integer, $perpage as xs:integer, $all as xs:string?) as map(*) {
     (: Search database, use request parameters :)
-    let $data    := app:pre-defined-search()
+    let $query := query:build-query()
+    let $data := tap:execute($query, true())
 
     (: default columns to display :)
     let $columns := if($all) then
             $data//th/@name/string()
         else
             ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
+
     let $stats   := app:data-stats($data)
 
     let $headers := $data//th[@name=$columns]
@@ -438,6 +405,97 @@ function app:search($node as node(), $model as map(*),
         'stats' :=      $stats,
         'pagination' := map { 'page' := $page, 'npages' := ceiling(count($data//tr) div $perpage) }
     }
+};
+
+(:~
+ : Turn a query string into a model with values for search form elements.
+ :
+ : It analyzes the search filters from the request and convert them into values
+ : for search form elements.
+ :
+ : @param $node
+ : @param $model
+ : @return a new model with values of the search
+ :)
+declare
+    %templates:wrap
+function app:deserialize-query-string($node as node(), $model as map(*)) as map(*) {
+    map:new((
+        (: target=[!]~<data> :)
+        map {
+            'target_name' := substring-after(request:get-parameter('target', ''), '~')
+        },
+        (: conesearch=<ra>,<dec>,<radius> or conesearch=<target>,<radius> :)
+        let $tokens := tokenize(request:get-parameter('conesearch', ''), ',')
+        return if (count($tokens) = 3) then
+            map { 'cs_ra' := $tokens[1], 'cs_dec' := $tokens[2], 'cs_radius' := $tokens[3] }
+        else
+            map:new(),
+        (: observationdate=[<start>]..[<end>] :)
+        map {
+            'date_start'  := substring-before(request:get-parameter('observationdate', ''), '..'),
+            'date_end'    := substring-after(request:get-parameter('observationdate', ''), '..')
+        },
+        (: instrument=[!]<data> :)
+        map {
+            'instrument'  := request:get-parameter('instrument', '')
+        },
+        (: wavelengthband=<band>[,<band>]* :)
+        map {
+            'band'        := tokenize(request:get-parameter('wavelengthband', ''), ',')
+        },
+        (: collection=[!]~<data> :)
+        map {
+            'collection'  := substring-after(request:get-parameter('collection', ''), '~')
+        },
+        (: datapi=[!]~<data> :)
+        map {
+            'datapi'      := substring-after(request:get-parameter('datapi', ''), '~')
+        },
+        (: caliblevel=<level>[,<level>]* :)
+        map {
+            'reduction'   := tokenize(request:get-parameter('caliblevel', ''), ',')
+        }
+    ))
+};
+
+(:~
+ : Return components of a query string for building an ADQL select.
+ : 
+ : It translates the parameters from the request into filter strings suitable
+ : to build an ADQL query.
+ : 
+ : @return a sequence of filter strings
+ :)
+declare function app:serialize-query-string() as xs:string* {
+    (
+        (: date filter: combine two parameters into one :)
+        let $start := request:get-parameter('date_start', '')
+        let $end   := request:get-parameter('date_end', '')
+        return if($start != '' or $end != '') then
+            "observationdate=" || encode-for-uri($start) || '..' || encode-for-uri($end)
+        else
+            (),
+        (: conesearch filter :)
+        let $coords := for $p in ( 'cs_ra', 'cs_dec', 'cs_radius' ) return request:get-parameter($p, ())
+        return if($coords[1] != '') then
+            "conesearch=" || string-join($coords, ',')
+        else
+            (),
+        (: any other filter :)
+        for $n in request:get-parameter-names()
+        let $value := request:get-parameter($n, "")
+        where exists($value) and $value != ''
+        return switch($n)
+            (: parameter name         filter with argument :)
+            case "target_name" return "target=" ||     "~" || encode-for-uri($value)
+            case "instrument"  return "instrument="        || encode-for-uri($value)
+            case "band"        return "wavelengthband="    || string-join(for $v in $value return encode-for-uri($v), ',')
+            case "collection"  return "collection=" || "~" || encode-for-uri($value)
+            case "datapi"      return "datapi=" ||     "~" || encode-for-uri($value)
+            case "reduction"   return "caliblevel="        || string-join(for $v in $value return encode-for-uri($v), ',')
+            default            return ()
+    )
 };
 
 (:~

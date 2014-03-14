@@ -1,92 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<div xmlns="http://www.w3.org/1999/xhtml">
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            All data.
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            Located in sky area at&#160;
-            RA[deg] =            <input name="s_ra" type="number" size="3" value="0" class="templates:form-control"/>,
-            DEC[deg] =           <input name="s_dec" type="number" size="3" value="0" class="templates:form-control"/>,
-            Search radius[deg] = <input name="s_radius" type="number" size="1" value="1" class="templates:form-control"/>.
-            <input type="hidden" name="search" value="conesearch"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            Near target&#160;
-            <input name="target_name" type="text" class="templates:form-control typeahead"/>,
-            Search radius[deg] = <input name="s_radius" type="number" size="1" value="1" class="templates:form-control"/>.
-            <input type="hidden" name="search" value="conesearch2"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            <input name="type" value="monochromatic" type="radio" class="templates:form-control">Monochromatic</input>,
-            <input name="type" value="polychromatic" type="radio" class="templates:form-control">Polychromatic</input>,
-            <input name="type" value="kbandonly" type="radio" class="templates:form-control">K band only</input>,
-            <input name="type" value="hband" type="radio" class="templates:form-control">contains H band measurements</input>,
-            <input type="hidden" name="search" value="misc"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            Calibration level&#160;
-            <input name="l" value="0" type="checkbox">L0</input>,&#160;
-            <input name="l" value="1" type="checkbox">L1</input>,&#160;
-            <input name="l" value="2" type="checkbox">L2</input>,&#160;
-            <input name="l" value="3" type="checkbox">L3</input>.
-            <input type="hidden" name="search" value="level"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            Containing at least&#160;
-            <input name="nvis" type="number" size="2" value="0" class="templates:form-control"/> VIS and&#160;
-            <input name="nvis2" type="number" size="2" value="0" class="templates:form-control"/> VIS2 and&#160;
-            <input name="nt3" type="number" size="2" value="0" class="templates:form-control"/> T3 measurements.
-            <input type="hidden" name="search" value="nmeasurements"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            From collection&#160;
-            <select data-template="templates:form-control">
-                <option value="">Any Collection</option>
-                <option data-template="helpers:select-options" data-template-key="collections"/>
-            </select>
-            <input type="hidden" name="search" value="collection"/>
-            or first author is&#160;
-            <input name="obs_creator_name" type="text" class="templates:form-control typeahead"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5" data-template="app:instruments">
-            Observed with&#160;
-            <select name="instrument" data-template="templates:form-control">
-                <option value="">Any Instrument</option>
-                <option data-template="helpers:select-options" data-template-key="instruments"/>
-            </select>
-            <input type="hidden" name="search" value="instrument"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
-    <form class="row form-inline" action="">
-        <div class="col-md-5">
-            Custom query&#160;
-            <input name="query" type="text" placeholder="ADQL Query" class="templates:form-control"/>
-        </div>
-        <button type="submit" class="col-md-1 btn">Search</button>
-    </form>
+<form xmlns="http://www.w3.org/1999/xhtml" action="search.html" method="post" class="row form-inline" data-template="app:deserialize-query-string">
+    <fieldset>
+        <label for="cs_ra">RA:</label>
+        <input name="cs_ra" type="text" data-template="helpers:form-control"/>
+        <label for="cs_dec">DEC:</label>
+        <input name="cs_dec" type="text" data-template="helpers:form-control"/>
+        <label for="cs_radius">RADIUS:</label>
+        <input name="cs_radius" type="number" value="1" data-template="helpers:form-control"/>
+    </fieldset>
+    <fieldset>
+        <label for="target_name">Target: </label>
+        <input name="target_name" type="text" class="typeahead" data-template="helpers:form-control"/>
+    </fieldset>
+    <fieldset>
+        <label>Date of observation: </label>
+        between <input name="date_start" type="time" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
+        and     <input name="date_end" type="time" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
+    </fieldset>
+    <fieldset data-template="app:instruments">
+        <label for="instrument">Instrument: </label>
+        <select name="instrument" data-template="helpers:form-control">
+            <option value="">Any Instrument</option>
+            <option data-template="helpers:select-options" data-template-key="instruments"/>
+        </select>
+    </fieldset>
+<!--    <fieldset>-->
+<!--        <label for="instrument_mode">Instrument mode: </label>-->
+<!--        <div class="controls">-->
+<!--        </div>-->
+<!--    </fieldset>-->
+    <fieldset>
+        <label for="band">Wavelength range: </label>
+        <input name="band" type="checkbox" data-template="app:input-each-band">
+            <span data-template="helpers:model-value" data-template-key="band"/>&#160;
+        </input>
+    </fieldset>
+    <fieldset data-template="app:collections">
+        <label for="collection">Collection: </label>
+        <select name="collection" data-template="helpers:form-control">
+            <option value="">Any Collection</option>
+            <option data-template="helpers:select-options" data-template-key="collections"/>
+        </select>
+    </fieldset>
+    <fieldset data-template="app:data-pis">
+        <label for="datapi">DataPI name: </label>
+        <select name="datapi" data-template="helpers:form-control">
+            <option value="">Any DataPI</option>
+            <option data-template="helpers:select-options" data-template-key="datapis"/>
+        </select>
+    </fieldset>
+    <fieldset>
+        <label for="reduction">Data reduction level: </label>
+        <input name="reduction" value="0" type="checkbox" data-template="helpers:form-control">L0</input>,&#160;
+        <input name="reduction" value="1" type="checkbox" data-template="helpers:form-control">L1</input>,&#160;
+        <input name="reduction" value="2" type="checkbox" data-template="helpers:form-control">L2</input>,&#160;
+        <input name="reduction" value="3" type="checkbox" data-template="helpers:form-control">L3</input>.
+    </fieldset>
+    <button type="submit" class="btn btn-primary">
+        <i class="glyphicon glyphicon-search"/> Search
+    </button>
     <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
     <script type="text/javascript">
         // turn on suggestion with Boostrap typeahead on text inputs
@@ -108,4 +80,4 @@
                         }});
                 }});
     </script>
-</div>
+</form>

@@ -4,6 +4,8 @@ import module namespace request="http://exist-db.org/xquery/request";
 
 import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "modules/login.xqm";
 
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "modules/app.xql";
+
 declare variable $exist:path external;
 declare variable $exist:resource external;
 declare variable $exist:controller external;
@@ -50,6 +52,15 @@ else if (starts-with($exist:path, '/modules/upload-')) then (
         <response>
             <error>Authentication required</error>
         </response>
+    )
+else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
+    (: interception of POST requests from search page :)
+    (: serialize from form elements and redirect (303 See Other) :)
+    let $query-string := string-join(app:serialize-query-string(), '&amp;')
+    let $location := if($query-string = '') then '.' || $exist:path else '.' || $exist:path || '?' || $query-string
+    return (
+        response:set-status-code(303),
+        response:set-header('Location', $location)
     )
 else if (ends-with($exist:resource, ".html")) then
     (: the html page is run through view.xql to expand templates :)
