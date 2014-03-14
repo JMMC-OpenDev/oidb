@@ -1,0 +1,230 @@
+xquery version "3.0";
+
+(:~
+ : This modules contains functions to serialize filter requests as ADQL
+ : conditions.
+ : 
+ : Each filter function takes a single string as parameter. The function is in
+ : charge of analyzing and parsing the parameter and may raise an error if it 
+ : fails building a proper condition.
+ : 
+ : @note
+ : Only filter functions should be made public within this module.
+ :)
+module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters";
+
+import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xqm";
+
+import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
+
+import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
+import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
+
+(:~
+ : Prepare a LIKE/NOT LIKE ADQL condition for a pattern on
+ : a given column.
+ : 
+ : It builds the condition matching the text of the parameter
+ : and depending on whether it is prefixed by '~' or '!~'.
+ : 
+ : @param $params the text prefixed by '~' or '!~'
+ : @return a LIKE predicate or () if bad pattern format
+ :)
+declare %private function filters:like-text($params as xs:string, $column as xs:string) {
+    if (starts-with($params, '~') or starts-with($params, '!~')) then
+        let $not  := if (starts-with($params, '!')) then 'NOT ' else ''
+        let $name := query:escape(substring-after($params, '~'))
+        return
+            "( " || $query:correlation-name || "." || $column || " " || $not || "LIKE " || "'%" || $name || "%' )"
+    else
+        ()
+};
+
+(:~
+ : Format an ADQL condition for matching/not matching target names.
+ : 
+ : @param $params the pattern for the target name
+ : @return an ADQL condition or ()
+ :)
+declare function filters:target($params as xs:string) {
+    filters:like-text($params, 'target_name')
+};
+
+(:~
+ : Format an ADQL condition for matching/not matching the owner of the data.
+ : 
+ : @params $params the pattern for the data pi name
+ : @return an ADQL condition or ()
+ :)
+declare function filters:datapi($params as xs:string) {
+    filters:like-text($params, 'obs_creator_name')
+};
+
+(:~
+ : Format an ADQL condition for matching/not matching a collection
+ : name.
+ : 
+ : @param $params the pattern for the collection name
+ : @return an ADQL condition or ()
+ :)
+declare function filters:collection($params as xs:string) {
+    filters:like-text($params, 'obs_collection')
+};
+
+(:~
+ : Format an ADQL condition not/equals on instrument name.
+ : 
+ : @param $params the instrument name optionnaly prefixed by '!'
+ : @return a comparison operation on column instrument_name
+ :)
+declare function filters:instrument($params as xs:string) {
+    let $not := if (starts-with($params, '!')) then 'NOT' else ''
+    let $instrument := query:escape(if ($not != '') then substring($params, 2) else $params)
+    return
+        "( " || $query:correlation-name || ".instrument_name " || $not || " LIKE '" || $instrument || "%' )"
+};
+
+(:~
+ : Format an ADQL condition matching rows with calibration levels. 
+ : 
+ : @param $params the calibration levels, comma separated
+ : @return an ADQL condition selecting rows by calibration level
+ :)
+declare function filters:caliblevel($params as xs:string) {
+    let $levels :=
+        for $l in tokenize($params, ',')
+        let $n := xs:integer($l)
+        return if ($n ge 0 and $n lt 4) then $n else ()
+    return "( " || 
+        string-join(
+            for $l in $levels return $query:correlation-name || ".calib_level=" || $l,
+            " OR ")
+        || " )"
+};
+
+(:~
+ : Helper function for splitting a string of coordinates for a cone search.
+ : 
+ : The coordinates can be (comma-separated):
+ :  - a star identifier following by a search radius
+ :  - a couple of values for right ascension and declination (in degree or
+ :    sexagesimal notation) followed by the search radius
+ : 
+ : @param $coords
+ : @return a three items sequences: ra, dec and radius in degrees
+ : @error malformed parameter, failed to extract values
+ :)
+declare %private function filters:parse-conesearch($coords as xs:string) as item()* {
+    let $tokens := tokenize($coords, ',')
+    let $count := count($tokens)
+    return
+        if ($count = 2) then
+            (: expecting star name (resolve with Simbad) and radius :)
+            (
+                let $resolved := sesame:resolve($tokens[1])
+                return ( $resolved/@s_ra, $resolved/@s_dec, xs:double($tokens[2]) )
+            )
+        else if ($count = 3) then
+            (: expecting ra, dec, radius (degrees or sexagesimal) :)
+            (
+                if (string(number($tokens[1])) = 'NaN') then jmmc-astro:from-hms($tokens[1]) else xs:double($tokens[1]),
+                if (string(number($tokens[2])) = 'NaN') then jmmc-astro:from-dms($tokens[2]) else xs:double($tokens[2]),
+                xs:double($tokens[3])
+            )
+        else
+            error(xs:QName('filters:error'), "Failed to parse conesearch filter parameter " || $coords)
+};
+
+import module namespace m="http://exist-db.org/xquery/math";
+
+(:~
+ : Format a Cone Search as an ADQL condition.
+ : 
+ : @param $params coordinates as comma-separated list of angles
+ : in degree or space separated sexagesimal values.
+ : @return an ADQL condition selecting items for the defined region
+ :)
+declare function filters:conesearch($params as xs:string) as xs:string {
+    let $cs     := filters:parse-conesearch(xmldb:decode($params))
+    let $ra     := xs:double($cs[1])
+    let $dec    := xs:double($cs[2])
+    let $radius := xs:double($cs[3])
+    
+(:    return "( CONTAINS(" ||:)
+(:        "POINT('ICRS', " || $query:correlation-name || ".s_ra, " || $query:correlation-name || ".s_dec), " ||:)
+(:        "CIRCLE('ICRS', " || $ra || ", " || $dec || ", " || $radius || ")" ||:)
+(:        ")=1 )":)
+
+    (: alternate SQL condition for Cone Search with AstroGrid DSA :)
+    let $dec-min := $dec - $radius
+    let $dec-max := $dec + $radius
+    let $ra-min := $ra - m:degrees(m:radians($radius) div m:cos(m:radians($dec)))
+    let $ra-max := $ra + m:degrees(m:radians($radius) div m:cos(m:radians($dec)))
+    (: rough bounding box, then spherical law of cosine :)
+    return "( " ||
+            $query:correlation-name || ".s_dec <= " || $dec-max || " AND " || $query:correlation-name || ".s_dec >= " || $dec-min || " AND " ||
+            $query:correlation-name || ".s_ra  <= " || $ra-max  || " AND " || $query:correlation-name || ".s_ra  >= " || $ra-min  || " AND " ||
+            "ACOS(" ||
+                "SIN(RADIANS(" || $query:correlation-name || ".s_dec)) * SIN(" || m:radians($dec) || ") + " ||
+                "COS(RADIANS(" || $query:correlation-name || ".s_dec)) * COS(" || m:radians($dec) || ") * COS(RADIANS(" || $query:correlation-name || ".s_ra) - " || m:radians($ra) || ")" ||
+            ") <= " || m:radians($radius) ||
+        " )"
+};
+
+(:~
+ : Format an ADQL condition on observation date as interval.
+ : 
+ : If there is a single date, it is taken as the start date of
+ : the interval. If the single date is prefixed by '..', the date
+ : is taken as the upper limit of the interval.
+ : 
+ : It generates an error if the format of the dates is incorrect.
+ : 
+ : @param $params a '..' separated couple of date as YYYY-MM-DD
+ : @return an ADQL condition selecting items in the time interval
+ :)
+declare function filters:observationdate($params as xs:string) as xs:string {
+    (: string -> MJD, false if empty string, error if malformed string :)
+    let $to-mjd := function ($x as xs:string?) {
+        if (exists($x) and $x != '') then jmmc-dateutil:ISO8601toMJD(xs:dateTime(xs:date($x))) else false()
+    }
+    let $dates := tokenize($params, '\.\.')
+    let $start-date := $to-mjd($dates[1]), $end-date := $to-mjd($dates[2])
+    (: TODO check $start-date and $end-date :)
+    return "( " || string-join((
+        if ($start-date) then 
+            $query:correlation-name || ".t_min >= " || $start-date
+        else
+            (),
+        if ($start-date and $end-date) then "AND" else (),
+        if ($end-date) then
+            $query:correlation-name || ".t_max <= " || $end-date
+        else
+            ()
+    ), ' ') || " )"
+};
+
+(:~
+ : Format an ADQL condition for observations in given bands.
+ : 
+ : @note
+ : This function only checks that the limits of the wavelength values for an
+ : item are within the band span. As a result some middle bands may have no
+ : measurement.
+ : 
+ : @param $params a comma-separated list of band names
+ : @return an ADQL condition selecting items with measurements in the given bands
+ :)
+declare function filters:wavelengthband($params as xs:string) {
+    let $p := tokenize($params, ',')
+    (: all band limits :)
+    let $limits := for $b in $p return jmmc-astro:wavelength-range($b)
+(:    let $limits := for $b in $p return 0:)
+    (: upper and lower wavelengths, convert to meter :)
+    let $minlambda := min($limits) * 1e-6
+    let $maxlambda := max($limits) * 1e-6
+    return "( " ||
+            $query:correlation-name || ".em_min < " || $minlambda || " AND " ||
+            $query:correlation-name || ".em_max > " || $maxlambda ||
+        " )"
+};
