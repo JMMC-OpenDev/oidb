@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml">
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            All data.
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            Located in sky area at&#160;
+            RA[deg] =            <input name="s_ra" type="number" size="3" value="0" class="templates:form-control"/>,
+            DEC[deg] =           <input name="s_dec" type="number" size="3" value="0" class="templates:form-control"/>,
+            Search radius[deg] = <input name="s_radius" type="number" size="1" value="1" class="templates:form-control"/>.
+            <input type="hidden" name="search" value="conesearch"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            Near target&#160;
+            <input name="target_name" type="text" class="templates:form-control typeahead"/>,
+            Search radius[deg] = <input name="s_radius" type="number" size="1" value="1" class="templates:form-control"/>.
+            <input type="hidden" name="search" value="conesearch2"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            <input name="type" value="monochromatic" type="radio" class="templates:form-control">Monochromatic</input>,
+            <input name="type" value="polychromatic" type="radio" class="templates:form-control">Polychromatic</input>,
+            <input name="type" value="kbandonly" type="radio" class="templates:form-control">K band only</input>,
+            <input name="type" value="hband" type="radio" class="templates:form-control">contains H band measurements</input>,
+            <input type="hidden" name="search" value="misc"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            Calibration level&#160;
+            <input name="l" value="0" type="checkbox">L0</input>,&#160;
+            <input name="l" value="1" type="checkbox">L1</input>,&#160;
+            <input name="l" value="2" type="checkbox">L2</input>,&#160;
+            <input name="l" value="3" type="checkbox">L3</input>.
+            <input type="hidden" name="search" value="level"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            Containing at least&#160;
+            <input name="nvis" type="number" size="2" value="0" class="templates:form-control"/> VIS and&#160;
+            <input name="nvis2" type="number" size="2" value="0" class="templates:form-control"/> VIS2 and&#160;
+            <input name="nt3" type="number" size="2" value="0" class="templates:form-control"/> T3 measurements.
+            <input type="hidden" name="search" value="nmeasurements"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            From collection&#160;
+            <select data-template="app:select-collection"/>
+            <input type="hidden" name="search" value="collection"/>
+            or first author is&#160;
+            <input name="obs_creator_name" type="text" class="templates:form-control typeahead"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            Observed with&#160;
+            <select data-template="app:select-instrument"/>
+            <input type="hidden" name="search" value="instrument"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <form class="row form-inline" action="">
+        <div class="col-md-5">
+            Custom query&#160;
+            <input name="query" type="text" placeholder="ADQL Query" class="templates:form-control"/>
+        </div>
+        <button type="submit" class="col-md-1 btn">Search</button>
+    </form>
+    <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
+    <script type="text/javascript">
+        // turn on suggestion with Boostrap typeahead on text inputs
+        $('input.typeahead')
+            .attr('autocomplete', 'off')
+            .typeahead( { 
+                source: function(query, process) {
+                    jQuery.ajax({
+                        url: './typeahead/' + this.$element.attr('name'),
+                        type: 'GET',
+                        dataType: 'json',
+                        data: { 'search': query },
+                        success: function (resp) {
+                            var items = [];
+                            jQuery.each(resp, function (index, item) {
+                                items.push(item);
+                            });
+                            return process(items);
+                        }});
+                }});
+    </script>
+</div>
