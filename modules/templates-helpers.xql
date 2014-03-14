@@ -113,3 +113,72 @@ declare function helpers:select-options($node as node(), $model as map(*), $key 
         for $value in $options
         return <option value="{ $value }">{ $value }</option>
 };
+
+(:~
+ : Process input and select form controls, setting their value/selection to
+ : values found in the model - if present.
+ :
+ : @node
+ : 'templates' has a similar function (templates:form-control) that:
+ :  - search for values in the request parameters.
+ :  - does not template process the children of the node
+ :
+ : @param $node
+ : @param $model
+ : @return the processed node
+ :)
+declare function helpers:form-control($node as node(), $model as map(*)) as node()* {
+    (: template process the children :)
+    let $children := templates:process($node/node(), $model)
+
+    let $control := local-name($node)
+    return
+    switch ($control)
+        case "input" return
+            let $type := $node/@type
+            let $name := $node/@name
+            (: try to get value from the model (instead of request parameters) :)
+            let $value := map:get($model, $name)
+            return
+                if (exists($value)) then
+                    switch ($type)
+                        case "checkbox" case "radio" return
+                            element { node-name($node) } {
+                                $node/@* except $node/@checked,
+                                if ($node/@value = $value) then
+                                    attribute checked { "checked" }
+                                else
+                                    (),
+                                $children
+                            }
+                        default return
+                            element { node-name($node) } {
+                                $node/@* except $node/@value,
+                                attribute value { $value },
+                                $children
+                            }
+                else
+                    $node
+        case "select" return
+            (: try to get value from the model (instead of request parameters) :)
+            let $value := map:get($model, $node/@name/string())
+            return
+                element { node-name($node) } {
+                    $node/@*,
+                    for $node in $children
+                    return if ($node[local-name(.) = "option"] and ($node[@value = $value] or $node/string() = $value)) then
+                            (: add the checked attribute to this element :)
+                            element { node-name($node) } {
+                                $node/@*,
+                                attribute selected { "selected" },
+                                $node/node()
+                            }
+                        else
+                            $node
+                    }
+        default return
+            element { node-name($node) } {
+                $node/@*,
+                $children
+            }
+};
