@@ -126,7 +126,6 @@ declare function app:row-cells($node as node(), $model as map(*)) {
             } </td>
 };
 
-
 (:~
  : Given curation data, check if data is public or not.
  : 
@@ -400,6 +399,7 @@ function app:search($node as node(), $model as map(*),
     let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
 
     return map {
+        'query' :=      $query,
         'headers' :=    $headers,
         'rows' :=       $rows,
         'stats' :=      $stats,
