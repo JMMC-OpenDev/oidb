@@ -89,3 +89,27 @@ function helpers:pagination($node as node(), $model as map(*)) {
             ()
     )
 };
+
+(:~
+ : Return a list of <option> elements for an HTML dropdown list.
+ :
+ : The option values and texts are retrieved from the the model entry for the
+ : given key. The entry value can be:
+ :  - a map, the value attributes are taken from the map keys and the texts
+ :    from the model values
+ :  - a sequence, the value attributes and the texts are sequence items.
+ :
+ : @param $node
+ : @param $model
+ : @param $key the identifier in the model for the contents of the options
+ : @return a sequence of <option> elements
+ :)
+declare function helpers:select-options($node as node(), $model as map(*), $key as xs:string) as node()* {
+    let $options := $model($key)
+    return if ($options instance of map(*)) then
+        for $key in map:keys($options)
+        return <option value="{ $key }">{ map:get($options, $key) }</option>
+    else
+        for $value in $options
+        return <option value="{ $value }">{ $value }</option>
+};

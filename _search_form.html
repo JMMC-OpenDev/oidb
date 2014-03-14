@@ -59,7 +59,10 @@
     <form class="row form-inline" action="">
         <div class="col-md-5">
             From collection&#160;
-            <select data-template="app:select-collection"/>
+            <select data-template="templates:form-control">
+                <option value="">Any Collection</option>
+                <option data-template="helpers:select-options" data-template-key="collections"/>
+            </select>
             <input type="hidden" name="search" value="collection"/>
             or first author is&#160;
             <input name="obs_creator_name" type="text" class="templates:form-control typeahead"/>
@@ -67,9 +70,12 @@
         <button type="submit" class="col-md-1 btn">Search</button>
     </form>
     <form class="row form-inline" action="">
-        <div class="col-md-5">
+        <div class="col-md-5" data-template="app:instruments">
             Observed with&#160;
-            <select data-template="app:select-instrument"/>
+            <select name="instrument" data-template="templates:form-control">
+                <option value="">Any Instrument</option>
+                <option data-template="helpers:select-options" data-template-key="instruments"/>
+            </select>
             <input type="hidden" name="search" value="instrument"/>
         </div>
         <button type="submit" class="col-md-1 btn">Search</button>

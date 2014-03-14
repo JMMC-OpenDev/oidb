@@ -238,52 +238,50 @@ declare %private function app:vizcat-url($catalogue as xs:string) as xs:string {
 
 declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection, t.obs_creator_name FROM " || $config:sql-table || " AS t WHERE NOT t.obs_collection='VegaObs Import'";
 
-declare %private function app:collections() {
+(:~
+ : Build a map for collections and put it in the model for templating.
+ : 
+ : It creates a 'collections' entry in the model for the children of the nodes.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with collections details
+ :)
+declare
+    %templates:wrap
+function app:collections($node as node(), $model as map(*)) as map(*) {
     let $data := tap:execute($app:collections-query, true())
-    for $tr in $data//tr
-    return element { "collection" } {
-        attribute { "name"} { $tr/td[@colname='obs_collection']/text() },
-        $tr/td[@colname='obs_creator_name']/text() }
-};
 
-declare function app:select-collection($node as node(), $model as map(*), $obs_collection as xs:string?) {
-    <select name="obs_collection">
-        <option disabled="disabled" selected="selected">All collections</option>
-        {
-            for $col in ( app:collections(), <x name="VegaObs Import"/>)
-            return <option value="{ $col/@name }">
-                { if ($obs_collection = $col/@name) then attribute { "selected"} { "selected" } else () }
-                { if ($col/text()) then
-                    $col/@name || " - " || $col/text()
-                else
-                    data($col/@name)
-                }
-            </option>
-        }         
-    </select>
+    return map:new(
+        map:entry('collections',
+            map:new(
+                for $tr in $data//tr
+                let $name    := $tr/td[@colname='obs_collection']/text()
+                let $creator := $tr/td[@colname='obs_creator_name']/text()
+                where $name != ''
+                return map:entry($name, if($creator != '') then $name || " - " || $creator else $name))))
 };
 
 declare variable $app:instruments-query := "SELECT DISTINCT t.instrument_name FROM " || $config:sql-table || " AS t";
 
-declare %private function app:instruments() {
+(:~
+ : Build a list of instrument names and put it in the model for templating.
+ : 
+ : It creates a 'instruments' entry in the model for the children of the node.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with instruments list
+ :)
+declare
+    %templates:wrap
+function app:instruments($node as node(), $model as map(*)) as map(*) {
     let $data := tap:execute($app:instruments-query, true())
-    return distinct-values(
-        for $i in $data//td[@colname='instrument_name']/text()
-        (: separate instrument name from mode, FIXME :)
-        return tokenize($i, '[^A-Za-z0-9]')[1])
-};
+    let $instruments := distinct-values(
+        for $tr in $data//tr
+        return tokenize($tr//td[@colname='instrument_name']/text(), '[^A-Za-z0-9]')[1])
 
-declare function app:select-instrument($node as node(), $model as map(*), $instrument_name as xs:string?) {
-    <select name="instrument_name">
-        <option disabled="disabled" selected="selected">All instruments</option>
-        {
-            for $ins in app:instruments()
-            return <option value="{ $ins }">
-                { if ($instrument_name = $ins) then attribute { "selected"} { "selected" } else () }
-                { $ins }
-            </option>
-        }         
-    </select>
+    return map:new(map:entry('instruments', $instruments))
 };
 
 (:~
