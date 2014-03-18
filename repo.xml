@@ -15,6 +15,19 @@
     with tap endpoint : config:TAP_DSA_URL
     </note>
     <changelog>
+      <change xmlns="" version="0.3">
+            <h3>Mid-March version</h3>
+            <ul>
+                <li>Rework on search interface engine</li>
+                <li>Uses <a href="http://cds.u-strasbg.fr/cgi-bin/Sesame">Sesame name resolver</a> to search arround any given target name. </li>
+                <li>To fix:
+                    <ul>
+                        <li>t_min and t_max have the same values on data imported from OIFits files</li>
+                    </ul>
+                </li>
+ 
+            </ul>
+        </change>
         <change xmlns="" version="0.2">
             <h3>February version</h3>
             <ul>
@@ -22,12 +35,7 @@
                 <li>Improved submit form and status reporting</li>
                 <li>Logging of submission</li>
                 <li>Display of observation coordinates in sexagesimal</li>
-                <li>To fix:
-                    <ul>
-                        <li>t_min and t_max have the same values on data imported from OIFits files</li>
-                    </ul>
-                </li>
-            </ul>
+           </ul>
         </change>
         <change xmlns="" version="0.1">
             <h3>Prototype prior to first group meeting</h3>
