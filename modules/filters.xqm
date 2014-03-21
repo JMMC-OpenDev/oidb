@@ -105,10 +105,12 @@ declare function filters:caliblevel($params as xs:string) {
 (:~
  : Helper function for splitting a string of coordinates for a cone search.
  : 
- : The coordinates can be (comma-separated):
- :  - a star identifier following by a search radius
- :  - a couple of values for right ascension and declination (in degree or
- :    sexagesimal notation) followed by the search radius
+ : The coordinates is made of:
+ :  - a position as coords for right ascension and declination or a star name
+ :  - an equinox (FIXME currently unused)
+ :  - a radius
+ :  - the radius unit (deg, arcmin, arcsec)
+ : These values are comma-separated in the filter string.
  : 
  : @param $coords
  : @return a three items sequences: ra, dec and radius in degrees
@@ -116,23 +118,55 @@ declare function filters:caliblevel($params as xs:string) {
  :)
 declare %private function filters:parse-conesearch($coords as xs:string) as item()* {
     let $tokens := tokenize($coords, ',')
-    let $count := count($tokens)
-    return
-        if ($count = 2) then
-            (: expecting star name (resolve with Simbad) and radius :)
-            (
-                let $resolved := sesame:resolve($tokens[1])
-                return ( $resolved/@s_ra, $resolved/@s_dec, xs:double($tokens[2]) )
-            )
-        else if ($count = 3) then
-            (: expecting ra, dec, radius (degrees or sexagesimal) :)
-            (
-                if (string(number($tokens[1])) = 'NaN') then jmmc-astro:from-hms($tokens[1]) else xs:double($tokens[1]),
-                if (string(number($tokens[2])) = 'NaN') then jmmc-astro:from-dms($tokens[2]) else xs:double($tokens[2]),
-                xs:double($tokens[3])
-            )
+    (: requested position, three format possible :)
+    let $position :=
+        let $p := $tokens[1]
+        let $tokens := tokenize($p, '[ :]')[. != '']
+        let $coords := 
+            if(count($tokens) = 2) then
+                (: ra and dec in degrees ? :)
+                try {
+                    ( xs:double($tokens[1]), xs:double($tokens[2]) )
+                } catch * { () }
+            else 
+                ()
+        let $coords := 
+            if(empty($coords)) then
+                (: then maybe ra and dec in sexagesimal ? :)
+                try {
+                    let $a := string-join(subsequence($tokens, 1, 3), ' ')
+                    let $d := string-join(subsequence($tokens, 4, 3), ' ')
+                    return ( jmmc-astro:from-hms($a), jmmc-astro:from-dms($d) )
+                } catch * { () }
+            else
+                $coords
+        return if (empty($coords) and count($tokens) lt 5) then
+            (: everything else failed, is it a name? use sesame :)
+            try {
+                let $resolved := sesame:resolve($p)/target[1]
+                return ( xs:double($resolved/@s_ra), xs:double($resolved/@s_dec) )
+            } catch sesame:resolve {
+                (: tried everything by now, we give up :)
+                error(xs:QName("filters:error"), "Failed to resolve position " || $p)
+            }
         else
-            error(xs:QName('filters:error'), "Failed to parse conesearch filter parameter " || $coords)
+            $coords
+    (: cone search radius: apply conversion on params for a radius in degree :)
+    let $radius :=
+        let $r := try {
+            xs:double($tokens[3])
+        } catch * {
+            error(xs:QName("filters:error"), "Failed to parse search radius " || $tokens[3])
+        }
+        let $u := $tokens[4]
+        return switch($u) 
+            case "deg"    return $r
+            case "arcmin" return $r div 60
+            case "arcsec" return $r div 3600
+            default
+                return error(xs:QName("filters:error"), "Unknown conesearch radius unit " || $u)
+
+    return ( $position, $radius )
 };
 
 import module namespace m="http://exist-db.org/xquery/math";

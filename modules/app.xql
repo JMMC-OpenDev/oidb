@@ -425,10 +425,15 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         map {
             'target_name' := substring-after(request:get-parameter('target', ''), '~')
         },
-        (: conesearch=<ra>,<dec>,<radius> or conesearch=<target>,<radius> :)
+        (: conesearch=<position>,<equinox>,<radius>,<unit> :)
         let $tokens := tokenize(request:get-parameter('conesearch', ''), ',')
-        return if (count($tokens) = 3) then
-            map { 'cs_ra' := $tokens[1], 'cs_dec' := $tokens[2], 'cs_radius' := $tokens[3] }
+        return if(count($tokens) = 4) then
+            map {
+                'cs_position'    := $tokens[1],
+                'cs_equinox'     := $tokens[2],
+                'cs_radius'      := $tokens[3],
+                'cs_radius_unit' := $tokens[4]
+            }
         else
             map:new(),
         (: observationdate=[<start>]..[<end>] :)
@@ -477,9 +482,13 @@ declare function app:serialize-query-string() as xs:string* {
         else
             (),
         (: conesearch filter :)
-        let $coords := for $p in ( 'cs_ra', 'cs_dec', 'cs_radius' ) return request:get-parameter($p, ())
-        return if($coords[1] != '') then
-            "conesearch=" || string-join($coords, ',')
+        let $position := request:get-parameter('cs_position', '')
+        return if($position != '') then
+            "conesearch=" || string-join((
+                encode-for-uri($position),
+                request:get-parameter('cs_equinox',     'J2000'),
+                request:get-parameter('cs_radius',      '2'),
+                request:get-parameter('cs_radius_unit', 'deg')), ',')
         else
             (),
         (: any other filter :)

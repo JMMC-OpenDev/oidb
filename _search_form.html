@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.w3.org/1999/xhtml" action="search.html" method="post" class="row form-inline" data-template="app:deserialize-query-string">
+<form xmlns="http://www.w3.org/1999/xhtml" action="search.html" method="post" class="row-form-inline" data-template="app:deserialize-query-string">
     <fieldset>
-        <label for="cs_ra">RA:</label>
-        <input name="cs_ra" type="text" data-template="helpers:form-control"/>
-        <label for="cs_dec">DEC:</label>
-        <input name="cs_dec" type="text" data-template="helpers:form-control"/>
-        <label for="cs_radius">RADIUS:</label>
-        <input name="cs_radius" type="number" value="1" data-template="helpers:form-control"/>
-    </fieldset>
-    <fieldset>
-        <label for="target_name">Target: </label>
-        <input name="target_name" type="text" class="typeahead" data-template="helpers:form-control"/>
+        <label for="cs_position">Position:</label>
+        <input name="cs_position" placeholder="Name or coordinates" data-template="helpers:form-control"/>
+        <select name="cs_equinox">
+            <option selected="selected">J2000</option>
+        </select>
+        <label for="cs_radius">Radius:</label>
+        <input name="cs_radius" data-template="helpers:form-control" value="2"/>
+        <select name="cs_radius_unit" data-template="helpers:form-control">
+            <option>arcmin</option>
+            <option>arcsec</option>
+            <option>deg</option>
+        </select>
     </fieldset>
     <fieldset>
         <label>Date of observation: </label>
