@@ -71,21 +71,25 @@ declare %private function query:select_list() as xs:string? {
 };
 
 (:~
- : Format an order by clause for an ADQL query.
+ : Format an ORDER BY clause for an ADQL query.
  : 
- : The sorting key is taken from the request parameter named 'order'.
- : The results are sorted in descending order if the 'orderdesc' request
- : parameter is set.
+ : The sorting keys are taken from the request parameter named 'order'.
+ : The results are sorted in ascending order if the value of the 'order'
+ : parameter starts with '^'.
  : 
- : @return an order by clause or empty string
+ : @return an ORDER BY clause or empty string
  :)
 declare %private function query:order_by_clause() as xs:string {
-    let $sort-key := request:get-parameter('order', ())
-    return if (exists($sort-key)) then
-        let $ordering-specification := 
-            if (exists(request:get-parameter('orderdesc', ()))) then 'DESC' else 'ASC'
-        return 
-            'ORDER BY ' || $query:correlation-name || "." || $sort-key || ' ' || $ordering-specification
+    let $sort-keys := request:get-parameter('order', ())
+    return if(exists($sort-keys)) then
+        'ORDER BY ' ||
+            string-join(
+                for $key in $sort-keys
+                let $sort-key := if(starts-with($key, '^')) then substring($key, 2) else $key
+                let $ordering-specification := if(substring-before($key, $sort-key) = '^') then 'ASC' else 'DESC'
+                return
+                    $query:correlation-name || "." || $sort-key || ' ' || $ordering-specification
+                , ', ')
     else
         (: no order specified :)
         ''
