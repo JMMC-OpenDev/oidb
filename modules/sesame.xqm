@@ -79,10 +79,6 @@ declare function sesame:resolve-sesame($names as xs:string+) as item()* {
  : @return a <sesame> element a <target> with data for each input name.
  :)
 declare function sesame:resolve($names as xs:string+) as node() {
-    (: check cache to see if already resolved :)
-    let $unresolved := $names[not(.=$sesame:resolved//target/@name)]
-    return
-        (: build up a cache with current resolutions :)
-        if (exists($unresolved)) then update insert sesame:resolve-sesame($unresolved) into $sesame:resolved/sesame else (),
-        <sesame> { $sesame:resolved//target[@name=$names] } </sesame>
+    (: FIXME no caching for the time being :)
+    <sesame> { sesame:resolve-sesame($names) } </sesame>
 };
