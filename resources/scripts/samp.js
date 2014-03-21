@@ -66,6 +66,14 @@ $(function () {
             return { "url": access_url };
         });
 
+    // TODO trim page=, perpage=, ...
+    var query_string = window.location.search;
+    var votable_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/votable.xql' + query_string;
+    $('table thead th:first-child .dropdown').sampify(
+         'table.load.votable',
+         // prepare parameter for the 'table.load.votable'
+         { 'url': votable_url }).find('.dropdown-menu a').first().attr('href', votable_url);
+
     $(window).unload(function () {
         // sever link with SAMP Hub if any
         connector.unregister();
