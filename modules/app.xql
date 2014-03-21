@@ -101,11 +101,14 @@ declare function app:row-cells($node as node(), $model as map(*)) {
         return <td> {
             switch ($cell/@colname)
                 case "access_url"
-                    return app:format-access-url(
-                        data($cell),
-                        data($row/td[@colname='data_rights']),
-                        data($row/td[@colname='obs_release_date']),
-                        data($row/td[@colname='obs_creator_name']))
+                    return
+                        let $access-url := data($cell)
+                        let $data-rights := $row/td[@colname='data_rights']
+                        let $obs-release-date := $row/td[@colname='obs_release_date']
+                        return if($data-rights and $obs-release-date) then
+                            app:format-access-url($access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'])
+                        else
+                            $access-url
                 case "s_ra"
                     return jmmc-astro:to-hms($cell)
                 case "s_dec"
