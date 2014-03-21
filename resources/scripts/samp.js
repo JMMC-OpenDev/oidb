@@ -9,27 +9,24 @@ $(function () {
     }; 
     var connector = new samp.Connector("Name", metadata, ct, ct.calculateSubscriptions());
 
-    // Add and remove links to relevant SAMP clients in the dropdown menu for
-    // each row of the result table.
-    $('table .dropdown')
+    // Add and remove links to relevant SAMP clients in the dropdown menu
+    $.fn.sampify = function(mtype, params) {
+        this
         .bind('show.bs.dropdown', function (e) {
-            // find the access_url for the row, looking for the cell in the table FIXME
-            var access_url = $('a', $(e.currentTarget).parents('tr').children('td:eq(2)')).attr('href');
             // the list that makes the dropdown menu
             var $ul = $('ul', e.currentTarget);
     
             connector.runWithConnection(function (conn) {
-                conn.getSubscribedClients(["table.load.fits"], function (res) {
-                    // send a table.load.fits message to the hub at conn
+                conn.getSubscribedClients([mtype], function (res) {
+                    var parameters = jQuery.isFunction(params) ? params.call(e.currentTarget) : params;
                     var sendMessage = function (id) {
-                        var msg = new samp.Message("table.load.fits", { "url": access_url});
+                        var msg = new samp.Message(mtype, parameters);
                         conn.notify([id, msg]);
                     };
                     // add an entry to the dropdown menu for the application
                     var addLink = function (id) {
                         return function (metadata) {
                             var name = metadata['samp.name'];
-                
                             $('<li/>').append(
                                 $('<a/>', { href: '#'})
                                     .append('<span class="glyphicon glyphicon-share"/> Send to ' + name)
@@ -54,6 +51,19 @@ $(function () {
             var $ul = $('ul', e.currentTarget);
             // remove every SAMP entries (that is anything that follows the divider)
             $('li.divider ~ li', $ul).remove();
+        });
+        
+        return this;
+    };
+
+    // set of SAMP links for the current row
+    $('table tbody .dropdown').sampify(
+        'table.load.fits',
+        // prepare parameters for the 'table.load.fits'
+        function () {
+            // find the access_url for the row, looking for the cell in the table FIXME
+            var access_url = $('a', $(this).parents('tr').children('td:eq(2)')).attr('href');
+            return { "url": access_url };
         });
 
     $(window).unload(function () {
