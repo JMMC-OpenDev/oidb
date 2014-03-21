@@ -55,4 +55,9 @@ $(function () {
             // remove every SAMP entries (that is anything that follows the divider)
             $('li.divider ~ li', $ul).remove();
         });
+
+    $(window).unload(function () {
+        // sever link with SAMP Hub if any
+        connector.unregister();
+    });
 });
