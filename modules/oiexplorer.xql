@@ -19,12 +19,20 @@ let $response :=
                 let $query := query:build-query()
                 (: run the ADQL SELECT :)
                 let $data := tap:execute($query, true())
+                (: FIXME url for search on Web portal :)
+                let $url := substring-before(request:get-url(), '/modules/oiexplorer.xql') || '/search.html?' || request:get-query-string()
 
-                (: FIXME may or may not have an access_url column :)
-                (: FIXME may or may already not have a DISTINCT :)
-                (: FIXME may or may be public/available :)
-                for $url in distinct-values($data//td[@colname='access_url' and starts-with(., 'http')])
-                return <file><file> { $url } </file></file>
+                return (
+                    '&#xa;    ', (: poor attempt at prettyprinting the comment :)
+                    comment { ' ' || $url || ' ' },
+                    '&#xa;    ',
+                    comment { ' ' || $query || ' ' },
+                    (: FIXME may or may not have an access_url column :)
+                    (: FIXME may or may already not have a DISTINCT :)
+                    (: FIXME may or may be public/available :)
+                    for $url in distinct-values($data//td[@colname='access_url' and starts-with(., 'http')])
+                    return <file><file> { $url } </file></file>
+                )
             } catch * {
                 comment { "Error: " || $err:description }
             }
