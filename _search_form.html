@@ -1,66 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.w3.org/1999/xhtml" action="search.html" method="post" class="row-form-inline" data-template="app:deserialize-query-string">
+<form xmlns="http://www.w3.org/1999/xhtml" action="search.html" method="post" class="form-horizontal" data-template="app:deserialize-query-string">
     <fieldset>
-        <label for="cs_position">Position:</label>
-        <input name="cs_position" placeholder="Name or coordinates" data-template="helpers:form-control"/>
-        <select name="cs_equinox">
-            <option selected="selected">J2000</option>
-        </select>
-        <label for="cs_radius">Radius:</label>
-        <input name="cs_radius" data-template="helpers:form-control" value="2"/>
-        <select name="cs_radius_unit" data-template="helpers:form-control">
-            <option>arcmin</option>
-            <option>arcsec</option>
-            <option>deg</option>
-        </select>
-    </fieldset>
-    <fieldset>
-        <label>Date of observation: </label>
-        between <input name="date_start" type="time" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
-        and     <input name="date_end" type="time" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
-    </fieldset>
-    <fieldset data-template="app:instruments">
-        <label for="instrument">Instrument: </label>
-        <select name="instrument" data-template="helpers:form-control">
-            <option value="">Any Instrument</option>
-            <option data-template="helpers:select-options" data-template-key="instruments"/>
-        </select>
-    </fieldset>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" for="cs_position">Position:</label>
+            <div class="form-inline">
+                <input class="form-control" name="cs_position" placeholder="Name or coordinates" data-template="helpers:form-control"/>
+                <select class="form-control" name="cs_equinox">
+                    <option selected="selected">J2000</option>
+                </select>
+                <label class="control-label" for="cs_radius">Radius:</label>
+                <input class="form-control" name="cs_radius" data-template="helpers:form-control" value="2"/>
+                <select class="form-control" name="cs_radius_unit" data-template="helpers:form-control">
+                    <option>arcmin</option>
+                    <option>arcsec</option>
+                    <option>deg</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label">Date of observation: </label>
+            <div class="form-inline">
+                between <input class="form-control" name="date_start" type="time" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
+                and     <input class="form-control" name="date_end" type="time" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
+            </div>
+        </div>
+        <div class="form-group" data-template="app:instruments">
+            <label class="col-sm-2 control-label" for="instrument">Instrument: </label>
+            <div class="form-inline">
+                <select class="form-control" name="instrument" data-template="helpers:form-control">
+                    <option value="">Any Instrument</option>
+                    <option data-template="helpers:select-options" data-template-key="instruments"/>
+                </select>
+            </div>
+        </div>
 <!--    <fieldset>-->
 <!--        <label for="instrument_mode">Instrument mode: </label>-->
 <!--        <div class="controls">-->
 <!--        </div>-->
 <!--    </fieldset>-->
-    <fieldset>
-        <label for="band">Wavelength range: </label>
-        <input name="band" type="checkbox" data-template="app:input-each-band">
-            <span data-template="helpers:model-value" data-template-key="band"/>&#160;
-        </input>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" for="band">Wavelength range: </label>
+            <div class="form-inline">
+                <input class="checkbox form-control" name="band" type="checkbox" data-template="app:input-each-band">
+                    &#160;<span data-template="helpers:model-value" data-template-key="band"/>&#160;
+                </input>
+            </div>
+        </div>
+        <div class="form-group" data-template="app:collections">
+            <label class="col-sm-2 control-label" for="collection">Collection: </label>
+            <div class="form-inline">
+                <select class="form-control" name="collection" data-template="helpers:form-control">
+                    <option value="">Any Collection</option>
+                    <option data-template="helpers:select-options" data-template-key="collections"/>
+                </select>
+            </div>
+        </div>
+        <div class="form-group" data-template="app:data-pis">
+            <label class="col-sm-2 control-label" for="datapi">DataPI name: </label>
+            <div class="form-inline">
+                <select class="form-control" name="datapi" data-template="helpers:form-control">
+                    <option value="">Any DataPI</option>
+                    <option data-template="helpers:select-options" data-template-key="datapis"/>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-2 control-label" for="reduction">Data reduction level: </label>
+            <div class="form-inline">
+                <input class="checkbox form-control" name="reduction" value="0" type="checkbox" data-template="helpers:form-control">L0</input>,&#160;
+                <input class="checkbox form-control" name="reduction" value="1" type="checkbox" data-template="helpers:form-control">L1</input>,&#160;
+                <input class="checkbox form-control" name="reduction" value="2" type="checkbox" data-template="helpers:form-control">L2</input>,&#160;
+                <input class="checkbox form-control" name="reduction" value="3" type="checkbox" data-template="helpers:form-control">L3</input>.
+            </div>
+        </div>
     </fieldset>
-    <fieldset data-template="app:collections">
-        <label for="collection">Collection: </label>
-        <select name="collection" data-template="helpers:form-control">
-            <option value="">Any Collection</option>
-            <option data-template="helpers:select-options" data-template-key="collections"/>
-        </select>
-    </fieldset>
-    <fieldset data-template="app:data-pis">
-        <label for="datapi">DataPI name: </label>
-        <select name="datapi" data-template="helpers:form-control">
-            <option value="">Any DataPI</option>
-            <option data-template="helpers:select-options" data-template-key="datapis"/>
-        </select>
-    </fieldset>
-    <fieldset>
-        <label for="reduction">Data reduction level: </label>
-        <input name="reduction" value="0" type="checkbox" data-template="helpers:form-control">L0</input>,&#160;
-        <input name="reduction" value="1" type="checkbox" data-template="helpers:form-control">L1</input>,&#160;
-        <input name="reduction" value="2" type="checkbox" data-template="helpers:form-control">L2</input>,&#160;
-        <input name="reduction" value="3" type="checkbox" data-template="helpers:form-control">L3</input>.
-    </fieldset>
-    <button type="submit" class="btn btn-primary">
-        <i class="glyphicon glyphicon-search"/> Search
-    </button>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary">
+                <i class="glyphicon glyphicon-search"/> Search</button>
+        </div>
+    </div>
     <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
     <script type="text/javascript">
         // turn on suggestion with Boostrap typeahead on text inputs
