@@ -26,6 +26,23 @@ function helpers:if-model-key($node as node(), $model as map(*), $key as xs:stri
 };
 
 (:~
+ : Evaluate and output the block if the model does not have a given property.
+ : 
+ : @param $node
+ : @param $model current model
+ : @param $key   key to search in the model
+ : @return the processed block if the model does not have a value for this key, nothing otherwise.
+ :)
+declare
+    %templates:wrap
+function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:string) {
+    if (map:contains($model, $key)) then
+        ()
+    else
+        templates:process($node/node(), $model)
+};
+
+(:~
  : Return the value of the given key in the model as text.
  : 
  : @param $node  a placeholder for text

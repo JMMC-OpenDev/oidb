@@ -1,54 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div data-template="app:search">
-    <div data-template="app:stats">
-        <span data-template="helpers:model-value" data-template-key="nobservations"/> observations from
-        <span data-template="helpers:model-value" data-template-key="noifitsfiles"/> oifits files
-        (<span data-template="helpers:model-value" data-template-key="nprivatefiles"/> private)
+    <div id="flash" data-template="helpers:if-model-key" data-template-key="flash">
+        <div class="alert alert-danger alert-dismissable col-md-offset-2 col-md-8">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <strong>Error!</strong>&#160;
+          <span data-template="helpers:model-value" data-template-key="flash"/>.
+        </div>
     </div>
-    <div data-template="templates:surround" data-template-with="templates/paginated.html" data-template-at="paginated">
-        <table class="table table-striped table-bordered table-hover">
-            <caption>Results for <code>
-                    <span data-template="helpers:model-value" data-template-key="query"/>
-                </code>
-            </caption>
-            <thead>
-                <tr>
-                    <th/>
-                    <th data-template="templates:each" data-template-from="headers" data-template-to="header">
-                        <span data-template="app:column-header"/>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-template="app:each-row">
-                    <td>
-                        <div class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                                <span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/>
-                            </a>
-                            <ul class="dropdown-menu" role="menu">
-                                <li data-template="helpers:if-model-key" data-template-key="show-url" role="presentation">
-                                    <a data-template="helpers:model-value-attribute" data-template-key="show-url" data-template-name="href">
-                                        <i class="glyphicon glyphicon-zoom-in"/> Details
-                                    </a>
-                                </li>
-                                <li data-template="helpers:if-model-key" data-template-key="simbad-url" role="presentation">
-                                    <a data-template="helpers:model-value-attribute" data-template-key="simbad-url" data-template-name="href">
-                                        <i class="glyphicon glyphicon-globe"/> View in SIMBAD
-                                    </a>
-                                </li>
-                                <li data-template="helpers:if-model-key" data-template-key="ads-url" role="presentation">
-                                    <a data-template="helpers:model-value-attribute" data-template-key="ads-url" data-template-name="href">
-                                        <i class="glyphicon glyphicon-book"/> Paper at ADS
-                                    </a>
-                                </li>
-                                <li class="divider" role="presentation"/>
-                            </ul>
-                        </div>
-                    </td>
-                    <td data-template="app:row-cells"/>
-                </tr>
-            </tbody>
-        </table>
+    <div data-template="helpers:unless-model-key" data-template-key="flash">
+        <div data-template="app:stats">
+            <span data-template="helpers:model-value" data-template-key="nobservations"/> observations from
+            <span data-template="helpers:model-value" data-template-key="noifitsfiles"/> oifits files
+            (<span data-template="helpers:model-value" data-template-key="nprivatefiles"/> private)
+        </div>
+        <div data-template="templates:surround" data-template-with="templates/paginated.html" data-template-at="paginated">
+            <table class="table table-striped table-bordered table-hover">
+                <caption>Results for <code>
+                        <span data-template="helpers:model-value" data-template-key="query"/>
+                    </code>
+                </caption>
+                <thead>
+                    <tr>
+                        <th/>
+                        <th data-template="templates:each" data-template-from="headers" data-template-to="header">
+                            <span data-template="app:column-header"/>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-template="app:each-row">
+                        <td>
+                            <div class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    <span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/>
+                                </a>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li data-template="helpers:if-model-key" data-template-key="show-url" role="presentation">
+                                        <a data-template="helpers:model-value-attribute" data-template-key="show-url" data-template-name="href">
+                                            <i class="glyphicon glyphicon-zoom-in"/> Details
+                                        </a>
+                                    </li>
+                                    <li data-template="helpers:if-model-key" data-template-key="simbad-url" role="presentation">
+                                        <a data-template="helpers:model-value-attribute" data-template-key="simbad-url" data-template-name="href">
+                                            <i class="glyphicon glyphicon-globe"/> View in SIMBAD
+                                        </a>
+                                    </li>
+                                    <li data-template="helpers:if-model-key" data-template-key="ads-url" role="presentation">
+                                        <a data-template="helpers:model-value-attribute" data-template-key="ads-url" data-template-name="href">
+                                            <i class="glyphicon glyphicon-book"/> Paper at ADS
+                                        </a>
+                                    </li>
+                                    <li class="divider" role="presentation"/>
+                                </ul>
+                            </div>
+                        </td>
+                        <td data-template="app:row-cells"/>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

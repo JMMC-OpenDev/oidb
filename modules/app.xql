@@ -382,28 +382,34 @@ declare
     %templates:default("perpage", 25)
 function app:search($node as node(), $model as map(*),
                     $page as xs:integer, $perpage as xs:integer, $all as xs:string?) as map(*) {
-    (: Search database, use request parameters :)
-    let $query := query:build-query()
-    let $data := tap:execute($query, true())
-
-    (: default columns to display :)
-    let $columns := if($all) then
-            $data//th/@name/string()
-        else
-            ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
-
-    let $stats   := app:data-stats($data)
-
-    let $headers := $data//th[@name=$columns]
-    (: limit rows to page - skip row of headers :)
-    let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
-
-    return map {
-        'query' :=      $query,
-        'headers' :=    $headers,
-        'rows' :=       $rows,
-        'stats' :=      $stats,
-        'pagination' := map { 'page' := $page, 'npages' := ceiling(count($data//tr) div $perpage) }
+    try {
+        (: Search database, use request parameters :)
+        let $query := query:build-query()
+        let $data := tap:execute($query, true())
+    
+        (: default columns to display :)
+        let $columns := if($all) then
+                $data//th/@name/string()
+            else
+                ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
+    
+        let $stats   := app:data-stats($data)
+    
+        let $headers := $data//th[@name=$columns]
+        (: limit rows to page - skip row of headers :)
+        let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
+    
+        return map {
+            'query' :=      $query,
+            'headers' :=    $headers,
+            'rows' :=       $rows,
+            'stats' :=      $stats,
+            'pagination' := map { 'page' := $page, 'npages' := ceiling(count($data//tr) div $perpage) }
+        }
+    } catch filters:error {
+        map {
+            'flash' := 'Unable to build a query from search form data: ' || $err:description
+        }
     }
 };
 
