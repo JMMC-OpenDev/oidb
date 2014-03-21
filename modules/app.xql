@@ -183,7 +183,7 @@ declare %private function app:format-access-url($url as xs:string, $data_rights 
                 attribute { "data-original-title" } { concat("Contact ", $creator_name, " for availability") }
             ),
          tokenize($url, "/")[last()] ,
-         if ($public) then () else <i class="icon-lock"/> 
+         if ($public) then () else <i class="glyphicon glyphicon-lock"/> 
         }
 };
 
