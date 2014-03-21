@@ -45,6 +45,7 @@ declare variable $sesame:SCHEMA := doc('/db/apps/oidb/resources/schemas/sesame_4
  : @return a <sesame> element a <target> with data for each input name.
  : @error Failed to retrieve data from Sesame
  : @error Invalid response from Sesame
+ : @error No result found
  :)
 declare function sesame:resolve-sesame($names as xs:string+) as item()* {
     let $uri := concat($sesame:SESAME_URL, string-join(for $name in $names return encode-for-uri($name), '&amp;'))
@@ -62,7 +63,7 @@ declare function sesame:resolve-sesame($names as xs:string+) as item()* {
         return if (exists($target) and exists($target/Resolver)) then
                 sesame:target($target)
             else
-                <warning> No result for {$name} </warning>
+                error(xs:QName('sesame:resolve'), 'No result for ' || $name || '.')
 };
 
 (:~
