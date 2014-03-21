@@ -140,11 +140,7 @@ declare %private function query:predicate($param as xs:string) as xs:string? {
     let $value := substring-after($param, '=')
     let $f := function-lookup(xs:QName('filters:' || $name), 1)
     return if (exists($f)) then 
-        try {
-            $f(util:unescape-uri($value, 'UTF8'))
-        } catch * {
-            error(xs:QName('query:error'), "Failed to transform filter " || $param|| " into ADQL condition: "  || $err:description)
-        }
+        $f(util:unescape-uri($value, 'UTF8'))
     else
         error(xs:QName('query:error'), "Unknown filter " || $name)
 };
@@ -160,15 +156,15 @@ declare %private function query:predicate($param as xs:string) as xs:string? {
  :)
 declare %private function query:where_clause() as xs:string {
     let $search-condition := 
-        string-join(
+        let $and-conditions := 
             for $x in query:split-query-string(request:get-query-string())
-                let $predicates :=
-                    (: filter out special and empty parameters :)
-                    for $p in tokenize($x, '&amp;')[not(starts-with(., $query:special-parameters) or .='')]
-                    return query:predicate($p)
-                return string-join($predicates, ' AND '),
-            ' OR ')
-    return if ($search-condition) then
+            let $predicates :=
+                (: filter out special and empty parameters :)
+                for $p in tokenize($x, '&amp;')[not(starts-with(., $query:special-parameters) or .='')]
+                return query:predicate($p)
+            return string-join($predicates, ' AND ')
+        return string-join($and-conditions, ' OR ')
+    return if($search-condition != '') then
         'WHERE ' || $search-condition
     else
         ''
@@ -195,12 +191,13 @@ declare %private function query:table_expression() as item()* {
  : @return an ADQL SELECT statement
  :)
 declare function query:build-query() as xs:string {
-    string-join((
+    let $table-expression := query:table_expression()
+    return string-join(( 
         'SELECT',
         query:set_quantifier(),
         (: set_limit, TOP xx :)
         query:select_list(),
-        query:table_expression()
+        $table-expression
         ), ' ')
 };
 
