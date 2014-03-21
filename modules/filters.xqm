@@ -216,15 +216,22 @@ declare function filters:conesearch($params as xs:string) as xs:string {
  : 
  : @param $params a '..' separated couple of date as YYYY-MM-DD
  : @return an ADQL condition selecting items in the time interval
+ : @error Invalid date format
  :)
 declare function filters:observationdate($params as xs:string) as xs:string {
     (: string -> MJD, false if empty string, error if malformed string :)
     let $to-mjd := function ($x as xs:string?) {
-        if (exists($x) and $x != '') then jmmc-dateutil:ISO8601toMJD(xs:dateTime(xs:date($x))) else false()
+        if (exists($x) and $x != '') then
+            try { 
+                jmmc-dateutil:ISO8601toMJD(xs:dateTime(xs:date($x)))
+            } catch * {
+                error(xs:QName("filters:error"), "Invalid date " || $x)
+            }
+        else
+            false()
     }
     let $dates := tokenize($params, '\.\.')
     let $start-date := $to-mjd($dates[1]), $end-date := $to-mjd($dates[2])
-    (: TODO check $start-date and $end-date :)
     return "( " || string-join((
         if ($start-date) then 
             $query:correlation-name || ".t_min >= " || $start-date
@@ -248,12 +255,18 @@ declare function filters:observationdate($params as xs:string) as xs:string {
  : 
  : @param $params a comma-separated list of band names
  : @return an ADQL condition selecting items with measurements in the given bands
+ : @error Unknown band name
  :)
 declare function filters:wavelengthband($params as xs:string) {
     let $p := tokenize($params, ',')
     (: all band limits :)
-    let $limits := for $b in $p return jmmc-astro:wavelength-range($b)
-(:    let $limits := for $b in $p return 0:)
+    let $limits :=
+        for $b in $p 
+        return try {
+            jmmc-astro:wavelength-range($b)
+        } catch * {
+            error(xs:QName('filters:error'), "Unknown band id " || $b)
+        }
     (: upper and lower wavelengths, convert to meter :)
     let $minlambda := min($limits) * 1e-6
     let $maxlambda := max($limits) * 1e-6
