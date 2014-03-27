@@ -217,7 +217,7 @@ declare %private function app:format-mjd($mjd as xs:double) {
  : @return an URL to SIMBAD for the specified target as string
  :)
 declare %private function app:simbad-url($name as xs:string) as xs:string {
-    concat("http://simbad.u-strasbg.fr/simbad/sim-id?NbIdent=1&amp;submit=submit+id&amp;Ident=NAME%20", encode-for-uri($name))
+    concat('http://simbad.u-strasbg.fr/simbad/sim-id?Ident=', encode-for-uri($name))
 };
 
 (:~
