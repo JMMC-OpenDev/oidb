@@ -309,6 +309,19 @@ function app:data-pis($node as node(), $model as map(*)) as map(*) {
     return map:new(($model, map:entry('datapis', $datapis)))
 };
 
+declare
+    %templates:wrap
+function app:sort-by($node as node(), $model as map(*)) as map(*) {
+    map:new(
+        map:entry('sortbys',
+            map {
+                (: column name       displayed text :)
+                'target_name'     := "Target name",
+                't_min'           := "Date",
+                'instrument_name' := "Instrument"
+            }))
+};
+
 (:~
  : Return of HTML input elements for each of the wavelength bands.
  : 
