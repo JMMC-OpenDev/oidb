@@ -6,9 +6,10 @@ xquery version "3.0";
 
 declare namespace oixp="http://www.jmmc.fr/oiexplorer-data-collection/0.1";
 
-declare option exist:serialize "method=xml";
+declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+declare option output:method "xml";
 
-import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xqm";
+import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
 let $response :=

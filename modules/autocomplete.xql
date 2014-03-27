@@ -11,7 +11,9 @@ xquery version "3.0";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "/db/apps/oidb/modules/tap.xqm";
 
-declare option exist:serialize "method=text media-type=text/javascript";
+declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+declare option output:method "text";
+declare option output:media-type "text/javascript";
 
 let $column := request:get-parameter("column", "")
 let $search := request:get-parameter("search", "")

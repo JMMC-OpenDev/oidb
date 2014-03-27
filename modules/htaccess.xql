@@ -13,10 +13,13 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
+declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
+declare option output:method "text";
+declare option output:media-type "text/plain";
+declare option output:omit-xml-declaration "yes";
+
 (: TODO: compute distinct access_url from adql ? :)
 declare variable $query := "SELECT t.access_url, t.data_rights, t.obs_release_date FROM " || $config:sql-table || " AS t";
-
-declare option exist:serialize "method=text media-type=text/plain omit-xml-declaration=yes";
 
 let $collection := request:get-parameter("obs_collection", "", true())
 let $rows := tap:execute(concat($query," WHERE t.obs_collection='", $collection, "'"), true())
