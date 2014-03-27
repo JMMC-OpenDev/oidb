@@ -8,7 +8,7 @@ xquery version "3.0";
  : 
  : The filters are defined in the 'filters.xqm' module.
  :)
-module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query";
+module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
@@ -18,12 +18,12 @@ import module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters" at
  : Parameters starting with these names that are not criteria for the select
  : list of the query.
  :)
-declare variable $query:special-parameters := ( 'col=', 'order=', 'orderdesc', 'distinct', 'page=', 'perpage=' );
+declare variable $adql:special-parameters := ( 'col=', 'order=', 'distinct', 'page=', 'perpage=' );
 
 (:~
  : The name to associate with the table within the query.
  :)
-declare variable $query:correlation-name := 't';
+declare variable $adql:correlation-name := 't';
 
 
 (:~
@@ -33,7 +33,7 @@ declare variable $query:correlation-name := 't';
  : 
  : @return the list of requested column names
  :)
-declare function query:columns() as item()* {
+declare function adql:columns() as item()* {
     request:get-parameter('col', ())
 };
 
@@ -44,7 +44,7 @@ declare function query:columns() as item()* {
  : 
  : @return a set quantifier
  :)
-declare %private function query:set_quantifier() as xs:string {
+declare %private function adql:set_quantifier() as xs:string {
     if (exists(request:get-parameter('distinct', ()))) then
         "DISTINCT"
     else
@@ -59,14 +59,14 @@ declare %private function query:set_quantifier() as xs:string {
  : 
  : @return a select list of columns
  :)
-declare %private function query:select_list() as xs:string? {
-    let $columns := query:columns()
+declare %private function adql:select_list() as xs:string? {
+    let $columns := adql:columns()
     return if(empty($columns)) then
         '*'
     else
         string-join(
             for $c in $columns
-            return $query:correlation-name || '.' || $c,
+            return $adql:correlation-name || '.' || $c,
             ', ')
 };
 
@@ -79,7 +79,7 @@ declare %private function query:select_list() as xs:string? {
  : 
  : @return an ORDER BY clause or empty string
  :)
-declare %private function query:order_by_clause() as xs:string {
+declare %private function adql:order_by_clause() as xs:string {
     let $sort-keys := request:get-parameter('order', ())
     return if(exists($sort-keys)) then
         'ORDER BY ' ||
@@ -88,7 +88,7 @@ declare %private function query:order_by_clause() as xs:string {
                 let $sort-key := if(starts-with($key, '^')) then substring($key, 2) else $key
                 let $ordering-specification := if(substring-before($key, $sort-key) = '^') then 'ASC' else 'DESC'
                 return
-                    $query:correlation-name || "." || $sort-key || ' ' || $ordering-specification
+                    $adql:correlation-name || "." || $sort-key || ' ' || $ordering-specification
                 , ', ')
     else
         (: no order specified :)
@@ -100,8 +100,8 @@ declare %private function query:order_by_clause() as xs:string {
  : 
  : @return a from clause on the application DB table
  :)
-declare %private function query:from_clause() as xs:string {
-    'FROM ' || $config:sql-table || ' AS ' || $query:correlation-name
+declare %private function adql:from_clause() as xs:string {
+    'FROM ' || $config:sql-table || ' AS ' || $adql:correlation-name
 };
 
 (:~
@@ -113,13 +113,13 @@ declare %private function query:from_clause() as xs:string {
  : @param $x request query string
  : @return a sequence of substrings of the query string
  :)
-declare %private function query:split-query-string($x as xs:string?) as item()* {
+declare %private function adql:split-query-string($x as xs:string?) as item()* {
     (
         let $before := substring-before($x, '&amp;or&amp;')
         return if (string-length($before) = 0) then $x else $before
         ,
         let $after := substring-after($x, '&amp;or&amp;')
-        return if (string-length($after) = 0) then () else query:split-query-string($after)
+        return if (string-length($after) = 0) then () else adql:split-query-string($after)
     )
 };
 
@@ -139,14 +139,14 @@ declare %private function query:split-query-string($x as xs:string?) as item()* 
  : parameter is invalid
  : @error if unknown filter or failed to serialize filter
  :)
-declare %private function query:predicate($param as xs:string) as xs:string? {
+declare %private function adql:predicate($param as xs:string) as xs:string? {
     let $name  := substring-before($param, '=')
     let $value := substring-after($param, '=')
     let $f := function-lookup(xs:QName('filters:' || $name), 1)
     return if (exists($f)) then 
         $f(util:unescape-uri($value, 'UTF8'))
     else
-        error(xs:QName('query:error'), "Unknown filter " || $name)
+        error(xs:QName('adql:error'), "Unknown filter " || $name)
 };
 
 (:~
@@ -158,14 +158,14 @@ declare %private function query:predicate($param as xs:string) as xs:string? {
  : @return an ADQL where clause with condition from the request or '' if no
  : filter
  :)
-declare %private function query:where_clause() as xs:string {
+declare %private function adql:where_clause() as xs:string {
     let $search-condition := 
         let $and-conditions := 
-            for $x in query:split-query-string(request:get-query-string())
+            for $x in adql:split-query-string(request:get-query-string())
             let $predicates :=
                 (: filter out special and empty parameters :)
-                for $p in tokenize($x, '&amp;')[not(starts-with(., $query:special-parameters) or .='')]
-                return query:predicate($p)
+                for $p in tokenize($x, '&amp;')[not(starts-with(., $adql:special-parameters) or .='')]
+                return adql:predicate($p)
             return string-join($predicates, ' AND ')
         return string-join($and-conditions, ' OR ')
     return if($search-condition != '') then
@@ -179,13 +179,13 @@ declare %private function query:where_clause() as xs:string {
  : 
  : @return a sequence of clauses as strings
  :)
-declare %private function query:table_expression() as item()* {
+declare %private function adql:table_expression() as item()* {
     (
-        query:from_clause(),
-        query:where_clause(),
+        adql:from_clause(),
+        adql:where_clause(),
         (: group_by :)
         (: having_clause :)
-        query:order_by_clause()
+        adql:order_by_clause()
     )    
 };
 
@@ -194,13 +194,13 @@ declare %private function query:table_expression() as item()* {
  : 
  : @return an ADQL SELECT statement
  :)
-declare function query:build-query() as xs:string {
-    let $table-expression := query:table_expression()
+declare function adql:build-query() as xs:string {
+    let $table-expression := adql:table_expression()
     return string-join(( 
         'SELECT',
-        query:set_quantifier(),
+        adql:set_quantifier(),
         (: set_limit, TOP xx :)
-        query:select_list(),
+        adql:select_list(),
         $table-expression
         ), ' ')
 };
@@ -211,7 +211,7 @@ declare function query:build-query() as xs:string {
  : @param $str the string to escape
  : @return the escaped string
  :)
-declare function query:escape($str as xs:string) as xs:string {
+declare function adql:escape($str as xs:string) as xs:string {
     (: FIXME more escapes? :)
     replace($str, "'", "''")
 };

@@ -13,7 +13,7 @@ xquery version "3.0";
  :)
 module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters";
 
-import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xqm";
+import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 
@@ -33,9 +33,9 @@ import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 declare %private function filters:like-text($params as xs:string, $column as xs:string) {
     if (starts-with($params, '~') or starts-with($params, '!~')) then
         let $not  := if (starts-with($params, '!')) then 'NOT ' else ''
-        let $name := query:escape(substring-after($params, '~'))
+        let $name := adql:escape(substring-after($params, '~'))
         return
-            "( " || $query:correlation-name || "." || $column || " " || $not || "LIKE " || "'%" || $name || "%' )"
+            "( " || $adql:correlation-name || "." || $column || " " || $not || "LIKE " || "'%" || $name || "%' )"
     else
         ()
 };
@@ -79,9 +79,9 @@ declare function filters:collection($params as xs:string) {
  :)
 declare function filters:instrument($params as xs:string) {
     let $not := if (starts-with($params, '!')) then 'NOT' else ''
-    let $instrument := query:escape(if ($not != '') then substring($params, 2) else $params)
+    let $instrument := adql:escape(if ($not != '') then substring($params, 2) else $params)
     return
-        "( " || $query:correlation-name || ".instrument_name " || $not || " LIKE '" || $instrument || "%' )"
+        "( " || $adql:correlation-name || ".instrument_name " || $not || " LIKE '" || $instrument || "%' )"
 };
 
 (:~
@@ -97,7 +97,7 @@ declare function filters:caliblevel($params as xs:string) {
         return if ($n ge 0 and $n lt 4) then $n else ()
     return "( " || 
         string-join(
-            for $l in $levels return $query:correlation-name || ".calib_level=" || $l,
+            for $l in $levels return $adql:correlation-name || ".calib_level=" || $l,
             " OR ")
         || " )"
 };
@@ -185,7 +185,7 @@ declare function filters:conesearch($params as xs:string) as xs:string {
     let $radius := xs:double($cs[3])
     
 (:    return "( CONTAINS(" ||:)
-(:        "POINT('ICRS', " || $query:correlation-name || ".s_ra, " || $query:correlation-name || ".s_dec), " ||:)
+(:        "POINT('ICRS', " || $adql:correlation-name || ".s_ra, " || $adql:correlation-name || ".s_dec), " ||:)
 (:        "CIRCLE('ICRS', " || $ra || ", " || $dec || ", " || $radius || ")" ||:)
 (:        ")=1 )":)
 
@@ -196,11 +196,11 @@ declare function filters:conesearch($params as xs:string) as xs:string {
     let $ra-max := $ra + m:degrees(m:radians($radius) div m:cos(m:radians($dec)))
     (: rough bounding box, then spherical law of cosine :)
     return "( " ||
-            $query:correlation-name || ".s_dec <= " || $dec-max || " AND " || $query:correlation-name || ".s_dec >= " || $dec-min || " AND " ||
-            $query:correlation-name || ".s_ra  <= " || $ra-max  || " AND " || $query:correlation-name || ".s_ra  >= " || $ra-min  || " AND " ||
+            $adql:correlation-name || ".s_dec <= " || $dec-max || " AND " || $adql:correlation-name || ".s_dec >= " || $dec-min || " AND " ||
+            $adql:correlation-name || ".s_ra  <= " || $ra-max  || " AND " || $adql:correlation-name || ".s_ra  >= " || $ra-min  || " AND " ||
             "ACOS(" ||
-                "SIN(RADIANS(" || $query:correlation-name || ".s_dec)) * SIN(" || m:radians($dec) || ") + " ||
-                "COS(RADIANS(" || $query:correlation-name || ".s_dec)) * COS(" || m:radians($dec) || ") * COS(RADIANS(" || $query:correlation-name || ".s_ra) - " || m:radians($ra) || ")" ||
+                "SIN(RADIANS(" || $adql:correlation-name || ".s_dec)) * SIN(" || m:radians($dec) || ") + " ||
+                "COS(RADIANS(" || $adql:correlation-name || ".s_dec)) * COS(" || m:radians($dec) || ") * COS(RADIANS(" || $adql:correlation-name || ".s_ra) - " || m:radians($ra) || ")" ||
             ") <= " || m:radians($radius) ||
         " )"
 };
@@ -234,12 +234,12 @@ declare function filters:observationdate($params as xs:string) as xs:string {
     let $start-date := $to-mjd($dates[1]), $end-date := $to-mjd($dates[2])
     return "( " || string-join((
         if ($start-date) then 
-            $query:correlation-name || ".t_min >= " || $start-date
+            $adql:correlation-name || ".t_min >= " || $start-date
         else
             (),
         if ($start-date and $end-date) then "AND" else (),
         if ($end-date) then
-            $query:correlation-name || ".t_max <= " || $end-date
+            $adql:correlation-name || ".t_max <= " || $end-date
         else
             ()
     ), ' ') || " )"
@@ -271,7 +271,7 @@ declare function filters:wavelengthband($params as xs:string) {
     let $minlambda := min($limits) * 1e-6
     let $maxlambda := max($limits) * 1e-6
     return "( " ||
-            $query:correlation-name || ".em_min < " || $minlambda || " AND " ||
-            $query:correlation-name || ".em_max > " || $maxlambda ||
+            $adql:correlation-name || ".em_min < " || $minlambda || " AND " ||
+            $adql:correlation-name || ".em_max > " || $maxlambda ||
         " )"
 };

@@ -5,7 +5,7 @@ module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates";
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
-import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xqm";
+import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
 import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
@@ -387,7 +387,7 @@ function app:search($node as node(), $model as map(*),
                     $page as xs:integer, $perpage as xs:integer, $all as xs:string?) as map(*) {
     try {
         (: Search database, use request parameters :)
-        let $query := query:build-query()
+        let $query := adql:build-query()
         let $data := tap:execute($query, true())
     
         (: default columns to display :)
