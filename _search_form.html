@@ -74,6 +74,26 @@
             </div>
         </div>
     </fieldset>
+    <div class="well row">
+        <div class="form-inline col-sm-6" data-template="app:sort-by">
+            Sort by 
+            <select class="form-control" data-template="helpers:form-control" name="sortby">
+                <option data-template="helpers:select-options" data-template-key="sortbys"/>
+            </select>
+            <input class="checkbox form-control" type="checkbox" name="descending" value="yes" data-template="helpers:form-control">&#160;descending</input>.
+        </div>
+        <div class="form-inline col-sm-6">
+            <span class=" pull-right">
+                Max rows per page:
+                <select class="form-control" data-template="helpers:form-control" name="perpage">
+                    <option>10</option>
+                    <option>25</option>
+                    <option>50</option>
+                    <option>100</option>
+                </select>
+            </span>
+        </div>
+    </div>
     <div class="form-group">
         <div class="col-sm-offset-8 col-sm-4">
             <button type="submit" class="btn btn-primary btn-block">

@@ -430,6 +430,7 @@ declare
     %templates:wrap
 function app:deserialize-query-string($node as node(), $model as map(*)) as map(*) {
     map:new((
+        (: --- FILTERS --- :)
         (: target=[!]~<data> :)
         map {
             'target_name' := substring-after(request:get-parameter('target', ''), '~')
@@ -469,6 +470,17 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         (: caliblevel=<level>[,<level>]* :)
         map {
             'reduction'   := tokenize(request:get-parameter('caliblevel', ''), ',')
+        },
+        (: --- ORDERING --- :)
+        let $order := request:get-parameter('order', '')[1]
+        let $desc := starts-with($order, '^')
+        return map {
+            'sortby'     := if($desc) then substring($order, 2) else $order,
+            'descending' := if($desc) then () else 'yes'
+        },
+        (: --- PAGINATION --- :)
+        map {
+            'perpage'    := request:get-parameter('perpage', '25')
         }
     ))
 };
@@ -512,6 +524,14 @@ declare function app:serialize-query-string() as xs:string* {
             case "collection"  return "collection=" || "~" || encode-for-uri($value)
             case "datapi"      return "datapi=" ||     "~" || encode-for-uri($value)
             case "reduction"   return "caliblevel="        || string-join(for $v in $value return encode-for-uri($v), ',')
+
+            case "sortby"
+                return concat("order=",
+                    if(request:get-parameter('descending', ())) then '' else '^',
+                    encode-for-uri($value))
+
+            case "perpage"     return "perpage=" || encode-for-uri($value)
+
             default            return ()
     )
 };
