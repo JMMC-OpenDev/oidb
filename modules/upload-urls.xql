@@ -12,6 +12,30 @@ xquery version "3.0";
 import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
+(:~
+ : Test the existence of a bibcode.
+ : 
+ : It sends the bibcode to the ADS service and check the status returned to
+ : see if it knows if the code is attached to a paper.
+ : 
+ : @param $bibcode Bibcode to test
+ : @return true if the bibcode is valid
+ : @error Failure to check validity of the bibcode
+ :  :)
+declare
+    %private
+function local:valid-bibcode($bibcode as xs:string) as xs:boolean {
+    let $server := 'adsabs.harvard.edu'
+    let $url := concat('http://', $server, '/cgi-bin/nph-bib_query?', encode-for-uri($bibcode))
+    return try {
+            (: too bad, does not work with HEAD :)
+            let $resp := httpclient:get($url, false(), <headers/>)
+            return (number($resp/@statusCode) lt 400)
+        } catch * {
+            error(xs:QName('error'), 'Failed to check validity of ' || $bibcode, $err:description)
+        }
+};
+
 (: Split parameter into individual URLs :)
 let $urls := tokenize(request:get-parameter("urls", ""), "\s")
 (:  other parameters, turned into additional metadata :)
@@ -30,6 +54,8 @@ let $response :=
         (: test for bibcode with calibration level :)
         else if ($more/calib_level != '3' and $more/bib_reference != '') then
             <error> Only L3 data should have a bibliographic code </error>
+        else if ($more/calib_level = '3' and ($more/bib_reference = '' or not(local:valid-bibcode($more/bib_reference)))) then
+            <error> Invalid bibcode { $more/bib_reference } </error>
         else
             for $url in $urls
             where $url
