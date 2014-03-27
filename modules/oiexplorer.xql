@@ -8,6 +8,7 @@ declare namespace oixp="http://www.jmmc.fr/oiexplorer-data-collection/0.1";
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare option output:method "xml";
+declare option output:media-type "application/x-oifits-explorer+xml";
 
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
