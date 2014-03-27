@@ -16,24 +16,32 @@ import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xq
 let $urls := tokenize(request:get-parameter("urls", ""), "\s")
 (:  other parameters, turned into additional metadata :)
 let $more-columns := ("obs_collection", "calib_level", "bib_reference", "obs_creator_name")
-let $more :=
+let $more := <more> {
     for $p in request:get-parameter-names()[.=$more-columns]
     return element { $p } { request:get-parameter($p, '') }
+    } </more>
 let $db_handle := upload:getDbHandle()
 
 let $response :=
     <response> {
-        for $url in $urls
-        where $url
-        return ( 
-            try {
-                (
-                    upload:upload-uri($db_handle, xs:anyURI($url), $more),
-                    <success url="{$url}">Successfully upload file</success>
-                )
-            } catch * {
-                <error url="{$url}"> { $err:description } </error>
-            })
+        (: form validation :)
+        if ($more/calib_level = '') then
+            <error> Calibration level field is mandatory </error>
+        (: test for bibcode with calibration level :)
+        else if ($more/calib_level != '3' and $more/bib_reference != '') then
+            <error> Only L3 data should have a bibliographic code </error>
+        else
+            for $url in $urls
+            where $url
+            return (
+                try {
+                    (
+                        upload:upload-uri($db_handle, xs:anyURI($url), $more/*),
+                        <success url="{$url}">Successfully upload file</success>
+                    )
+                } catch * {
+                    <error url="{$url}"> { $err:description } </error>
+                })
     } </response>
 
 return (log:submit($response), $response)
