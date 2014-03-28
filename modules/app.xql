@@ -40,25 +40,18 @@ declare function app:column-header($node as node(), $model as map(*)) {
 };
 
 (:~
- : Build the URLs to other pages and services for a given data row
+ : Return a selection of items from the data row as HTML5 data attributes.
  : 
- : It creates URL for:
- : - the page showing the details of the observation
- : - Simbad page of the target
- : - the page of the paper at ADS
+ : If an expected column is found in the row, it creates a 'data-' prefixed
+ : attribute to associate with the HTML row.
  : 
- : @param $data VOTable row
- : @return a sequence of urls for the given row
+ : @param $row VOTable data row
+ : @return a sequence of 'data-' attributes
  :)
-declare %private function app:action-urls($data as node()) as map(*) {
-    let $id     := $data/td[@colname='id']
-    let $target := $data/td[@colname='target_name']/text()
-    let $bibref := $data/td[@colname='bib_reference']/text()
-    return map:new((
-        if ($id)     then map:entry('show-url',  'show.html?id=' || $id)   else (),
-        if ($target) then map:entry('simbad-url', app:simbad-url($target)) else (),
-        if ($bibref) then map:entry('ads-url',    app:adsbib-url($bibref)) else ()
-    ))
+declare %private function app:row-data($row as node()) {
+    let $data := ( 'id', 'target_name', 'bib_reference', 'access_url' )
+    for $x in $row/td[@colname=$data]
+    return attribute { 'data-' || $x/@colname } { $x/text() }
 };
 
 (:~
@@ -69,7 +62,7 @@ declare %private function app:action-urls($data as node()) as map(*) {
  : 
  : @note
  : This function differs from templates:each in that it adds row-specific data
- : to the model.
+ : to the node as HTML5 'data-' attributes.
  : 
  : @param $node  the node to use as pattern for each rows
  : @param $model the current model
@@ -80,7 +73,8 @@ declare function app:each-row($node as node(), $model as map(*)) as node()* {
     return
         element { node-name($node) } {
             $node/@*,
-            templates:process($node/node(), map:new(($model, map:entry('row', $row), app:action-urls($row))))
+            app:row-data($row),
+            templates:process($node/node(), map:new(($model, map:entry('row', $row))))
         }
 };
 

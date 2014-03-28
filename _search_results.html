@@ -26,15 +26,7 @@
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                                     <span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/>
                                 </a>
-                                <ul class="dropdown-menu" role="menu">
-                                    <li>
-                                        <a href="#">Download VOTable</a>
-                                    </li>
-                                    <li>
-                                        <a href="#">Download OIFitsExplorer collection</a>
-                                    </li>
-                                    <li class="divider" role="presentation"/>
-                                </ul>
+                                <ul class="dropdown-menu" role="menu"/>
                             </div>
                         </th>
                         <th data-template="templates:each" data-template-from="headers" data-template-to="header">
@@ -49,24 +41,7 @@
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                                     <span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/>
                                 </a>
-                                <ul class="dropdown-menu" role="menu">
-                                    <li data-template="helpers:if-model-key" data-template-key="show-url" role="presentation">
-                                        <a data-template="helpers:model-value-attribute" data-template-key="show-url" data-template-name="href">
-                                            <i class="glyphicon glyphicon-zoom-in"/> Details
-                                        </a>
-                                    </li>
-                                    <li data-template="helpers:if-model-key" data-template-key="simbad-url" role="presentation">
-                                        <a data-template="helpers:model-value-attribute" data-template-key="simbad-url" data-template-name="href">
-                                            <i class="glyphicon glyphicon-globe"/> View in SIMBAD
-                                        </a>
-                                    </li>
-                                    <li data-template="helpers:if-model-key" data-template-key="ads-url" role="presentation">
-                                        <a data-template="helpers:model-value-attribute" data-template-key="ads-url" data-template-name="href">
-                                            <i class="glyphicon glyphicon-book"/> Paper at ADS
-                                        </a>
-                                    </li>
-                                    <li class="divider" role="presentation"/>
-                                </ul>
+                                <ul class="dropdown-menu" role="menu"/>
                             </div>
                         </td>
                         <td data-template="app:row-cells"/>

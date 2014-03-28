@@ -21,6 +21,29 @@ function deleteSessionCookie(name) {
 }
 
 $(function () {
+    // Add an item to selected dropdowns
+    // arg can be a function that is evaluated on each dropdown
+    $.fn.dropdownAppend = function(arg) {
+        return this.each(function () {
+            var item = $.type(arg) == "function" ? arg.apply(this) : arg;
+            $(this).find('ul.dropdown-menu:first').append(item);
+        });
+    };
+
+    // Add a divider to selected dropdowns
+    $.fn.dropdownAppendDivider = function () {
+        return this.dropdownAppend('<li class="divider" role="presentation"/>');
+    };
+
+    // Build a dropdown item
+    function dropdownMenuitem(text, icon, href) {
+        return $('<li/>')
+            .append(
+                $('<a/>', { href: href })
+                    .append($('<span/>', { class: "glyphicon glyphicon-" + icon }))
+                    .append('&nbsp;').append(text));
+    }
+
     var ct = new samp.ClientTracker();
     var metadata = {
         "samp.name": "OiDB",
@@ -58,8 +81,9 @@ $(function () {
             // the list that makes the dropdown menu
             var $ul = $('ul', e.currentTarget);
 
-            var $action = $('<li><a href="#"/></li>').appendTo($ul);
-            $('a', $action).html('<span class="glyphicon glyphicon-info-sign"/>&#160;No SAMP connection</a></li>');
+            var $samp = dropdownMenuitem('No SAMP connection', 'info-sign', '#');
+            $(this).dropdownAppend($samp);
+            var $action = $('a', $samp);
 
             connector.runWithConnection(function (conn) {
                 // Persist the SAMP connection
@@ -75,10 +99,9 @@ $(function () {
                     var addLink = function (id) {
                         return function (metadata) {
                             var name = metadata['samp.name'];
-                            $('li.divider', $ul).after($('<li/>').append(
-                                $('<a/>', { href: '#'})
-                                    .append('<span class="glyphicon glyphicon-share"/> Send to ' + name)
-                                    .click(function () { sendMessage(id); })));
+                            $('li.divider', $ul).after(
+                                dropdownMenuitem('Send to ' + name, 'share', '#')
+                                    .click(function () { sendMessage(id); }));
                         };
                     };
 
@@ -94,7 +117,7 @@ $(function () {
 
                     // change action to close connection
                     // Note: dropdown discarded on click, no need to delete elements
-                    $('a', $action)
+                    $action
                         .html('<span class="glyphicon glyphicon-remove-sign"/>&#160;Unregister from SAMP Hub')
                         .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault() });
                 });
@@ -110,26 +133,48 @@ $(function () {
         return this;
     };
 
-    // set of SAMP links for the current row
-    $('table tbody .dropdown').sampify(
-        'table.load.fits',
-        // prepare parameters for the 'table.load.fits'
-        function () {
-            // find the access_url for the row, looking for the cell in the table FIXME
-            var access_url = $('a', $(this).parents('tr').children('td:eq(2)')).attr('href');
-            return { "url": access_url };
-        });
+    // Process data rows
+    var $tr = $('table tbody tr');
+    // create links to details pages when row id are known
+    $tr.filter('[data-id]').find('.dropdown').dropdownAppend(function () {
+        var id = $(this).parents('tr').first().data('id');
+        return dropdownMenuitem('Details', 'zoom-in', './show.html?id=' + id);
+    });
+    // create links to SIMBAD when target names are known
+    $tr.filter('[data-target_name]').find('.dropdown').dropdownAppend(function() {
+        var targetname = $(this).parents('tr').first().data('target_name');
+        return dropdownMenuitem('View in SIMBAD', 'globe', 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident=' + encodeURIComponent(targetname));
+    });
+    // create links to ADS when bibliographic reference is known
+    $tr.filter('[data-bib_reference]').find('.dropdown').dropdownAppend(function() {
+        var bibreference = $(this).parents('tr').first().data('bib_reference');
+        return dropdownMenuitem('Paper at ADS', 'book', 'http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?' + encodeURIComponent(bibreference));
+    });
+    $tr.filter('[data-access_url]').find('.dropdown')
+        // add a divider before SAMP links
+        .dropdownAppendDivider()
+        // prepare for SAMP table.load.fits links
+        .sampify(
+            'table.load.fits',
+            // prepare parameters for the 'table.load.fits'
+            function () {
+                // find the access_url for the row
+                var access_url = $(this).parents('tr').first().data('access_url');
+                return { "url": access_url };
+            });
 
     // TODO trim page=, perpage=, ...
     var query_string = window.location.search;
     var votable_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/votable.xql' + query_string;
     var oixp_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/oiexplorer.xql' + query_string;
-    $('table thead th:first-child .dropdown').sampify(
-         'table.load.votable',
-         // prepare parameter for the 'table.load.votable'
-         { 'url': votable_url })
-         // set urls on direct links for VOTable and OIFitsExplorer collection
-         .find('.dropdown-menu a')
-            .first().attr('href', votable_url).end()
-            .eq(1).attr('href', oixp_url);
+    $('table thead .dropdown')
+         // create links for VOTable and OIFitsExplorer collection downloads
+        .dropdownAppend(dropdownMenuitem('Download VOTable', 'download', votable_url))
+        .dropdownAppend(dropdownMenuitem('Download OIFitsExplorer collection', 'download', oixp_url))
+        .dropdownAppendDivider()
+        // prepare for SAMP table.load.votable links
+        .sampify(
+             'table.load.votable',
+             // prepare parameter for the 'table.load.votable'
+             { 'url': votable_url });
 });
