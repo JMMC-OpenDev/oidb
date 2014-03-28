@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml">
-    <ul class="pager" data-template="helpers:pagination"/>
+    <ul class="pager" data-template="helpers:if-model-key" data-template-key="pagination">
+        <li data-template="helpers:pagination"/>
+    </ul>
     <div id="paginated"/>
-    <ul class="pager" data-template="helpers:pagination"/>
+    <ul class="pager" data-template="helpers:if-model-key" data-template-key="pagination">
+        <li data-template="helpers:pagination"/>
+    </ul>
 </div>

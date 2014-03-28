@@ -82,9 +82,7 @@ declare function helpers:model-value-attribute($node as node(), $model as map(*)
  : @param $model the current model
  : @return a set of pagination links in list elements
  :)
-declare
-    %templates:wrap
-function helpers:pagination($node as node(), $model as map(*)) {
+declare function helpers:pagination($node as node(), $model as map(*)) as node()* {
     let $page   := $model('pagination')('page')
     let $npages := $model('pagination')('npages')
     
