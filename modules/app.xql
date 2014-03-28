@@ -411,6 +411,7 @@ function app:search($node as node(), $model as map(*),
     
         return map {
             'query' :=      $query,
+            'query-edit' := 'query.html?query=' || encode-for-uri($query),
             'headers' :=    $headers,
             'rows' :=       $rows,
             'stats' :=      $stats,

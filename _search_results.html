@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<div data-template="app:search">
+<div>
     <div id="flash" data-template="helpers:if-model-key" data-template-key="flash">
         <div class="alert alert-danger alert-dismissable col-md-offset-2 col-md-8">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
@@ -21,6 +21,8 @@
                     Results for <code>
                         <span data-template="helpers:model-value" data-template-key="query"/>
                     </code>
+                    <br/>
+                    ( <a data-template="helpers:model-value-attribute" data-template-key="query-edit" data-template-name="href">Edit query</a> )
                 </caption>
                 <thead>
                     <tr>

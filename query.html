@@ -2,14 +2,15 @@
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
-            <form data-template="templates:include" data-template-path="_search_form.html"/>
+            <form data-template="templates:include" data-template-path="_query_form.html"/>
         </div>
     </div>
+
     <h1>Results</h1>
 
     Meta-data will try to follow VO4OI proposal and Ivoa:ObsCore document (get metadata description in the associated <a href="http://www.ivoa.net/documents/ObsCore/">doc</a> )
 
-    <div data-template="app:search">
+    <div data-template="query:run">
         <div data-template="templates:include" data-template-path="_search_results.html"/>
     </div>
 </div>
