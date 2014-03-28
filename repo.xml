@@ -15,17 +15,34 @@
     with tap endpoint : config:TAP_DSA_URL
     </note>
     <changelog>
-      <change xmlns="" version="0.3">
-            <h3>Mid-March version</h3>
+        <change xmlns="" version="0.4">
+            <h3>End of March version</h3>
             <ul>
-                <li>Rework on search interface engine</li>
-                <li>Uses <a href="http://cds.u-strasbg.fr/cgi-bin/Sesame">Sesame name resolver</a> to search arround any given target name. </li>
+                <li>Add VOTable export through SAMP.</li>
+                <li>Add export of OIFits collection for <a href="http://www.jmmc.fr/oifitsexplorer_page.htm">OIFitsExplorer</a>.</li>
+                <li>Add SAMP persistence through session.</li>
+                <li>Fix link to <a href="http://simbad.u-strasbg.fr/simbad/">Simbad</a> (<a href="http://trac.jmmc.fr/jmmc-sw/ticket/598">
+                        <del>#598</del>
+                    </a>).</li>
+                <li>Add sorting and pagination options to search form.</li>
+                <li>Add simple validation of user inputs on form submission (bibcode, calibration level).</li>
+                <li>Improve error reporting from malformed search filters.</li>
+                <li>New position filter for Cone Search (<a href="http://trac.jmmc.fr/jmmc-sw/ticket/589">
+                        <del>#589</del>
+                    </a>).</li>
+                <li>Add new page to edit and execute custom ADQL query</li>
                 <li>To fix:
                     <ul>
                         <li>t_min and t_max have the same values on data imported from OIFits files</li>
                     </ul>
                 </li>
- 
+            </ul>
+        </change>
+        <change xmlns="" version="0.3">
+            <h3>Mid-March version</h3>
+            <ul>
+                <li>Rework on search interface engine</li>
+                <li>Uses <a href="http://cds.u-strasbg.fr/cgi-bin/Sesame">Sesame name resolver</a> to search arround any given target name. </li>
             </ul>
         </change>
         <change xmlns="" version="0.2">
@@ -35,7 +52,7 @@
                 <li>Improved submit form and status reporting</li>
                 <li>Logging of submission</li>
                 <li>Display of observation coordinates in sexagesimal</li>
-           </ul>
+            </ul>
         </change>
         <change xmlns="" version="0.1">
             <h3>Prototype prior to first group meeting</h3>
@@ -56,4 +73,5 @@
             </ul>
         </change>
     </changelog>
+    <repo:deployed xmlns:repo="http://exist-db.org/xquery/repo">2014-03-28T15:31:43.083+01:00</repo:deployed>
 </meta>
