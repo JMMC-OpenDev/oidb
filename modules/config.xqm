@@ -29,8 +29,7 @@ declare variable $config:app-root :=
         substring-before($modulePath, "/modules")
 ;
 
-(: store data in collection not overwritten when installing app :)
-declare variable $config:data-root := $config:app-root || "-data";
+declare variable $config:data-root := $config:app-root || "/data";
 
 declare variable $config:repo-descriptor := doc(concat($config:app-root, "/repo.xml"))/repo:meta;
 
@@ -112,7 +111,8 @@ declare variable $config:sql-password := "";
 (:~
  : The table in the database where to save the metadata.
  :)
-declare variable $config:sql-table := "oidata";
+(: declare variable $config:sql-table := "oidata"; :)
+declare variable $config:sql-table := "oidata2";
 
 (:~
  : AstroGrid  DSA request URL
@@ -122,4 +122,5 @@ declare variable $config:TAP_DSA_URL := "http://localhost:8080/test-dsa/TAP/sync
 (:~
  : AstroGrid Cone Search request URL
  :)
-declare variable $config:CS_DSA_URL := "http://localhost:8080/test-dsa/SubmitCone?DSACATTAB=protooidb.alldb&amp;Format=VOTable&amp;TargetResponse=true";
+declare variable $config:CS_DSA_URL := "http://apps.jmmc.fr/proto-oidb-dsa/SubmitCone?DSACATTAB=protooidb.alldb&amp;Format=VOTable&amp;TargetResponse=true";
+(: declare variable $config:CS_DSA_URL := "http://localhost:8080/test-dsa/SubmitCone?DSACATTAB=INSERT_CATALOG_NAME.oidata&amp;Format=VOTable&amp;TargetResponse=true"; :)
