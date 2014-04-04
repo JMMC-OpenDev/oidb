@@ -87,8 +87,7 @@ declare %private function adql:order_by_clause() as xs:string {
                 for $key in $sort-keys
                 let $sort-key := if(starts-with($key, '^')) then substring($key, 2) else $key
                 let $ordering-specification := if(substring-before($key, $sort-key) = '^') then 'ASC' else 'DESC'
-                return
-                    $adql:correlation-name || "." || $sort-key || ' ' || $ordering-specification
+                return $sort-key || ' ' || $ordering-specification
                 , ', ')
     else
         (: no order specified :)
