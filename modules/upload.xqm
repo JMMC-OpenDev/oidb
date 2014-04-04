@@ -48,15 +48,15 @@ declare %private function upload:insert-statement($metadata as node()*) {
                                 else
                                     () (: TODO check that this empty case is normal :)
     let $nodes := ($metadata, $obs_release_date)
+    let $columns := for $x in $nodes return name($x)
+    let $values  := for $x in $nodes return "'" || data($x) || "'"
     return 
     concat(
         "INSERT INTO ",
         $config:sql-table,
-        " SET ",
-        fn:string-join(
-            for $node in $nodes 
-            return concat(name($node), "=&quot;", data($node), "&quot;"), ','),
-        "")
+        " ( " || string-join($columns, ', ') || " ) ",
+        "VALUES",
+        " ( " || string-join($values,  ', ') || " )")
 };
 
 (:~
