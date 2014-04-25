@@ -140,8 +140,8 @@
                         var $ul = $('&lt;ul class="alert alert-success"/&gt;').appendTo($report_body);
                         $successes.each(function (i, s) {
                             var url = $(s).attr('url');
-                            var msg = (typeof url != 'undefined' ? url + ': ' : '') + $(s).text();
-                            $('&lt;li/&gt;', { text: msg }).appendTo($ul)
+                            var msg = (typeof url != 'undefined' ? url + ': ' : '') + $(s).contents().first().text();
+                            $('&lt;li/&gt;', { html: msg }).appendTo($ul)
                         });
                     }
 
@@ -151,8 +151,8 @@
                         var $ul = $('&lt;ul class="alert alert-danger"/&gt;').appendTo($report_body);
                         $failures.each(function (i, f) {
                             var url = $(f).attr('url');
-                            var msg = (typeof url != 'undefined' ? url + ': ' : '') + $(f).text();
-                            $('&lt;li/&gt;', { text: msg }).appendTo($ul)
+                            var msg = (typeof url != 'undefined' ? url + ': ' : '') + $(f).contents().first().text();
+                            $('&lt;li/&gt;', { html: msg }).appendTo($ul)
                         });
                     }
 

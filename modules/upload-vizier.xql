@@ -90,17 +90,17 @@ let $response :=
             for $file in $urls
             return (
                 comment {"oifits urls: " || string-join($urls," ")},        
-                try { (
-                    upload:upload-uri(
+                try {
+                    let $report := upload:upload-uri(
                         $db_handle,
                         resolve-uri(data($file), $url),
                         (
                             (: published files -> L3 :) 
                             <calib_level> 3 </calib_level>, 
                             $summary-data
-                        )),
-                    <success url="{$url}">Successfully uploaded catalog</success>
-                ) } catch * {
+                        ))
+                    return <success url="{$file}">Successfully uploaded file <report>{ $report }</report></success>
+                } catch * {
                     <error url="{$url}"> { $err:description } </error>
                 } )
         ) }

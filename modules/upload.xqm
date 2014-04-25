@@ -94,12 +94,23 @@ declare function upload:upload($db_handle as xs:long, $metadata as node()*) {
  : @param $url the URL where to retrieve the file
  : @param $more additionnal metadata not in the file
  : @error failed to upload (SQL exception) (from upload:upload)
- : @return ignore
+ : @return the check report from the OIFits file parser
  :)
 declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $more as node()*) {
     let $data := util:parse(oi:viewer($url))
-    for $target in $data//metadata/target
-    return upload:upload($db_handle, ($target/*, <access_url> { $url } </access_url>, $more))
+    (: validation report for file by OIFitsViewer :)
+    let $report := $data//checkReport/node()
+    (: TODO check report for major problems before going further :)
+    return (
+        for $target in $data//metadata/target
+        return try {
+            upload:upload($db_handle, ($target/*, <access_url> { $url } </access_url>, $more))
+        } catch * {
+            (: add report to exception value :)
+            error($err:code , $err:description, ($err:value, $report))
+        },
+        $report
+    )
 };
 
 (:~
