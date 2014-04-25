@@ -12,7 +12,6 @@ function getCookie(name) {
 }
 
 function setSessionCookie(name, value) {
-    var d = new Date();
     document.cookie = name + '=' + value + ';';
 }
 
@@ -119,7 +118,7 @@ $(function () {
                     // Note: dropdown discarded on click, no need to delete elements
                     $action
                         .html('<span class="glyphicon glyphicon-remove-sign"/>&#160;Unregister from SAMP Hub')
-                        .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault() });
+                        .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); });
                 });
             });
         })
