@@ -112,6 +112,13 @@ declare function filters:caliblevel($params as xs:string) {
  :  - the radius unit (deg, arcmin, arcsec)
  : These values are comma-separated in the filter string.
  : 
+ : For example:
+ : <ul>
+ : <li>*%20alf%CMa,J2000,0.1,arcsec</li>
+ : <li>06:45:08.91 -16:42:58.0,J2000,0.1,arcsec</li>
+ : <li>101.28715533 -16.71611586,J2000,0.1,arcsec</li>
+ : </ul>
+ : 
  : @param $coords
  : @return a three items sequences: ra, dec and radius in degrees
  : @error malformed parameter, failed to extract values
@@ -124,7 +131,7 @@ declare %private function filters:parse-conesearch($coords as xs:string) as item
         let $tokens := tokenize($p, '[ :]')[. != '']
         let $coords := 
             if(count($tokens) = 2) then
-                (: ra and dec in degrees ? :)
+                (: ra and dec in degrees (space between ra and dec) ? :)
                 try {
                     ( xs:double($tokens[1]), xs:double($tokens[2]) )
                 } catch * { () }
@@ -173,6 +180,8 @@ import module namespace m="http://exist-db.org/xquery/math";
 
 (:~
  : Format a Cone Search as an ADQL condition.
+ : 
+ : @see filters.xqm;parse-conesearch;Parameter format
  : 
  : @param $params coordinates as comma-separated list of angles
  : in degree or space separated sexagesimal values.
