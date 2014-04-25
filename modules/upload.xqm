@@ -49,7 +49,7 @@ declare %private function upload:insert-statement($metadata as node()*) {
                                     () (: TODO check that this empty case is normal :)
     let $nodes := ($metadata, $obs_release_date)
     let $columns := for $x in $nodes return name($x)
-    let $values  := for $x in $nodes return "'" || data($x) || "'"
+    let $values  := for $x in $nodes return "'" || upload:escape($x) || "'"
     return 
     concat(
         "INSERT INTO ",
@@ -100,4 +100,15 @@ declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $mo
     let $data := util:parse(oi:viewer($url))
     for $target in $data//metadata/target
     return upload:upload($db_handle, ($target/*, <access_url> { $url } </access_url>, $more))
+};
+
+(:~
+ : Escape a string for SQL query.
+ : 
+ : @param $str the string to escape
+ : @return the escaped string
+ :)
+declare %private function upload:escape($str as xs:string) as xs:string {
+    (: FIXME more escapes? same as adql:escape()? :)
+    replace($str, "'", "''")
 };
