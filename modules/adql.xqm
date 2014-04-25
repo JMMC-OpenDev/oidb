@@ -15,10 +15,12 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters" at "filters.xqm";
 
 (:~
- : Parameters starting with these names that are not criteria for the select
- : list of the query.
+ : Parameter starting with these names are criterias for the select list
+ : of the query.
  :)
-declare variable $adql:special-parameters := ( 'col=', 'order=', 'distinct', 'page=', 'perpage=' );
+declare variable $adql:filters := 
+    for $f in util:list-functions('http://apps.jmmc.fr/exist/apps/oidb/filters')
+    return local-name-from-QName(function-name($f)) || '=';
 
 (:~
  : The name to associate with the table within the query.
@@ -163,7 +165,7 @@ declare %private function adql:where_clause() as xs:string {
             for $x in adql:split-query-string(request:get-query-string())
             let $predicates :=
                 (: filter out special and empty parameters :)
-                for $p in tokenize($x, '&amp;')[not(starts-with(., $adql:special-parameters) or .='')]
+                for $p in tokenize($x, '&amp;')[starts-with(., $adql:filters)]
                 return adql:predicate($p)
             return string-join($predicates, ' AND ')
         return string-join($and-conditions, ' OR ')
