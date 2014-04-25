@@ -98,6 +98,14 @@ declare function upload:upload($db_handle as xs:long, $metadata as node()*) {
  :)
 declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $more as node()*) {
     let $data := util:parse(oi:viewer($url))
+    let $more := (
+        $more,
+        (: add missing access information :)
+        (: FIXME kludge, better find file size elsewhere (parser) :)
+        let $estsize := number(httpclient:get($url, false(), <headers/>)//httpclient:headers/httpclient:header[@name='Content-Length']/@value)
+        return <access_estsize>{ $estsize }</access_estsize>,
+        <access_format>application/fits</access_format>
+    )
     (: validation report for file by OIFitsViewer :)
     let $report := $data//checkReport/node()
     (: TODO check report for major problems before going further :)
