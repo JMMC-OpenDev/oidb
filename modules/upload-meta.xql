@@ -33,13 +33,14 @@ xquery version "3.0";
 import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace util = "http://exist-db.org/xquery/util";
 
+import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 (: Retrieve file from multi-part request :)
 let $uploaded-file := request:get-uploaded-file-data('file')
 let $data := util:parse(util:base64-decode(xs:string($uploaded-file)))
-let $db_handle := upload:getDbHandle()
+let $db_handle := config:get-db-connection()
 let $response :=
     <response> {
         try {

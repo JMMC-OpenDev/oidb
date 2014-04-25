@@ -248,7 +248,7 @@ declare function vega:pull-by-status($status as xs:string) {
     <response data-status="{ $status }"> {
         try {
             let $data := vega:nodes-from-field-name(vega:get-observations-by-data-status($status))
-            let $handle := upload:getDbHandle()
+            let $handle := config:get-db-connection()
             for $row in $data//tr
             let $obsid := $row/td[@colname='ID']
             return try {

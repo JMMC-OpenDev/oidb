@@ -9,6 +9,7 @@ xquery version "3.0";
  : URL (<success> or <error>).
  :)
 
+import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
@@ -44,7 +45,7 @@ let $more := <more> {
     for $p in request:get-parameter-names()[.=$more-columns]
     return element { $p } { request:get-parameter($p, '') }
     } </more>
-let $db_handle := upload:getDbHandle()
+let $db_handle := config:get-db-connection()
 
 let $response :=
     <response> {

@@ -60,20 +60,6 @@ declare %private function upload:insert-statement($metadata as node()*) {
 };
 
 (:~
- : Provide a db handle to be forwarded to variaous upload functions
- : 
- : @return the connection handle
- :)
-declare function upload:getDbHandle() as xs:long{
-    let $db_handle := sql:get-connection(
-        $config:sql-driver-classname,
-        $config:sql-url,
-        $config:sql-username,
-        $config:sql-password)
-    return $db_handle  
-};
-
-(:~
  : Put the data in the SQL database.
  : 
  : If the operation fails, it generates an error.

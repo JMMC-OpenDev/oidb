@@ -101,6 +101,8 @@ declare function config:app-info($node as node(), $model as map(*)) {
 };
 
 
+import module namespace sql="http://exist-db.org/xquery/sql";
+
 (:~
  : Database configuration
  :)
@@ -108,6 +110,19 @@ declare variable $config:sql-driver-classname := "com.mysql.jdbc.Driver";
 declare variable $config:sql-url := "@sql-url@";
 declare variable $config:sql-username := "@sql-username@";
 declare variable $config:sql-password := "@sql-password@";
+
+(:~
+ : Provide a db handle to access SQL database with XQuery sql module
+ : 
+ : @return a connection handle
+ :)
+declare function config:get-db-connection() as xs:long{
+    sql:get-connection(
+        $config:sql-driver-classname,
+        $config:sql-url,
+        $config:sql-username,
+        $config:sql-password)
+};
 
 (:~
  : The table in the database where to save the metadata.
