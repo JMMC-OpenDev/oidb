@@ -12,7 +12,7 @@
     <finish/>
     <note>Pay attention to change modules/config.xqm 
     with sql configuration variables: config:sql-url, config:sql-username, config:sql-password and config:sql-table 
-    with tap endpoint : config:TAP_DSA_URL
+    with tap endpoint : config:TAP_SYNC
     </note>
     <changelog>
         <change xmlns="" version="0.4">

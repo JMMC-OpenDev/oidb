@@ -377,7 +377,7 @@ declare %private function app:target-coords($target as xs:string) {
 (:~
  : Display the result of the query in a paginated table.
  : 
- : The query is passed to Astrogrid DSA and the returned VOTable
+ : The query is passed to a TAP service and the returned VOTable
  : content is put in the model for further template processing.
  : 
  : @param $node
@@ -547,7 +547,7 @@ declare function app:serialize-query-string() as xs:string* {
 (:~
  : Display all columns from the selected row.
  : 
- : A query with the identifier for the row is passed to Astrogrid DSA and the
+ : A query with the identifier for the row is passed to the TAP service and the
  : returned VOTable is formatted as an HTML table.
  : 
  : @param $node
@@ -557,7 +557,7 @@ declare function app:serialize-query-string() as xs:string* {
  :)
 declare function app:show($node as node(), $model as map(*), $id as xs:integer) {
     let $query := "SELECT * FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
-    (: make request to DSA for query :)
+    (: send query by TAP :)
     let $data := tap:execute($query, true())
 
     return <table class="table table-striped table-bordered table-hover">
@@ -585,7 +585,7 @@ declare variable $app:latest-query := "SELECT DISTINCT TOP 3 t.target_name, t.ac
 (:~
  : Create a list of the three latest files uploaded.
  : 
- : @param query ADQL query for Astrogrid DSA
+ : @param query ADQL query for TAP service
  : @param page offset into query result (page * perpage)
  : @return an HTML list
  :)

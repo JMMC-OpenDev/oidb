@@ -15,8 +15,7 @@
             <replacefilter token="@sql-username@" property="sql-username"/>
             <replacefilter token="@sql-password@" property="sql-password"/>
             <replacefilter token="@sql-table@" property="sql-table"/>
-            <replacefilter token="@tap-dsa-url@" property="tap-dsa-url"/>
-            <replacefilter token="@cs-dsa-url@" property="cs-dsa-url"/>
+            <replacefilter token="@tap-sync-url@" property="tap-sync-url"/>
         </replace>
     </target>
 

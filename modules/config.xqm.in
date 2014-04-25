@@ -130,11 +130,6 @@ declare function config:get-db-connection() as xs:long{
 declare variable $config:sql-table := "@sql-table@";
 
 (:~
- : AstroGrid  DSA request URL
+ : TAP sync request URL
  :)
-declare variable $config:TAP_DSA_URL := "@tap-dsa-url@";
-
-(:~
- : AstroGrid Cone Search request URL
- :)
-declare variable $config:CS_DSA_URL := "@cs-dsa-url@";
+declare variable $config:TAP_SYNC := "@tap-sync-url@";
