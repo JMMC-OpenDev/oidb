@@ -196,14 +196,18 @@ declare %private function adql:table_expression() as item()* {
  : @return an ADQL SELECT statement
  :)
 declare function adql:build-query() as xs:string {
-    let $table-expression := adql:table_expression()
-    return string-join(( 
-        'SELECT',
-        adql:set_quantifier(),
-        (: set_limit, TOP xx :)
-        adql:select_list(),
-        $table-expression
-        ), ' ')
+    let $query := request:get-parameter('query', ())
+    return if ($query) then
+        $query
+    else
+        let $table-expression := adql:table_expression()
+        return string-join(( 
+            'SELECT',
+            adql:set_quantifier(),
+            (: set_limit, TOP xx :)
+            adql:select_list(),
+            $table-expression
+            ), ' ')
 };
 
 (:~
