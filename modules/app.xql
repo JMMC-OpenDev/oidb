@@ -564,7 +564,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
         <!-- <caption> Details for { $id } </caption> -->
         {
             for $th at $i in $data//th[@name!='id']
-            let $td := $data//td[position()=$i]
+            let $td := $data//td[position()=index-of($data//th, $th)]
             return <tr> { $th } {
                 if ($td[@colname='access_url']) then 
                     <td> <a href="{ $td/text() }"> { tokenize($td/text(), "/")[last()] }</a></td>
