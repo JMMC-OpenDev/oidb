@@ -94,12 +94,18 @@ declare function helpers:pagination($node as node(), $model as map(*)) as node()
     
     return (
         if ($page > 1) then 
+            (
+            <li><a href="{ concat("?", string-join(( $parameters, "page=1" ), "&amp;")) }">First</a></li>,
             <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page - 1 ), "&amp;")) }">Previous</a></li>
+            )
         else 
             (),
         <li>Page { $page } / { $npages }</li>,
         if ($page < $npages) then 
-            <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page + 1 ), "&amp;")) }">Next</a></li>
+            (
+            <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page + 1 ), "&amp;")) }">Next</a></li>,
+            <li><a href="{ concat("?", string-join(( $parameters, "page=" || $npages ), "&amp;")) }">Last</a></li>
+            )
         else 
             ()
     )
