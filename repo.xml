@@ -11,7 +11,7 @@
     <prepare>pre-install.xql</prepare>
     <finish/>
     <note>Pay attention to change modules/config.xqm 
-    with sql configuration variables: config:sql-url, config:sql-username, config:sql-password and config:sql-table 
+    with sql configuration variables: config:sql-driver, config:sql-url, config:sql-username, config:sql-password and config:sql-table 
     with tap endpoint : config:TAP_SYNC
     </note>
     <changelog>
@@ -73,4 +73,5 @@
             </ul>
         </change>
     </changelog>
+    <repo:deployed xmlns:repo="http://exist-db.org/xquery/repo">2014-05-05T15:13:26.245+02:00</repo:deployed>
 </meta>

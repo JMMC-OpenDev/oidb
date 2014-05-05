@@ -11,6 +11,7 @@
         <copy file="modules/config.xqm.in" tofile="${build.dir}/config.xqm" overwrite="true"/>
         <!-- get substitution data from property file -->
         <replace file="${build.dir}/config.xqm" propertyFile="${config.properties}">
+            <replacefilter token="@sql-driver@" property="sql-driver"/>
             <replacefilter token="@sql-url@" property="sql-url"/>
             <replacefilter token="@sql-username@" property="sql-username"/>
             <replacefilter token="@sql-password@" property="sql-password"/>
