@@ -106,7 +106,7 @@ import module namespace sql="http://exist-db.org/xquery/sql";
 (:~
  : Database configuration
  :)
-declare variable $config:sql-driver-classname := "com.mysql.jdbc.Driver";
+declare variable $config:sql-driver-classname := "@sql-driver@";
 declare variable $config:sql-url := "@sql-url@";
 declare variable $config:sql-username := "@sql-username@";
 declare variable $config:sql-password := "@sql-password@";
