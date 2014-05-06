@@ -284,3 +284,17 @@ declare function filters:wavelengthband($params as xs:string) {
             $adql:correlation-name || ".em_max > " || $maxlambda ||
         " )"
 };
+
+(:~
+ : Format an ADQL condition for public or private observations.
+ : 
+ : @param $params 'yes' to return only available observations
+ : @return an ADQL condition selecting public or private items
+ :)
+declare function filters:public($params as xs:string) {
+    let $not  := if ($params = 'yes') then '' else 'NOT '
+    return $not || "( " ||
+            $adql:correlation-name || ".data_rights='public' OR " ||
+            $adql:correlation-name || ".obs_release_date < '" || string(current-dateTime()) || "'" ||
+        " )"
+};
