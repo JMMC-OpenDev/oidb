@@ -481,6 +481,10 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         map {
             'reduction'   := tokenize(request:get-parameter('caliblevel', ''), ',')
         },
+        (: public=yes|no|all :)
+        map {
+            'available'   := request:get-parameter('public', 'all')
+        },
         (: --- ORDERING --- :)
         let $order := request:get-parameter('order', '')[1]
         let $desc := starts-with($order, '^')
@@ -534,7 +538,7 @@ declare function app:serialize-query-string() as xs:string* {
             case "collection"  return "collection=" || "~" || encode-for-uri($value)
             case "datapi"      return "datapi=" ||     "~" || encode-for-uri($value)
             case "reduction"   return "caliblevel="        || string-join(for $v in $value return encode-for-uri($v), ',')
-
+            case "available"    return if ($value = ( 'yes', 'no' )) then "public=" || $value else ()
             case "sortby"
                 return concat("order=",
                     if(request:get-parameter('descending', ())) then '' else '^',
