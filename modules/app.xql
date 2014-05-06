@@ -51,6 +51,8 @@ declare function app:column-header($node as node(), $model as map(*)) {
 declare %private function app:row-data($row as node()) {
     let $data := ( 'id', 'target_name', 'bib_reference', 'access_url' )
     for $x in $row/td[@colname=$data]
+    (: no data- attribute if cell is empty :)
+    where $x/text()
     return attribute { 'data-' || $x/@colname } { $x/text() }
 };
 
