@@ -22,9 +22,17 @@ let $response :=
                 let $data := tap:execute($query, true())
 
                 return string-join((
-                    '# Use this file as a config file for curl.',
-                    '# Example: curl --config <file>',
-                    '# ADQL query: ' || $query ,
+                    '# Use this file as a config file for curl to retrieve data from the OiDB portal.',
+                    '# Example       : curl -f --config <file>',
+                    '#',
+                    "# Collected from http://oidb.jmmc.fr on "|| current-dateTime(),
+                    '# ADQL query    : ' || $query ,                    
+                    '#',
+                    '# To retrieve private data protected by password, you may add --netrc option to curl and fill ',
+                    '# $HOME/.netrc file with following template (see man curl / man netrc for more details) :',
+                    '# machine <host.domain.net> login <myself> password <secret>',
+                    '#',
+                    "# A contact is given for every private files",                    
                     '',
                     (: FIXME may or may not have an access_url column :)
                     (: FIXME may or may not already not have a DISTINCT :)
@@ -50,6 +58,6 @@ let $response :=
 (:    </collection>:)
     
 return (
-    response:set-header('Content-Disposition', 'attachment; filename="' || 'curl.config' || '"'),
+    response:set-header('Content-Disposition', 'attachment; filename="' || 'oidb-curl.config' || '"'),
     $response
 )
