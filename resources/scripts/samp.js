@@ -166,10 +166,12 @@ $(function () {
     var query_string = window.location.search;
     var votable_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/votable.xql' + query_string;
     var oixp_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/oiexplorer.xql' + query_string;
+    var curl_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/curl.xql' + query_string;
     $('table thead .dropdown')
          // create links for VOTable and OIFitsExplorer collection downloads
         .dropdownAppend(dropdownMenuitem('Download VOTable', 'download', votable_url))
         .dropdownAppend(dropdownMenuitem('Download OIFitsExplorer collection', 'download', oixp_url))
+        .dropdownAppend(dropdownMenuitem('Download all files with curl', 'download', curl_url))
         .dropdownAppendDivider()
         // prepare for SAMP table.load.votable links
         .sampify(
