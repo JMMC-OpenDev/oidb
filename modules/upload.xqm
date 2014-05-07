@@ -103,7 +103,7 @@ declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $mo
         $more,
         (: add missing access information: url, size, MIME type :)
         <access_url>{ $url }</access_url>,
-        <access_estsize>{ $data/oifits/size/text() }</access_estsize>,
+        <access_estsize>{ $data/oifits/size/text() idiv 1000 }</access_estsize>,
         <access_format>application/fits</access_format>
     )
     (: validation report for file by OIFitsViewer :)

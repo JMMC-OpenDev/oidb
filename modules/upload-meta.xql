@@ -51,7 +51,7 @@ let $response :=
             return (
                 for $file in $data//oifits
                 let $filename := $file/filename/text()
-                let $filesize := $file/size/text()
+                let $filesize := $file/size/text() idiv 1000 (: in kbytes :)
                 (: where to download the original file :)
                 let $url      := resolve-uri($filename, $data//baseurl||"/")
                 let $more := (
