@@ -51,13 +51,23 @@ let $response :=
             return (
                 for $file in $data//oifits
                 let $filename := $file/filename/text()
+                let $filesize := $file/size/text()
                 (: where to download the original file :)
                 let $url      := resolve-uri($filename, $data//baseurl||"/")
+                let $more := (
+                    (: access information of source file :)
+                    <access_url>{ $url }</access_url>,
+                    <access_format>application/fits</access_format>,
+                    <access_estsize>{ $filesize }</access_estsize>,
+                    (: dataset description :)
+                    $obs_collection,
+                    $obs_creator_name
+                )
             
                 for $target in $file/metadata/target
                 return upload:upload(
                     $db_handle, 
-                    ($target/*, <access_url> { $url } </access_url>, $obs_collection, $obs_creator_name)),
+                    ( $target/*, $more )),
                 <success>Successfully uploaded metadata file</success>
             )
         } catch * {

@@ -97,13 +97,13 @@ declare function upload:upload($db_handle as xs:long, $metadata as node()*) {
  : @return the check report from the OIFits file parser
  :)
 declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $more as node()*) {
+    (: TODO test output of oi:viewer!! :)
     let $data := util:parse(oi:viewer($url))
     let $more := (
         $more,
-        (: add missing access information :)
-        (: FIXME kludge, better find file size elsewhere (parser) :)
-        let $estsize := number(httpclient:get($url, false(), <headers/>)//httpclient:headers/httpclient:header[@name='Content-Length']/@value)
-        return <access_estsize>{ $estsize }</access_estsize>,
+        (: add missing access information: url, size, MIME type :)
+        <access_url>{ $url }</access_url>,
+        <access_estsize>{ $data/oifits/size/text() }</access_estsize>,
         <access_format>application/fits</access_format>
     )
     (: validation report for file by OIFitsViewer :)
@@ -112,7 +112,7 @@ declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $mo
     return (
         for $target in $data//metadata/target
         return try {
-            upload:upload($db_handle, ($target/*, <access_url> { $url } </access_url>, $more))
+            upload:upload($db_handle, ($target/*, $more))
         } catch * {
             (: add report to exception value :)
             error($err:code , $err:description, ($err:value, $report))
