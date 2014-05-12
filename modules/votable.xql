@@ -9,6 +9,7 @@ xquery version "3.0";
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
 declare option output:method "xml";
+declare option output:media-type "application/x-votable+xml";
 
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
@@ -28,4 +29,7 @@ let $response :=
         <error> Error: { $err:code } - { $err:description } </error>
     }
     
-return $response
+return (
+    response:set-header('Content-Disposition', 'attachment; filename="' || 'oidb-votable.xml' || '"'),
+    $response
+)
