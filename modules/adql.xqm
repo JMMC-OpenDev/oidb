@@ -207,7 +207,7 @@ declare %private function adql:table_expression($params as xs:string*) as item()
  : @param $default-value returned if parameter not found
  : @return a sequence of parameter values
  :)
-declare %private function adql:get-parameter($all-params as xs:string*, $name as xs:string, $default-value as item()*) as xs:string* {
+declare %private function adql:get-parameter($all-params as xs:string*, $name as xs:string, $default-value as item()*) as item()* {
     let $params := $all-params[starts-with(., $name)]
     return if (exists($params)) then
         for $p in $params
