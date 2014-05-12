@@ -68,10 +68,19 @@ declare %private function adql:set_quantifier($params as item()*) as xs:string {
  : @return a TOP fragment or an empty string
  :)
 declare %private function adql:set_limit($params as xs:string*) as xs:string {
-    let $page    := number(adql:get-parameter($params, 'page', ()))
-    let $perpage := number(adql:get-parameter($params, 'perpage', 25))
-    return if (string($page) != 'NaN' and string($perpage) != 'NaN') then
-        "TOP " || $page * $perpage
+    let $limit-page :=
+        let $page    := number(adql:get-parameter($params, 'page', ()))
+        let $perpage := number(adql:get-parameter($params, 'perpage', 25))
+        return if (string($page) != 'NaN' and string($perpage) != 'NaN') then
+            $page * $perpage
+        else
+            ()
+    let $limit-limit :=
+        let $limit := number(adql:get-parameter($params, 'limit', ()))
+        return if (string($limit) != 'NaN') then $limit else ()
+    let $limit := max(( $limit-page, $limit-limit ))
+    return if (exists($limit)) then
+        "TOP " || $limit
     else
         ""
 };
