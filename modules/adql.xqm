@@ -56,6 +56,27 @@ declare %private function adql:set_quantifier($params as item()*) as xs:string {
 };
 
 (:~
+ : Format a limit fragment for an ADQL query.
+ : 
+ : It makes use of the 'page' and 'perpage' parameters to select items
+ : from pages up to and including 'page'.
+ : 
+ : @note ADQL does not define a way to skip the items before selected rows
+ : (OFFSET in SQL).
+ : 
+ : @param $params a sequence of parameters
+ : @return a TOP fragment or an empty string
+ :)
+declare %private function adql:set_limit($params as xs:string*) as xs:string {
+    let $page    := number(adql:get-parameter($params, 'page', ()))
+    let $perpage := number(adql:get-parameter($params, 'perpage', 25))
+    return if (string($page) != 'NaN' and string($perpage) != 'NaN') then
+        "TOP " || $page * $perpage
+    else
+        ""
+};
+
+(:~
  : Format a select list of columns for an ADQL query.
  : 
  : The column names are taken from the parameters named 'col'. If there
