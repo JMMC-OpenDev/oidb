@@ -16,7 +16,10 @@ import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xq
 let $response :=
     try {
         (: build the query from the request query string :)
-        let $query := adql:build-query()
+        let $query := adql:build-query(
+            (: remove pagination and column set :)
+            adql:split-query-string()[not(starts-with(., ('page', 'perpage', 'col=')))]
+        )
         (: run the ADQL SELECT :)
         let $data := tap:execute($query, false())
         return $data

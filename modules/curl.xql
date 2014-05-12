@@ -16,8 +16,17 @@ let $response :=
 (:    <collection> :)
 (:        {:)
             try {
-                (: build the query from the request query string :)
-                let $query := adql:build-query()
+                let $columns := ( 'access_url', 'data_rights', 'obs_release_date', 'obs_creator_name' )
+                (: tweak the query string to build a custom ADQL query :)
+                let $query := adql:build-query(
+                    (
+                        (: remove pagination and set of columns :)
+                        adql:split-query-string()[not(starts-with(., ('page', 'perpage', 'col=')))],
+                        (: select columns of interest :)
+                        for $c in $columns return 'col=' || $c,
+                        'distinct'
+                    )
+                )
                 (: run the ADQL SELECT :)
                 let $data := tap:execute($query, true())
 
@@ -34,8 +43,6 @@ let $response :=
                     '#',
                     "# A contact is given for every private files",                    
                     '',
-                    (: FIXME may or may not have an access_url column :)
-                    (: FIXME may or may not already not have a DISTINCT :)
                     for $url in distinct-values($data//td[@colname='access_url' and starts-with(., 'http')])
                     return (
                         (: public status of the url :)

@@ -17,8 +17,15 @@ let $response :=
     <oixp:oiDataCollection> 
         {
             try {
-                (: build the query from the request query string :)
-                let $query := adql:build-query()
+                (: tweak the query string to build a custom ADQL query :)
+                let $query := adql:build-query(
+                    (
+                        (: remove pagination and set of columns :)
+                        adql:split-query-string()[not(starts-with(., ('page', 'perpage', 'col=')))],
+                        (: select single column with file URL :)
+                        'col=access_url'
+                    )
+                )
                 (: run the ADQL SELECT :)
                 let $data := tap:execute($query, true())
                 (: FIXME url for search on Web portal :)
@@ -29,7 +36,6 @@ let $response :=
                     comment { ' ' || $url || ' ' },
                     '&#xa;    ',
                     comment { ' ' || $query || ' ' },
-                    (: FIXME may or may not have an access_url column :)
                     (: FIXME may or may already not have a DISTINCT :)
                     (: FIXME may or may be public/available :)
                     for $url in distinct-values($data//td[@colname='access_url' and starts-with(., 'http')])
