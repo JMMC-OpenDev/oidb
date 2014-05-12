@@ -15,7 +15,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters" at "filters.xqm";
 
 (:~
- : Parameter starting with these names are criterias for the select list
+ : Parameter starting with these names are criteria for the select list
  : of the query.
  :)
 declare variable $adql:filters := 
@@ -31,23 +31,25 @@ declare variable $adql:correlation-name := 't';
 (:~
  : Return the requested column names.
  : 
- : Columns names are extracted from the request parameters named 'col'.
+ : Column names are extracted from the parameters named 'col'.
  : 
+ : @param $params a sequence of parameters
  : @return the list of requested column names
  :)
-declare function adql:columns() as item()* {
-    request:get-parameter('col', ())
+declare function adql:columns($params as xs:string*) as item()* {
+    distinct-values(adql:get-parameter($params, 'col=', ()))
 };
 
 (:~
  : Format a set quantifier fragment for an ADQL query.
  : 
- : It returns a distinct quantifier if the request has 'distinct' parameter.
+ : It returns a distinct quantifier if there is a 'distinct' parameter.
  : 
+ : @param $params a sequence of parameters
  : @return a set quantifier
  :)
-declare %private function adql:set_quantifier() as xs:string {
-    if (exists(request:get-parameter('distinct', ()))) then
+declare %private function adql:set_quantifier($params as item()*) as xs:string {
+    if (exists(adql:get-parameter($params, 'distinct', ()))) then
         "DISTINCT"
     else
         "ALL"
@@ -56,13 +58,14 @@ declare %private function adql:set_quantifier() as xs:string {
 (:~
  : Format a select list of columns for an ADQL query.
  : 
- : The column names are taken from the request parameters named 'col'. If there
- : is no explicit column requested, it return any column of the table.
+ : The column names are taken from the parameters named 'col'. If there
+ : is no explicit column requested, it returns all columns (*) of the table.
  : 
+ : @param $params a sequence of parameters
  : @return a select list of columns
  :)
-declare %private function adql:select_list() as xs:string? {
-    let $columns := adql:columns()
+declare %private function adql:select_list($params as xs:string*) as xs:string? {
+    let $columns := adql:columns($params)
     return if(empty($columns)) then
         '*'
     else
@@ -75,14 +78,15 @@ declare %private function adql:select_list() as xs:string? {
 (:~
  : Format an ORDER BY clause for an ADQL query.
  : 
- : The sorting keys are taken from the request parameter named 'order'.
+ : The sorting keys are taken from the parameters named 'order'.
  : The results are sorted in ascending order if the value of the 'order'
  : parameter starts with '^'.
  : 
+ : @param $params a sequence of parameters
  : @return an ORDER BY clause or empty string
  :)
-declare %private function adql:order_by_clause() as xs:string {
-    let $sort-keys := request:get-parameter('order', ())
+declare %private function adql:order_by_clause($params as xs:string*) as xs:string {
+    let $sort-keys := adql:get-parameter($params, 'order', ())
     return if(exists($sort-keys)) then
         'ORDER BY ' ||
             string-join(
@@ -103,25 +107,6 @@ declare %private function adql:order_by_clause() as xs:string {
  :)
 declare %private function adql:from_clause() as xs:string {
     'FROM ' || $config:sql-table || ' AS ' || $adql:correlation-name
-};
-
-(:~
- : Split a query string into subsequence separated by 'or' parameters.
- : 
- : Parameters within the subsequence are combined with AND, the subsequences
- : combined with OR.
- : 
- : @param $x request query string
- : @return a sequence of substrings of the query string
- :)
-declare %private function adql:split-query-string($x as xs:string?) as item()* {
-    (
-        let $before := substring-before($x, '&amp;or&amp;')
-        return if (string-length($before) = 0) then $x else $before
-        ,
-        let $after := substring-after($x, '&amp;or&amp;')
-        return if (string-length($after) = 0) then () else adql:split-query-string($after)
-    )
 };
 
 (:~
@@ -153,22 +138,19 @@ declare %private function adql:predicate($param as xs:string) as xs:string? {
 (:~
  : Format a WHERE clause from the parameters of the request.
  : 
- : The request is split in filters that are translated into condition
- : expressions then combined with OR and AND as they appear in the query string.
+ : It takes filter definitions from the sequence of parameters and returns a
+ : clause with conditions combined by AND operations.
  : 
- : @return an ADQL where clause with condition from the request or '' if no
+ : @param $params a sequence of parameters
+ : @return an ADQL where clause with condition from the parameters or '' if no
  : filter
+ : @todo redo the OR combination of filters
  :)
-declare %private function adql:where_clause() as xs:string {
-    let $search-condition := 
-        let $and-conditions := 
-            for $x in adql:split-query-string(request:get-query-string())
-            let $predicates :=
-                (: filter out special and empty parameters :)
-                for $p in tokenize($x, '&amp;')[starts-with(., $adql:filters)]
-                return adql:predicate($p)
-            return string-join($predicates, ' AND ')
-        return string-join($and-conditions, ' OR ')
+declare %private function adql:where_clause($params as xs:string*) as xs:string {
+    let $search-condition := string-join(
+        for $p in $params[starts-with(., $adql:filters)]
+        return adql:predicate($p),
+        ' AND ')
     return if($search-condition != '') then
         'WHERE ' || $search-condition
     else
@@ -178,16 +160,73 @@ declare %private function adql:where_clause() as xs:string {
 (:~
  : Return a set of clauses for the table expression of the query.
  : 
+ : @param $params a sequence of parameters
  : @return a sequence of clauses as strings
  :)
-declare %private function adql:table_expression() as item()* {
+declare %private function adql:table_expression($params as xs:string*) as item()* {
     (
         adql:from_clause(),
-        adql:where_clause(),
+        adql:where_clause($params),
         (: group_by :)
         (: having_clause :)
-        adql:order_by_clause()
+        adql:order_by_clause($params)
     )    
+};
+
+(:~
+ : Return the parameter identified by name.
+ : 
+ : It searches in the parameter list for any parameter starting with the given
+ : name and returns their values as a sequence.
+ : 
+ : If no parameter matches that name, the default value is returned instead.
+ : 
+ : @param $all-params a sequence of parameters
+ : @param $name the name of the parameters to find
+ : @param $default-value returned if parameter not found
+ : @return a sequence of parameter values
+ :)
+declare %private function adql:get-parameter($all-params as xs:string*, $name as xs:string, $default-value as item()*) as xs:string* {
+    let $params := $all-params[starts-with(., $name)]
+    return if (exists($params)) then
+        for $p in $params
+        (: value from text after the '=', '' if no value :)
+        return substring-after($p, "=")
+    else
+        $default-value
+};
+
+(:~
+ : Turn the current HTTP query string into a sequence of parameters for
+ : building and ADQL query.
+ : 
+ : @return a sequence of query parameters
+ :)
+declare function adql:split-query-string() as item()* {
+    tokenize(request:get-query-string(), '&amp;')
+};
+
+(:~
+ : Transform parameters into an ADQL query.
+ : 
+ : The parameters are key-value pairs separated by '=' like regular HTTP query
+ : parameters.
+ : 
+ : @param $params a sequence of parameters
+ : @return an ADQL SELECT statement
+ :)
+declare function adql:build-query($params as item()*) as xs:string {
+    let $query := adql:get-parameter($params, 'query', ())
+    return if ($query) then
+        $query
+    else 
+        string-join(( 
+            'SELECT',
+            adql:set_quantifier($params),
+(:            adql:set_limit($params),:)
+            adql:select_list($params),
+            adql:table_expression($params)
+            ), ' ')
 };
 
 (:~
@@ -196,18 +235,7 @@ declare %private function adql:table_expression() as item()* {
  : @return an ADQL SELECT statement
  :)
 declare function adql:build-query() as xs:string {
-    let $query := request:get-parameter('query', ())
-    return if ($query) then
-        $query
-    else
-        let $table-expression := adql:table_expression()
-        return string-join(( 
-            'SELECT',
-            adql:set_quantifier(),
-            (: set_limit, TOP xx :)
-            adql:select_list(),
-            $table-expression
-            ), ' ')
+    adql:build-query(adql:split-query-string())
 };
 
 (:~
