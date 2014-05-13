@@ -21,7 +21,9 @@ let $response :=
                 let $query := adql:build-query(
                     (
                         (: remove pagination and set of columns :)
-                        adql:split-query-string()[not(starts-with(., ('page', 'perpage', 'col=')))],
+                        adql:clear-pagination(
+                            adql:clear-select-list(
+                                adql:split-query-string())),
                         (: select columns of interest :)
                         for $c in $columns return 'col=' || $c,
                         'distinct'

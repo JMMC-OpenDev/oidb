@@ -237,6 +237,26 @@ declare function adql:split-query-string() as item()* {
 };
 
 (:~
+ : Remove any parameter relative to data selection from a list of parameters.
+ : 
+ : @param $params a sequence of parameters
+ : @return a new sequence without selection parameters
+ :)
+declare function adql:clear-select-list($params as xs:string*) as xs:string* {
+    $params[not(starts-with(., 'col='))]
+};
+
+(:~
+ : Remove any parameter relative to pagination from a list of parameters.
+ : 
+ : @param $params a sequence of parameters
+ : @return a new sequence without pagination parameters
+ :)
+declare function adql:clear-pagination($params as xs:string*) as xs:string* {
+    $params[not(starts-with(., ( 'page', 'perpage' )))]
+};
+
+(:~
  : Transform parameters into an ADQL query.
  : 
  : The parameters are key-value pairs separated by '=' like regular HTTP query
