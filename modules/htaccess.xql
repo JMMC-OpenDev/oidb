@@ -9,7 +9,7 @@ xquery version "3.0";
  : URL (<success> or <error>).
  :)
 
-import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
@@ -18,11 +18,12 @@ declare option output:method "text";
 declare option output:media-type "text/plain";
 declare option output:omit-xml-declaration "yes";
 
-(: TODO: compute distinct access_url from adql ? :)
-declare variable $query := "SELECT t.access_url, t.data_rights, t.obs_release_date FROM " || $config:sql-table || " AS t";
-
 let $collection := request:get-parameter("obs_collection", "", true())
-let $rows := tap:execute(concat($query," WHERE t.obs_collection='", $collection, "'"), true())
+let $query := adql:build-query((
+    'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date',
+    'collection=~' || $collection ))
+    
+let $rows := tap:execute($query, true())
 let $access_urls := distinct-values($rows//td[@colname="access_url"]/text())
 
 for $u at $pos in $access_urls

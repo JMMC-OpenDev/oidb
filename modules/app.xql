@@ -238,7 +238,7 @@ declare %private function app:vizcat-url($catalogue as xs:string) as xs:string {
 };
 
 
-declare variable $app:collections-query := "SELECT DISTINCT t.obs_collection, t.obs_creator_name FROM " || $config:sql-table || " AS t WHERE NOT t.obs_collection='VegaObs Import'";
+declare variable $app:collections-query := adql:build-query(( 'col=obs_collection', 'col=obs_creator_name', 'collection=!~VegaObs Import' ));
 
 (:~
  : Build a map for collections and put it in the model for templating.
@@ -264,7 +264,7 @@ function app:collections($node as node(), $model as map(*)) as map(*) {
                 return map:entry($name, if($creator != '') then $name || " - " || $creator else $name))))
 };
 
-declare variable $app:instruments-query := "SELECT DISTINCT t.instrument_name FROM " || $config:sql-table || " AS t";
+declare variable $app:instruments-query := adql:build-query(( 'col=instrument_name', 'distinct' ));
 
 (:~
  : Build a list of instrument names and put it in the model for templating.
@@ -286,7 +286,7 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
     return map:new(map:entry('instruments', $instruments))
 };
 
-declare variable $app:data-pis-query := "SELECT DISTINCT t.obs_creator_name FROM " || $config:sql-table || " AS t";
+declare variable $app:data-pis-query := adql:build-query(( 'col=obs_creator_name', 'distinct' ));
 
 (:~
  : Build a list of dataPIs and put it in the model for templating.
@@ -603,8 +603,8 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
     </table>
 };
 
-(: Hard coded request to get the 3 last entries :)
-declare variable $app:latest-query := "SELECT DISTINCT TOP 3 t.target_name, t.access_url, t.subdate FROM " || $config:sql-table || " AS t ORDER BY t.subdate DESC";
+(: Query to get the 3 last entries :)
+declare variable $app:latest-query := adql:build-query(( 'col=target_name', 'col=access_url', 'col=subdate', 'order=subdate', 'limit=3' ));
 
 (:~
  : Create a list of the three latest files uploaded.
