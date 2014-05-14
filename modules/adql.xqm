@@ -267,6 +267,27 @@ declare function adql:clear-pagination($params as xs:string*) as xs:string* {
 };
 
 (:~
+ : Remove any filter from a list of parameters.
+ : 
+ : @param $params a sequence of parameters
+ : @param $filter a filter name
+ : @return a new sequence without the filter
+ :)
+declare function adql:clear-filter($params as xs:string*, $filter as xs:string) {
+    adql:clear($params, $filter)
+};
+
+(:~
+ : Remove any order parameter from a list of parameters.
+ : 
+ : @param $params a sequence of parameters
+ : @return an new sequence without order parameters
+ :)
+declare function adql:clear-order($params as xs:string*) {
+    adql:clear($params, 'order')
+};
+
+(:~
  : Transform parameters into an ADQL query.
  : 
  : The parameters are key-value pairs separated by '=' like regular HTTP query
