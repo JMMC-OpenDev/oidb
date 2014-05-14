@@ -360,31 +360,6 @@ declare %private function app:data-stats($params as xs:string*) as node() {
 };
 
 (:~
- : Resolve target from name and return its coordinates.
- : 
- : It is using the database first and if not found, try with the Sesame name
- : resolver.
- : 
- : @param $name the name of the target
- : @return an empty sequence if unknown target or sequence with sra and sdec
- :)
-declare %private function app:target-coords($target as xs:string) {
-    if ($target != '') then
-        (: first try resolution on database :)
-        let $query := "SELECT TOP 1 t.s_ra, t.s_dec FROM " || $config:sql-table || " AS t WHERE t.target_name='" || $target || "'"
-        let $result := tap:execute($query, false())//*:TD/text()
-        return if (empty($result)) then
-            (: no result in database, resolve name with Sesame :)
-            try { sesame:resolve($target)//target/(@s_ra, @s_dec) } catch * { () }
-        else
-            (: target found in database :)
-            $result
-    else
-        (: incorrect target name :)
-        ()
-};
-
-(:~
  : Display the result of the query in a paginated table.
  : 
  : The query is passed to a TAP service and the returned VOTable
