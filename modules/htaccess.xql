@@ -1,12 +1,11 @@
 xquery version "3.0";
 
 (:~
- : Save metadata from OIFits files whose URL have been passed as parameter.
- :
- : Each file is processed by OIFitsViewer to extract metadata.
+ : Create an hypertext access file for a specified collection.
  : 
- : It returns a <response> fragment with the status of the operation for each
- : URL (<success> or <error>).
+ : It outputs a .htaccess file that would allow access to public files of the
+ : collection when this file is saved to the directory of the machine serving
+ : the files.
  :)
 
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
