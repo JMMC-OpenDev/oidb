@@ -40,7 +40,7 @@ function local:valid-bibcode($bibcode as xs:string) as xs:boolean {
 (: Split parameter into individual URLs :)
 let $urls := tokenize(request:get-parameter("urls", ""), "\s")
 (:  other parameters, turned into additional metadata :)
-let $more-columns := ("obs_collection", "calib_level", "bib_reference", "obs_creator_name")
+let $more-columns := ("obs_collection", "calib_level", "bib_reference", "obs_creator_name", "keywords")
 let $more := <more> {
     for $p in request:get-parameter-names()[.=$more-columns]
     return element { $p } { request:get-parameter($p, '') }
