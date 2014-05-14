@@ -263,7 +263,7 @@ declare %private function adql:clear($params as xs:string*, $keys as xs:string*)
  : @return a new sequence without selection parameters
  :)
 declare function adql:clear-select-list($params as xs:string*) as xs:string* {
-    adql:clear($params, 'col')
+    adql:clear($params, ( 'col', $adql:set_functions ))
 };
 
 (:~
