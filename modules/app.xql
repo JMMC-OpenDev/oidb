@@ -340,14 +340,15 @@ declare function app:input-each-band($node as node(), $model as map(*)) as node(
  : Return an element with counts of the number of observations, all OIFits 
  : files and private OIFits files in the database.
  : 
+ : @param $params a sequence of parameters
  : @return a <stats> element with attributes for counts.
  :)
-declare %private function app:data-stats() as node() {
+declare %private function app:data-stats($params as xs:string*) as node() {
     let $base-query := 
         adql:clear-pagination(
             adql:clear-select-list(
                 adql:clear-order(
-                    adql:clear-filter(adql:split-query-string(), 'public'))))
+                    adql:clear-filter($params, 'public'))))
     let $count := function($q) { tap:execute($q, false())//*:TD/text() }
     (: FIXME 3 requests... nasty, nasty :)
     return <stats> {
@@ -403,21 +404,31 @@ function app:search($node as node(), $model as map(*),
                     $page as xs:integer, $perpage as xs:integer, $all as xs:string?) as map(*) {
     try {
         (: Search database, use request parameters :)
-        let $query := adql:build-query()
-        let $data := tap:execute($query, true())
-    
+        (: clean up pagination stuff, recovered later from function parameters :)
+        let $params := adql:clear-pagination(adql:split-query-string())
+
+        let $data := tap:execute(
+            adql:build-query((
+                $params,
+                (: force query pagination to limit number of rows returned :)
+                'page=' || $page, 'perpage=' || $perpage)),
+            true())
+
         (: default columns to display :)
         let $columns := if($all) then
                 $data//th/@name/string()
             else
                 ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
     
-        let $stats   := app:data-stats()
+        let $stats   := app:data-stats($params)
     
         let $headers := $data//th[@name=$columns]
         (: limit rows to page - skip row of headers :)
         let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
     
+        (: the query shown to the user :)
+        let $query := adql:build-query($params)
+
         return map {
             'query' :=      $query,
             'query-edit' := 'query.html?query=' || encode-for-uri($query),

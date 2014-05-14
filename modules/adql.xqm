@@ -314,7 +314,7 @@ declare function adql:build-query($params as item()*) as xs:string {
         string-join(( 
             'SELECT',
             adql:set_quantifier($params),
-(:            adql:set_limit($params),:)
+            adql:set_limit($params),
             adql:select_list($params),
             adql:table_expression($params)
             ), ' ')
