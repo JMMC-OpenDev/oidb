@@ -340,14 +340,21 @@ declare function app:input-each-band($node as node(), $model as map(*)) as node(
  : Return an element with counts of the number of observations, all OIFits 
  : files and private OIFits files in the database.
  : 
- : @param $data a element with rows from a <votable>
  : @return a <stats> element with attributes for counts.
  :)
-declare %private function app:data-stats($data as node()) as node() {
-    <stats> {
-        attribute { "nobservations" } { count($data//tr[td]) },
-        attribute { "nprivatefiles" } { count(distinct-values($data//tr[not(app:public-status(td[@colname="data_rights"], td[@colname="obs_release_date"]))]/td[@colname="access_url"])) },
-        attribute { "noifitsfiles" }  { count(distinct-values($data//td[@colname="access_url"])) }
+declare %private function app:data-stats() as node() {
+    let $base-query := 
+        adql:clear-pagination(
+            adql:clear-select-list(
+                adql:clear-order(
+                    adql:clear-filter(adql:split-query-string(), 'public'))))
+    let $count := function($q) { tap:execute($q, false())//*:TD/text() }
+    (: FIXME 3 requests... nasty, nasty :)
+    return <stats> {
+        attribute { "nobservations" } { $count(adql:build-query(( $base-query, 'count=*' ))) },
+        attribute { "nprivatefiles" } { $count(adql:build-query(( $base-query, 'count=*', 'public=no' ))) },
+        (: FIXME even worse... can you believe it? :)
+        attribute { "noifitsfiles" }  { $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS urls') }
     } </stats>
 };
 
@@ -405,7 +412,7 @@ function app:search($node as node(), $model as map(*),
             else
                 ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
     
-        let $stats   := app:data-stats($data)
+        let $stats   := app:data-stats()
     
         let $headers := $data//th[@name=$columns]
         (: limit rows to page - skip row of headers :)
@@ -417,7 +424,7 @@ function app:search($node as node(), $model as map(*),
             'headers' :=    $headers,
             'rows' :=       $rows,
             'stats' :=      $stats,
-            'pagination' := map { 'page' := $page, 'npages' := ceiling(count($data//tr) div $perpage) }
+            'pagination' := map { 'page' := $page, 'npages' := ceiling(number($stats/@nobservations) div $perpage) }
         }
     } catch filters:error {
         map {
