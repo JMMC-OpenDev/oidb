@@ -90,13 +90,16 @@ let $response :=
         { comment {"vizier url: "||$url}}
         {
         let $urls := local:extract-files(xs:anyURI($url))
+        let $abstract-data := 
+            let $bibcode := local:catalog-bibcode($url)
+            return if ($bibcode) then local:abstract-data($bibcode) else ()
         let $additional-data := (
             (: published files -> L3 :) 
             <calib_level>3</calib_level>,
             (: collection identifier :)
             <obs_collection>{ $cat }</obs_collection>,
             (: data from abstract: author, publication date, keywords... :)
-            local:abstract-data(local:catalog-bibcode($url)) 
+            $abstract-data
         )
         return ( 
             for $file in $urls
