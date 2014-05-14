@@ -116,6 +116,20 @@ declare %private function adql:select_list($params as xs:string*) as xs:string? 
 };
 
 (:~
+ : Format a GROUP BY clause for an ADQL query.
+ : 
+ : @param $params a sequence of parameters
+ : @return a GROUP BY clause or an empty string
+ :)
+declare %private function adql:group_by($params as xs:string*) as xs:string {
+    let $groups := adql:get-parameter($params, 'group=', ())
+    return if (exists($groups)) then
+        'GROUP BY ' || string-join(for $g in $groups return $adql:correlation-name || '.' || $g, ', ')
+    else
+        ''
+};
+
+(:~
  : Format an ORDER BY clause for an ADQL query.
  : 
  : The sorting keys are taken from the parameters named 'order'.
@@ -207,7 +221,7 @@ declare %private function adql:table_expression($params as xs:string*) as item()
     (
         adql:from_clause(),
         adql:where_clause($params),
-        (: group_by :)
+        adql:group_by($params),
         (: having_clause :)
         adql:order_by_clause($params)
     )    
