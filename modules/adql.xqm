@@ -29,18 +29,6 @@ declare variable $adql:correlation-name := 't';
 
 
 (:~
- : Return the requested column names.
- : 
- : Column names are extracted from the parameters named 'col'.
- : 
- : @param $params a sequence of parameters
- : @return the list of requested column names
- :)
-declare function adql:columns($params as xs:string*) as item()* {
-    distinct-values(adql:get-parameter($params, 'col=', ()))
-};
-
-(:~
  : Format a set quantifier fragment for an ADQL query.
  : 
  : It returns a distinct quantifier if there is a 'distinct' parameter.
@@ -86,23 +74,45 @@ declare %private function adql:set_limit($params as xs:string*) as xs:string {
 };
 
 (:~
+ : List of parameter keys for ADQL set functions
+ :)
+declare variable $adql:set_functions := ( 'avg', 'max', 'min', 'sum', 'count' );
+
+(:~
+ : Transform a parameter into a proper select sublist ADQL element.
+ : 
+ : @param $param a key-value string
+ : @return a subselect clause
+ :)
+declare %private function adql:select_sublist($param as xs:string) as xs:string {
+    let $column   := substring-after($param, '=')
+    let $function := substring-before($param, '=')
+    return if ($function != 'col') then
+        upper-case($function) || '(' || $column || ')'
+    else
+        $adql:correlation-name || '.' || $column
+};
+
+(:~
  : Format a select list of columns for an ADQL query.
  : 
  : The column names are taken from the parameters named 'col'. If there
  : is no explicit column requested, it returns all columns (*) of the table.
  : 
+ : Alternatively the select list can contains calls to set functions on
+ : columns.
+ : 
  : @param $params a sequence of parameters
  : @return a select list of columns
  :)
 declare %private function adql:select_list($params as xs:string*) as xs:string? {
-    let $columns := adql:columns($params)
-    return if(empty($columns)) then
+    let $selects := $params[starts-with(., for $f in ( $adql:set_functions, 'col' ) return $f || '=')]
+    return if(empty($selects)) then
         '*'
     else
         string-join(
-            for $c in $columns
-            return $adql:correlation-name || '.' || $c,
-            ', ')
+            for $s in $selects
+            return adql:select_sublist($s), ', ')
 };
 
 (:~
