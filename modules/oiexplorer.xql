@@ -50,6 +50,6 @@ let $response :=
     </oixp:oiDataCollection>
     
 return (
-    response:set-header('Content-Disposition', 'attachment; filename="' || 'collection.xml' || '"'),
+    response:set-header('Content-Disposition', 'attachment; filename="' || 'collection.oixp' || '"'),
     $response
 )
