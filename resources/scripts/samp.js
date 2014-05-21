@@ -119,6 +119,11 @@ $(function () {
                         dropdownMenuitem('Unregister from SAMP Hub', 'remove-sign', '#')
                             .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); }));
                 });
+            },
+            function (error) {
+                // add status entry, no connection
+                $dropdown.dropdownAppend(
+                    dropdownMenuitem('No SAMP connection', 'info-sign', '#'));
             });
         })
         .bind('hidden.bs.dropdown', function (e) {
