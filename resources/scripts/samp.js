@@ -186,8 +186,6 @@ $(function () {
     $('table thead .dropdown')
         // install non SAMP links
         .one('show.bs.dropdown', function (e) {
-            console.log(this);
-    
             $(e.currentTarget)
                  // create links for VOTable and OIFitsExplorer collection downloads
                 .dropdownAppend(dropdownMenuitem('Download VOTable', 'download', votable_url))
