@@ -134,24 +134,24 @@ $(function () {
 
     // Process data rows
     var $tr = $('table tbody tr');
-    // create links to details pages when row id are known
-    $tr.filter('[data-id]').find('.dropdown').dropdownAppend(function () {
-        var id = $(this).parents('tr').first().data('id');
-        return dropdownMenuitem('Details', 'zoom-in', './show.html?id=' + id);
-    });
-    // create links to SIMBAD when target names are known
-    $tr.filter('[data-target_name]').find('.dropdown').dropdownAppend(function() {
-        var targetname = $(this).parents('tr').first().data('target_name');
-        return dropdownMenuitem('View in SIMBAD', 'globe', 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident=' + encodeURIComponent(targetname));
-    });
-    // create links to ADS when bibliographic reference is known
-    $tr.filter('[data-bib_reference]').find('.dropdown').dropdownAppend(function() {
-        var bibreference = $(this).parents('tr').first().data('bib_reference');
-        return dropdownMenuitem('Paper at ADS', 'book', 'http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?' + encodeURIComponent(bibreference));
-    });
+    $tr.find('.dropdown')
+        .one('show.bs.dropdown', function (e) {
+            var $dropdown = $(this);
+            var data = $dropdown.parents('tr').first().data();
+            if (data.id)
+                // create link to details pages
+                $dropdown.dropdownAppend(dropdownMenuitem('Details', 'zoom-in', './show.html?id=' + data.id));
+            if (data.target_name)
+                // create links to SIMBAD
+                $dropdown.dropdownAppend(dropdownMenuitem('View in SIMBAD', 'globe', 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident=' + encodeURIComponent(data.target_name)));
+            if (data.bib_reference)
+                // create links to ADS
+                $dropdown.dropdownAppend(dropdownMenuitem('Paper at ADS', 'book', 'http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?' + encodeURIComponent(data.bib_reference)));
+            if (data.access_url)
+                // prepare for sampification
+                $dropdown.dropdownAppendDivider();
+        });
     $tr.filter('[data-access_url]').find('.dropdown')
-        // add a divider before SAMP links
-        .dropdownAppendDivider()
         // prepare for SAMP table.load.fits links
         .sampify(
             'table.load.fits',
@@ -168,11 +168,17 @@ $(function () {
     var oixp_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/oiexplorer.xql' + query_string;
     var curl_url = window.location.protocol + '//' + window.location.host + window.location.pathname.match(/.*\// ) + 'modules/curl.xql' + query_string;
     $('table thead .dropdown')
-         // create links for VOTable and OIFitsExplorer collection downloads
-        .dropdownAppend(dropdownMenuitem('Download VOTable', 'download', votable_url))
-        .dropdownAppend(dropdownMenuitem('Download OIFitsExplorer collection', 'download', oixp_url))
-        .dropdownAppend(dropdownMenuitem('Download all files with curl', 'download', curl_url))
-        .dropdownAppendDivider()
+        // install non SAMP links
+        .one('show.bs.dropdown', function (e) {
+            console.log(this);
+    
+            $(e.currentTarget)
+                 // create links for VOTable and OIFitsExplorer collection downloads
+                .dropdownAppend(dropdownMenuitem('Download VOTable', 'download', votable_url))
+                .dropdownAppend(dropdownMenuitem('Download OIFitsExplorer collection', 'download', oixp_url))
+                .dropdownAppend(dropdownMenuitem('Download all files with curl', 'download', curl_url))
+                .dropdownAppendDivider();
+        })
         // prepare for SAMP table.load.votable links
         .sampify(
              'table.load.votable',
