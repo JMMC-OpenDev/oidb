@@ -77,12 +77,11 @@ $(function () {
     $.fn.sampify = function(mtype, params) {
         this
         .bind('show.bs.dropdown', function (e) {
-            // the list that makes the dropdown menu
-            var $ul = $('ul', e.currentTarget);
+            var $dropdown = $(this);
 
-            var $samp = dropdownMenuitem('No SAMP connection', 'info-sign', '#');
-            $(this).dropdownAppend($samp);
-            var $action = $('a', $samp);
+            // the divider introduce SAMP links
+            var $divider = $('<li class="divider" role="presentation"/>');
+            $dropdown.dropdownAppend($divider);
 
             connector.runWithConnection(function (conn) {
                 // Persist the SAMP connection
@@ -98,7 +97,7 @@ $(function () {
                     var addLink = function (id) {
                         return function (metadata) {
                             var name = metadata['samp.name'];
-                            $('li.divider', $ul).after(
+                            $divider.after(
                                 dropdownMenuitem('Send to ' + name, 'share', '#')
                                     .click(function () { sendMessage(id); }));
                         };
@@ -116,17 +115,18 @@ $(function () {
 
                     // change action to close connection
                     // Note: dropdown discarded on click, no need to delete elements
-                    $action
-                        .html('<span class="glyphicon glyphicon-remove-sign"/>&#160;Unregister from SAMP Hub')
-                        .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); });
+                    $dropdown.dropdownAppend(
+                        dropdownMenuitem('Unregister from SAMP Hub', 'remove-sign', '#')
+                            .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); }));
                 });
             });
         })
         .bind('hidden.bs.dropdown', function (e) {
-            // the list that make the dropdown menu
-            var $ul = $('ul', e.currentTarget);
+            var $divider = $('ul li.divider:last', e.currentTarget);
             // remove every SAMP entries (that is anything that follows the divider)
-            $('li.divider ~ li', $ul).remove();
+            $divider.nextAll('li').remove();
+            // and the divider
+            $divider.remove();
         });
         
         return this;
@@ -147,9 +147,6 @@ $(function () {
             if (data.bib_reference)
                 // create links to ADS
                 $dropdown.dropdownAppend(dropdownMenuitem('Paper at ADS', 'book', 'http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?' + encodeURIComponent(data.bib_reference)));
-            if (data.access_url)
-                // prepare for sampification
-                $dropdown.dropdownAppendDivider();
         });
     $tr.filter('[data-access_url]').find('.dropdown')
         // prepare for SAMP table.load.fits links
@@ -176,8 +173,7 @@ $(function () {
                  // create links for VOTable and OIFitsExplorer collection downloads
                 .dropdownAppend(dropdownMenuitem('Download VOTable', 'download', votable_url))
                 .dropdownAppend(dropdownMenuitem('Download OIFitsExplorer collection', 'download', oixp_url))
-                .dropdownAppend(dropdownMenuitem('Download all files with curl', 'download', curl_url))
-                .dropdownAppendDivider();
+                .dropdownAppend(dropdownMenuitem('Download all files with curl', 'download', curl_url));
         })
         // prepare for SAMP table.load.votable links
         .sampify(
