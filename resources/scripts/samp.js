@@ -73,6 +73,19 @@ $(function () {
         connector.setConnection(new samp.Connection({ 'samp.private-key': key }));
     }
 
+    // Populate the application list for the given mtype and show the modal
+    function showApplicationsModal(mtype) {
+        var $modal = $('#apps-modal');
+        // from VO Application Registry (http://voar.jmmc.fr)
+        if ($.fn.appendAppList) {
+            var $ul = $('.voar ul', $modal);
+            $ul.empty().appendAppList({ 'mtype': mtype });
+        } else {
+            $('.voar', $modal).hide();
+        }
+        $modal.modal('show');
+    }
+
     // Add and remove links to relevant SAMP clients in the dropdown menu
     $.fn.sampify = function(mtype, params) {
         this
@@ -123,7 +136,8 @@ $(function () {
             function (error) {
                 // add status entry, no connection
                 $dropdown.dropdownAppend(
-                    dropdownMenuitem('No SAMP connection', 'info-sign', '#'));
+                    dropdownMenuitem('No SAMP connection', 'info-sign', '#')
+                        .click(function (e) { showApplicationsModal(mtype); e.preventDefault(); }));
             });
         })
         .bind('hidden.bs.dropdown', function (e) {
