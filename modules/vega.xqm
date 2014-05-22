@@ -12,7 +12,6 @@ module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
 import module namespace util="http://exist-db.org/xquery/util";
-import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
@@ -24,9 +23,6 @@ declare namespace xsd="http://org.apache.axis2/xsd";
 
 (: Base url for the VegaWS service - HTTP port :)
 declare variable $vega:VEGAWS_URL := "http://vegaobs-ws.oca.eu/axis2/services/VegaWs.VegaWsHttpport/VegaWs/";
-
-(: Base URI for the storage of VEGA data :)
-declare variable $vega:data-root := '/db/apps/oidb-data/vega';
 
 (:~
  : Make use of the VegaObs web service to retrieve the list of user.
@@ -137,16 +133,6 @@ declare function vega:instrument-mode($row as node()) as xs:string {
         '-',
         $configcam,
         if ($polar='POL_OFF') then '' else '-Polar')
-};
-
-(:~
- : Return a list of all star names in the VEGA dataset.
- : 
- : @return a sequence of names
- :)
-declare function vega:get-star-hds() as item()* {
-    let $collection := collection($vega:data-root)
-    return distinct-values($collection//td[@colname='StarHD']/text())
 };
 
 (:~ Vega modes from ASPRO2 configuration :)
@@ -267,23 +253,4 @@ declare function vega:pull-by-status($status as xs:string) {
             <error>{ $err:description }</error>
         }
     } </response>
-};
-
-(:~
- : Retrieve data from the VegaObs database and store locally.
- : It currently requests all data with status and status different from 'Trash'.
- : 
- : @param $collection destination collection where to put data
- : @return a sequence of path to new resources.
- :)
- declare function vega:pull($collection as xs:string) as item()* {
-    let $published        := vega:nodes-from-field-name(vega:get-observations-by-data-status('Published'))
-    let $wait-publication := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitPublication'))
-    let $wait-other-data  := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitOtherData'))
-    let $wait-processing  := vega:nodes-from-field-name(vega:get-observations-by-data-status('WaitProcessing'))
-    return (
-        xmldb:store($collection, "published"        || ".xml", $published),
-        xmldb:store($collection, "wait-publication" || ".xml", $wait-publication),
-        xmldb:store($collection, "wait-other-data"  || ".xml", $wait-other-data),
-        xmldb:store($collection, "wait-processing"  || ".xml", $wait-processing))
 };

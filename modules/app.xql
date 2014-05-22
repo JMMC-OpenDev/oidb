@@ -8,10 +8,6 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
-import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
-
-import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
-
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 
@@ -598,55 +594,6 @@ declare function app:latest($node as node(), $model as map(*)) {
             <span> { data($row/td[@colname='subdate']) } </span>
         </li>
     } </ul>
-};
-
-(:~
- : Test for VEGA data integration
- :)
-
-declare %private function app:vega-row($row as node()) as node() {
-    <tr> {
-        $row/td[@colname='StarHD'], (: Object Name/Identifier :)
-        <td> { $row/td[@colname='NightDir']/text() } <br/> { $row/td[@colname='JulianDay']/text() } </td>, (: Observation Date / MJD :)
-        <td> { 'VEGA' } <br/> { vega:instrument-mode($row) } </td>,
-        <td> { number($row/td[@colname='Lambda']) div 1000 } </td>, (: wavelength range, FIXME :)
-        $row/td[@colname='ProgNumber'], (: Run/Program ID :)
-        <td> { vega:number-of-telescopes($row) } </td>,
-        <td> { vega:telescopes-configuration($row) } </td>,
-        <td> { $row/td[@colname='CommentaireFileObs'][text()!='NULL']/text() } </td>, (: Notes, FIXME :)
-        <td>
-            {
-                if ($row/td[@colname='DataStatus'][text()='Published']) then <i class="icon-check"/> else ()
-            }
-        </td>, (: Published :)
-        <td> {
-            vega:get-user-name($row/td[@colname='DataPI']/text())
-        } </td> (: PI contact details :)
-    } </tr>
-};
-
-declare function app:vega-select-star-hd($node as node(), $model as map(*), $starHD as xs:string?) {
-    <select name="starHD">
-        <option value="">Search by star</option>
-        {
-            for $hd in vega:get-star-hds()
-            order by $hd
-            return <option value="{ $hd }">
-                { if ($starHD = $hd) then attribute { "selected"} { "selected" } else () }
-                { $hd }
-            </option>
-        }         
-    </select>
-};
-
-declare function app:vega($node as node(), $model as map(*), $starHD as xs:string?) {
-    <tbody> {
-        let $rows := collection($vega:data-root)//votable/tr
-        let $rows := if ($starHD) then $rows[./td[@colname='StarHD' and ./text()=$starHD]] else $rows
-        for $row in $rows
-        order by $row/td[@colname='StarHD']/text()
-        return app:vega-row($row)
-    } </tbody>
 };
 
 (:~
