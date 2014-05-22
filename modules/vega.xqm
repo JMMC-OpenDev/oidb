@@ -3,20 +3,8 @@ xquery version "3.0";
 (:~
  : This modules interacts with the VegaObs Web service to query and retrieve
  : data from their database.
- : 
- : It locally saves the observation data returned (see vega:pull()) and
- : provides helpers for manipulating the data.
  :)
 module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega";
-
-import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-
-import module namespace util="http://exist-db.org/xquery/util";
-
-import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
-import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
-
-import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 declare namespace xsd="http://org.apache.axis2/xsd";
@@ -56,50 +44,46 @@ declare function vega:get-user-name($id as xs:string*) as xs:string {
 };
 
 (:~
- : Make use of the VegaObs web service to retrieve the observation with a
- : specified data status.
- : (getObservationVOTableByDataStatus method)
+ : Transform the rows of a VOTable into observations.
+ : 
+ : @param $votable a XML VOTable from VegaObs
+ : @return a sequence of 'observation' elements
+ :)
+declare %private function vega:votable-observations($votable as node()) as node()* {
+    let $header_names := $votable//votable:FIELD/@name
+    let $rows := $votable//votable:TABLEDATA/votable:TR
+    for $row in $rows
+    return <observation> {
+        for $cell at $i in $row/votable:TD
+        return element { $header_names[$i] } { $cell/node() }
+    } </observation>
+};
+
+(:~
+ : Make use of the VegaObs web service to retrieve the observations with a
+ : specified data status (getObservationVOTableByDataStatus method).
  : 
  : @param $dataStatus 'WaitProcessing', 'WaitOtherData', 'WaitPublication', 'Published' or 'Trash'
- : @return a <VOTABLE> of observations.
- : @error failed to parse returned data
+ : @return observations with the specified data status
  :)
-declare %private function vega:get-observations-by-data-status($dataStatus as xs:string) as node() {
+declare %private function vega:get-observations-by-data-status($dataStatus as xs:string) as node()* {
     let $uri  := concat($vega:VEGAWS_URL, 'getObservationsVOTableByDataStatus', '?dataStatus=', $dataStatus)
     let $data := httpclient:get($uri, false(), <headers/>)//httpclient:body
+    let $votable := util:parse(
+        (: remove leading 'null', proper entity escape :)
+        replace(substring($data//xsd:return, 5), '&amp;', '&amp;amp;'))
 
-    return util:parse(
-            (: remove leading 'null', proper entity escape :)
-            replace(substring($data//xsd:return/text(), 5), '&amp;', '&amp;amp;'))
+    return vega:votable-observations($votable)
 };
 
 (:~
- :)
-declare %private function vega:nodes-from-field-name($votable as node()?) as node() {
-    let $headers := $votable//votable:FIELD
-    let $header_names := for $header in $headers return data($header/@name)
-
-    return <votable> {
-        for $row in  $votable//votable:TABLEDATA/votable:TR
-        return <tr> {
-            for $node at $i in $row/votable:TD
-            return <td>
-                { $node/@*,
-                  attribute { "colname" } { $header_names[$i] },
-                  $node/node() }
-            </td>
-        } </tr>
-    } </votable>
-};
-
-(:~
- : Return the number of telescope used during an observation.
+ : Return the number of telescopes used during an observation.
  : 
  : @param $row the description of the observation
  : @return the number of telescopes used
  :)
 declare function vega:number-of-telescopes($row as node()) as xs:integer {
-    count($row/td[matches(./@colname, '^T.$') and ./text()!='OFF'])
+    count($row/node()[matches(name(), '^T.$') and .!='OFF'])
 };
 
 (:~
@@ -109,7 +93,7 @@ declare function vega:number-of-telescopes($row as node()) as xs:integer {
  : @return a string of telescope modes concatenated
  :)
 declare function vega:telescopes-configuration($row as node()) as xs:string {
-    string-join($row/td[matches(./@colname, '^T.$') and ./text()!='OFF']/text(), '-')
+    string-join($row/node()[matches(name(), '^T.$') and .='OFF'], '-')
 };
 
 (:~
@@ -121,10 +105,10 @@ declare function vega:telescopes-configuration($row as node()) as xs:string {
  : @return a string with instrument mode
  :)
 declare function vega:instrument-mode($row as node()) as xs:string {
-    let $grating   := number($row/td[@colname='Grating']/text())
-    let $lambda    := number($row/td[@colname='Lambda']/text())
-    let $configcam := $row/td[@colname='ConfigCam']/text()
-    let $polar     := $row/td[@colname='Polar']/text()
+    let $grating   := number($row/Grating)
+    let $lambda    := number($row/Lambda)
+    let $configcam := $row/ConfigCam/text()
+    let $polar     := $row/Polar
     return concat(
         if ($grating=100) then 'LR'
         else if ($grating=300) then 'MR'
@@ -171,86 +155,11 @@ declare %private function vega:wavelength-minmax($mode as node()) as item()* {
 };
 
 (:~
- : Turn a data row from VegaObs into an item in the database.
+ : Query the VegaObs service and returns all the recorded observations.
  : 
- : It parses and extracts data from the data row and transform
- : it before uploading to the database.
- : 
- : @param $data a VegaObs data row
- : @return ignore
- : @error unknown instrument mode
- : @error unable to resolve star name
- : @error failed to upload data
+ : @return a sequence of observations
  :)
-declare %private function vega:upload($handle as xs:long, $data as node()*) {
-    (: determine wavelength limits from mode and ASPRO config :)
-(:    let $mode        := vega:instrument-mode-2($data/td[@colname='Grating'], $data/td[@colname='Lambda']):)
-(:    let $minmax-wl   := map(function ($x) { $x div 1e6 }, vega:wavelength-minmax($mode)):)
-    let $lambda      := number($data/td[@colname='Lambda'])
-    let $data-pi     := vega:get-user-name($data/td[@colname='DataPI'])
-    (: resolve star coordinates from star name with Sesame :)
-    let $target-name := $data/td[@colname='StarHD']/text()
-    let $ra-dec      := data(sesame:resolve($target-name)/target/(@s_ra,@s_dec))
-    let $date        := jmmc-dateutil:ISO8601toMJD( 
-        (: change the time delimiter in Date for ISO8601 :)
-        xs:dateTime(translate($data/td[@colname='Date'], ' ', 'T')))
-    
-    (: build a metadata fragment from row data and upload it :)
-    return upload:upload($handle, ( 
-        (: all entries are L0, even dataStatus=Published :)
-        <calib_level>0</calib_level>,
-        <target_name>{ $target-name }</target_name>,
-        <obs_collection>VegaObs Import</obs_collection>,
-        <obs_creator_name>{ $data-pi }</obs_creator_name>,
-        <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
-        <access_url> -/- </access_url>, (: FIXME no file :)
-        <s_ra>  { $ra-dec[1] } </s_ra>,
-        <s_dec> { $ra-dec[2] } </s_dec>,
-        <t_min> { $date } </t_min>, (: FIXME :)
-        <t_max> { $date } </t_max>, (: FIXME :)
-        <t_exptime>0</t_exptime>, (: FIXME :)
-(:        <em_min> { $minmax-wl[1] } </em_min>,:)
-        <em_min>{ $lambda * 1e-9 }</em_min>,
-(:        <em_max> { $minmax-wl[2] } </em_max>,:)
-        <em_max>{ $lambda * 1e-9 }</em_max>,
-        <em_res_power>-1</em_res_power>, (: FIXME :)
-        <facility_name>MtW.CHARA</facility_name>,
-        <instrument_name>VEGA</instrument_name>,
-        (: FIXME :)
-        <nb_channels> -1 </nb_channels>,
-        <nb_vis> -1 </nb_vis>,
-        <nb_vis2> -1 </nb_vis2>,
-        <nb_t3> -1 </nb_t3>
-    ))
-};
-
-(:~
- : Import observations from the VegaObs database of the given data status.
- : 
- : @param $dataStatus 'WaitProcessing', 'WaitOtherData', 'WaitPublication', 'Published'
- : @return a <response> element 
- :)
-declare function vega:pull-by-status($status as xs:string) {
-    <response data-status="{ $status }"> {
-        try {
-            let $data := vega:nodes-from-field-name(vega:get-observations-by-data-status($status))
-            let $handle := config:get-db-connection()
-            for $row in $data//tr
-            let $obsid := $row/td[@colname='ID']
-            return try {
-                ( vega:upload($handle, $row), <success obsid="{ $obsid }"/> )
-            } catch * {
-                <error obsid="{ $obsid }"> { $err:description } </error>
-            }
-        } catch exerr:EXXQDY0002 {
-            (: XML VOTable parse error :)
-            let $message := $err:value//message
-            return <error> 
-                { $err:description } <br/> { 'Line ' || $message/@line || ", column" || $message/@column || ':' || $err:value//message }
-            </error>
-        } catch * {
-            (: unknown parse error :)
-            <error>{ $err:description }</error>
-        }
-    } </response>
+declare function vega:get-observations() as node()* {
+    for $s in ( 'Published', 'WaitPublication', 'WaitOtherData', 'WaitProcessing' )
+    return vega:get-observations-by-data-status($s)
 };
