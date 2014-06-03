@@ -15,6 +15,16 @@
     with tap endpoint : config:TAP_SYNC
     </note>
     <changelog>
+        <change xmlns="" version="0.5">
+            <h3>Pre SPIE 2014 version</h3>
+            <ul>
+              <li>Add first documentation section in the Help menu.</li>
+              <li>To fix:
+                  <ul>
+                      <li>t_min and t_max have the same values on data imported from OIFits files</li>
+                  </ul>
+              </li>
+            </ul>
         <change xmlns="" version="0.4">
             <h3>End of March version</h3>
             <ul>
@@ -31,12 +41,7 @@
                         <del>#589</del>
                     </a>).</li>
                 <li>Add new page to edit and execute custom ADQL query</li>
-                <li>To fix:
-                    <ul>
-                        <li>t_min and t_max have the same values on data imported from OIFits files</li>
-                    </ul>
-                </li>
-            </ul>
+           </ul>
         </change>
         <change xmlns="" version="0.3">
             <h3>Mid-March version</h3>
@@ -73,5 +78,4 @@
             </ul>
         </change>
     </changelog>
-    <repo:deployed xmlns:repo="http://exist-db.org/xquery/repo">2014-05-05T15:13:26.245+02:00</repo:deployed>
 </meta>
