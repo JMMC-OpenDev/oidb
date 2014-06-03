@@ -9,7 +9,8 @@
         <!-- TODO: check for property file -->
         <mkdir dir="${build.dir}"/>
         <copy file="modules/config.xqm.in" tofile="${build.dir}/config.xqm" overwrite="true"/>
-        <!-- get substitution data from property file -->
+        <!-- get substitution data from property file                                         -->
+        <!--   provide your config file using : ant -Dconfig.properties=config.properties xar -->
         <replace file="${build.dir}/config.xqm" propertyFile="${config.properties}">
             <replacefilter token="@sql-driver@" property="sql-driver"/>
             <replacefilter token="@sql-url@" property="sql-url"/>
