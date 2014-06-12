@@ -12,9 +12,7 @@ import module namespace sql="http://exist-db.org/xquery/sql";
 (: Import SQL config :)
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
-(: Module for OIFitsViewer with metadata export :)
-import module namespace oi="http://jmmc.fr/exist/oi" at "java:fr.jmmc.exist.ViewerModule";
-
+import module namespace jmmc-oiexplorer="http://exist.jmmc.fr/jmmc-resources/oiexplorer";
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
 
@@ -98,7 +96,7 @@ declare function upload:upload($db_handle as xs:long, $metadata as node()*) {
  :)
 declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $more as node()*) {
     (: TODO test output of oi:viewer!! :)
-    let $data := util:parse(oi:viewer($url))
+    let $data := jmmc-oiexplorer:to-xml($url)
     let $more := (
         $more,
         (: add missing access information: url, size, MIME type :)
