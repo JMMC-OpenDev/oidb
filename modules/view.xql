@@ -16,6 +16,7 @@ import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-h
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 import module namespace doc="http://apps.jmmc.fr/exist/apps/oidb/doc" at "doc.xql";
 import module namespace jmmc-about="http://exist.jmmc.fr/jmmc-resources/about";
+import module namespace jmmc-web="http://exist.jmmc.fr/jmmc-resources/web";
 import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xql";
 
 declare option exist:serialize "method=html5 media-type=text/html enforce-xhtml=yes";
