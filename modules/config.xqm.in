@@ -133,3 +133,10 @@ declare variable $config:sql-table := "@sql-table@";
  : TAP sync request URL
  :)
 declare variable $config:TAP_SYNC := "@tap-sync-url@";
+
+
+(: define main doc filename and url  :)
+declare variable $config:maindoc-filename := "twikiDoc.html";
+declare variable $config:maindoc-twiki-url := "http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbInlineDoc";
+
+
