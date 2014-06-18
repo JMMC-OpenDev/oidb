@@ -280,8 +280,8 @@ declare function filters:wavelengthband($params as xs:string) {
     let $minlambda := min($limits) * 1e-6
     let $maxlambda := max($limits) * 1e-6
     return "( " ||
-            $adql:correlation-name || ".em_min < " || $minlambda || " AND " ||
-            $adql:correlation-name || ".em_max > " || $maxlambda ||
+            $adql:correlation-name || ".em_min > " || $minlambda || " AND " ||
+            $adql:correlation-name || ".em_max < " || $maxlambda ||
         " )"
 };
 
