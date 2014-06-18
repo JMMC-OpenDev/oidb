@@ -389,7 +389,7 @@ function app:search($node as node(), $model as map(*),
         let $columns := if($all) then
                 $data//th/@name/string()
             else
-                ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'nb_vis', 'nb_vis2', 'nb_t3' )
+                ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels' )
     
         let $stats   := app:data-stats($params)
     
