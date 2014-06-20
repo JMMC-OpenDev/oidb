@@ -628,7 +628,7 @@ declare function app:homepage-header($node as node(), $model as map(*)) {
                 let $style := if ($pos=5) then 'background-image: url("random-icon.xql?'||$pos||'"); margin:0;' else ()
                 return 
                     <li>
-                        <div class="well" style='{$style}'>
+                        <div class="well-lg" style='{$style}'>
                         <a href="{$link}" style="color: #000000;"><div class="well-sm transparent" style="margin:0;">
                             <h2>{$count}</h2><b>{$title}</b></div>
                             </a>
