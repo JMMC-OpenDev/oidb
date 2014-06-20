@@ -1,5 +1,12 @@
 /* Application styles could go here */
-
+/*
 input {
     width: auto !important;
+}
+*/
+
+/* used on index.html for statistic header app:homepage-header */
+.transparent {
+  background:#7f7f7f;
+  background:rgba(255,255,255,0.5);
 }
