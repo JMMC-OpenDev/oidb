@@ -260,6 +260,10 @@ function app:collections($node as node(), $model as map(*)) as map(*) {
                 return map:entry($name, if($creator != '') then $name || " - " || $creator else $name))))
 };
 
+declare variable $app:facilities-query := adql:build-query(( 'col=facility_name', 'distinct' ));
+declare variable $app:oifits-query := adql:build-query(( 'col=access_url', 'distinct' ));
+(: TODO copy/update app:instruments for facilities + TBD oifits files , granules :)
+
 declare variable $app:instruments-query := adql:build-query(( 'col=instrument_name', 'distinct' ));
 
 (:~
@@ -579,7 +583,7 @@ declare variable $app:latest-query := adql:build-query(( 'col=target_name', 'col
 
 (:~
  : Create a list of the three latest files uploaded.
- : 
+  :
  : @param query ADQL query for TAP service
  : @param page offset into query result (page * perpage)
  : @return an HTML list
@@ -594,6 +598,43 @@ declare function app:latest($node as node(), $model as map(*)) {
             <span> { data($row/td[@colname='subdate']) } </span>
         </li>
     } </ul>
+};
+
+(:~
+ : Create a list of general informations to provide on the first homepage.
+ : @param query ADQL query for TAP service
+ : @param page offset into query result (page * perpage)
+ : @return an HTML list
+ :)
+declare function app:homepage-header($node as node(), $model as map(*)) {
+    let $count := function($q) { tap:execute($q, false())//*:TD/text() }
+    let $base-query := ""
+    
+    (: TODO resynchronize code with app:data-stats :)
+    let $occurences := <occurences>
+                <e><title>GRANULES</title><c>{ $count(adql:build-query(( $base-query, 'count=*' ))) }</c></e>
+                <e><title>OIFITS FILES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS urls')}</c></e>
+                <e><title>DATA-PIS</title><q>{$app:data-pis-query}</q></e>
+                <e><title>COLLECTIONS</title><q>{$app:collections-query}</q></e>
+                <e><title>FACILITIES</title><q>{$app:facilities-query}</q></e>
+                <e><title>INSTRUMENTS</title><q>{$app:instruments-query}</q></e>
+            </occurences>
+    return  <div class="text-center">
+            <ul class="list-inline">
+            { for $e at $pos in $occurences/e 
+                let $count := if (exists($e/q/text())) then count( tap:execute($e/q, false())/* ) else if(exists($e/c/text())) then $e/c/text() else "..."
+                let $title := data($e/title)
+                let $link := "#"
+                let $style := if ($pos=5) then 'background-image: url("random-icon.xql?'||$pos||'"); margin:0;' else ()
+                return 
+                    <li>
+                        <div class="well" style='{$style}'>
+                        <a href="{$link}" style="color: #000000;"><div class="well-sm transparent" style="margin:0;">
+                            <h2>{$count}</h2><b>{$title}</b></div>
+                            </a>
+                        </div>
+                    </li>
+            }</ul></div>
 };
 
 (:~
