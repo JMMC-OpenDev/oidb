@@ -1,23 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <h2>ChangeLog</h2>
-    <div data-template="jmmc-about:changelog">
-        Current version: <span data-template="jmmc-about:version"/>
-        <div data-template="templates:each" data-template-from="changes" data-template-to="change">
-            <div>
-                <hr/>
-                <div>
-                    <b>Version <span data-template="jmmc-about:change-version"/>
-                    </b>
+    <div class="row">
+        <ul>
+            <li>
+                <a href="#changelog">ChangeLog</a>
+            </li>
+            <li>
+                <a href="#credits">Credits</a>
+            </li>
+        </ul>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h2 id="changelog">ChangeLog</h2>
+            <div data-template="jmmc-about:changelog">
+                Current version: <span data-template="jmmc-about:version"/>
+                <div data-template="templates:each" data-template-from="changes" data-template-to="change">
+                    <div>
+                        <hr/>
+                        <div>
+                            <b>Version <span data-template="jmmc-about:change-version"/>
+                            </b>
+                        </div>
+                        <div data-template="jmmc-about:change"/>
+                    </div>
                 </div>
-                <div data-template="jmmc-about:change"/>
             </div>
         </div>
+        <div class="col-md-6">
+            <h2 id="credits">Credits</h2>
+            <ul>
+                <li>JMMC: oitools/OIFitsViewer, resources</li>
+                <li>eXist-db</li>
+                <li>
+                    <a href="https://github.com/gmantele/taplib/">TAPlib</a>
+                </li>
+                <li>datasources: PIONIER, VEGA, VizieR, SESAME</li>
+            </ul>
+        </div>
     </div>
-    <h2>Credits</h2>
-    <ul>
-        <li>JMMC: oitools/OIFitsViewer, resources</li>
-        <li>eXist-db, Astrogrid DSA/Catalog</li>
-        <li>datasources: PIONIER, VEGA, VizieR, SESAME</li>
-    </ul>
 </div>
