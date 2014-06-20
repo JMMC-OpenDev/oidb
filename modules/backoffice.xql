@@ -15,10 +15,10 @@ import module namespace doc="http://apps.jmmc.fr/exist/apps/oidb/doc" at "doc.xq
  : 
  : @param $node
  : @param $model
- : @param $update TODO add optional param to request a doc update. user must be authentified
- : @return the <div> with main twiki content TODO href and src attributes must be completed
+ : @param $do refers to action name to launch TODO protect and check that user is granted for this action
+ : @return the form and status for each action requested
  :)
-declare function backoffice:main($node as node(), $model as map(*), $do as xs:string?) {
+declare function backoffice:main($node as node(), $model as map(*), $do as xs:string*) {
     <div>
         {
             for $action in $do return 
@@ -31,9 +31,49 @@ declare function backoffice:main($node as node(), $model as map(*), $do as xs:st
                         <p>Please report this error if you think that it should not have occured.</p>                
                     </div> 
         }
-        <form method="post">            
-              <button type="submit" name="do" value="doc-update" class="btn btn-default">Update doc</button>
-        </form>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-book"/> Documentation</h3>
+                  </div>
+                  <div class="panel-body">
+                    <form method="post" class="form-inline" role="form">
+                        <button type="submit" name="do" value="doc-update" class="btn btn-default">Update doc</button>
+                        <div class="form-group"><b>Last update</b>: -</div>
+                    </form>
+                  </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h3 class="panel-title"><i class="glyphicon glyphicon-upload"/> Vega L0 upload</h3>
+                  </div>
+                  <div class="panel-body">
+                    <form method="post" class="form-inline" role="form">
+                        <button type="submit" name="do" value="vega-update" class="btn btn-default disabled">Update vega logs</button>
+                        <div class="form-group"><b>Last update</b>: -</div>
+                    </form>
+                  </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title"><i class="glyphicon glyphicon-upload"/> Submission dashboard</h3>
+          </div>
+          <div class="panel-body">
+            <form method="post" class="form-inline" role="form">
+                <div class="form-group">TBD</div>
+            </form>
+          </div>
+        </div>
+        
+        
+        
     </div>
 };
 
