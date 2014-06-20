@@ -611,24 +611,27 @@ declare function app:homepage-header($node as node(), $model as map(*)) {
     let $base-query := ""
     
     (: TODO resynchronize code with app:data-stats :)
-    let $occurences := <occurences>
-                <e><title>GRANULES</title><c>{ $count(adql:build-query(( $base-query, 'count=*' ))) }</c></e>
-                <e><title>OIFITS FILES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS urls')}</c></e>
-                <e><title>DATA-PIS</title><q>{$app:data-pis-query}</q></e>
-                <e><title>COLLECTIONS</title><q>{$app:collections-query}</q></e>
-                <e><title>FACILITIES</title><q>{$app:facilities-query}</q></e>
-                <e><title>INSTRUMENTS</title><q>{$app:instruments-query}</q></e>
+    let $occurences := <occurences>                
+                
+                
+                <e><title>FACILITIES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=facility_name')) || ') AS e')}</c></e>
+                <e><title>INSTRUMENTS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=instrument_name')) || ') AS e')}</c></e>
+                <e><title>DATA-PIS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_creator_name')) || ') AS e')}</c></e>
+                <e><title>COLLECTIONS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_collection')) || ') AS e')}</c></e>
+                <e><title>OIFITS FILES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS e')}</c><link>search.html</link></e>
+                <e><title>GRANULES</title><c>{ $count(adql:build-query(( $base-query, 'count=*' ))) }</c><link>search.html</link></e>
+                
             </occurences>
     return  <div class="text-center">
             <ul class="list-inline">
             { for $e at $pos in $occurences/e 
-                let $count := if (exists($e/q/text())) then count( tap:execute($e/q, false())/* ) else if(exists($e/c/text())) then $e/c/text() else "..."
+                let $count := if(exists($e/c/text())) then $e/c/text() else if (exists($e/q/text())) then count( tap:execute($e/q, true())//tr ) else "..."
                 let $title := data($e/title)
-                let $link := "#"
-                let $style := if ($pos=5) then 'background-image: url("random-icon.xql?'||$pos||'"); margin:0;' else ()
+                let $link := if(exists($e/link)) then data($e/link) else "#"
+                let $style := if ($title="FACILITIES") then 'background-image: url("random-icon.xql?'||$pos||'"); margin:0;' else ()
                 return 
                     <li>
-                        <div class="well-lg" style='{$style}'>
+                        <div class="well" style='{$style}'>
                         <a href="{$link}" style="color: #000000;"><div class="well-sm transparent" style="margin:0;">
                             <h2>{$count}</h2><b>{$title}</b></div>
                             </a>
