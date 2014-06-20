@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div class="row text-center">
+        <h1>Optical Interferometry DataBase</h1>
+    </div>
+    <br/>
     <div class="row">
         <span data-template="app:homepage-header"/>
     <!-- <div class="bg-info col-md-4"> <p>Last entries:</p> <ul data-template="app:latest"/> </div> -->
@@ -11,22 +15,23 @@
         <ul data-template="app:latest"/>
     </div>
     -->
-        <div class="col-md-offset-4 col-md-4">
+        <div class="col-md-offset-3 col-md-6">
             <form method="post" role="search" action="search.html">
                 <input type="hidden" name="cs_equinox" value="J2000"/>
                 <input type="hidden" name="cs_radius" value="2"/>
                 <input type="hidden" name="cs_radius_unit" value="arcmin"/>
                 <div class="input-group">
-                    <input type="text" class="form-control" name="cs_position" placeholder="Target name or position"/>
+                    <input type="text" class="form-control input-lg" name="cs_position" placeholder="Target name or position"/>
                     <span class="input-group-addon  glyphicon glyphicon-search"/>
                 </div>
-                <span class="help-block">Search the granules for your prefered target or <a href="search.html"> visit the advanced form </a> for more specific queries.</span>
+                <span class="help-block">Enter target name or <a href="search.html"> visit the advanced form </a>
+                </span>
             </form>
         </div>
     </div>
     <br/>
     <div class="container">
-        <div class="jumbotron">
+        <div class="well-lg">
             <h1>Fill the user survey!</h1>
             <p class="lead">We require your help to get some user input on the setup of this portal.</p>
             <p>
