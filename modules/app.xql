@@ -571,6 +571,15 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     <td> <a href="{ app:vizcat-url($td/text()) }">{ $td/text() }</a></td>
                 else if ($td[@colname='bib_reference']/node()) then
                     <td> <a href="{ app:adsbib-url($td) }">{ $td/text() }</a></td>
+                else if ($td[@colname='keywords']/node()) then
+                    <td>
+                        <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
+                        <div class="bootstrap-tagsinput"> {
+                            let $keywords := tokenize($td/text(), ";")
+                            for $kw in $keywords
+                            return <span class="tag label label-info">{ $kw }</span>
+                        } </div>
+                    </td>
                 else
                     $td
             } </tr>

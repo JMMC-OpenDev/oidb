@@ -31,7 +31,7 @@
             <fieldset>
                 <label for="keywords">Keywords</label>
                 <div class="controls">
-                    <input name="keywords" type="text"/>
+                    <select multiple="multiple" name="keywords" data-role="tagsinput"/>
                 </div>
             </fieldset>
             <!-- add data_rights and obs_release_data -->
@@ -123,6 +123,8 @@
             </div>
         </div>
     </div>
+    <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
+    <script type="text/javascript" src="resources/scripts/bootstrap-tagsinput.min.js"/>
     <script type="text/javascript">
         $(function () {
             $('form').submit(function (e) {
