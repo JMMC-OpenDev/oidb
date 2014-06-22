@@ -31,7 +31,7 @@
             <fieldset>
                 <label for="keywords">Keywords</label>
                 <div class="controls">
-                    <select multiple="multiple" name="keywords" data-role="tagsinput"/>
+                    <select multiple="multiple" name="keywords"/>
                 </div>
             </fieldset>
             <!-- add data_rights and obs_release_data -->
@@ -125,8 +125,18 @@
     </div>
     <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
     <script type="text/javascript" src="resources/scripts/bootstrap-tagsinput.min.js"/>
+    <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
     <script type="text/javascript">
         $(function () {
+            $('select[name="keywords"]').tagsinput({
+                maxTags: 6,
+                typeahead: {
+                    source: function(query) {
+                        return $.get('./modules/keywords.xql', { 'search': query }, 'json');
+                    },
+                    items: 'all'
+                }
+            });
             $('form').submit(function (e) {
                 var $form = $(this);
                 var $report = $('#report');
