@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div class="row">
-        <ul>
-            <li>
-                <a href="#changelog">ChangeLog</a>
-            </li>
-            <li>
-                <a href="#credits">Credits</a>
-            </li>
-        </ul>
+        <div class="col-md-offset-1 col-md-10">
+            <h1>OiDB: A global database for optical interferometry</h1>
+            <p>OiDB is a service developed by the <a href="http://www.jmmc.fr/jmmc_groups.htm#oidbgroup">JMMC</a> to provide astronomers with a convenient solution to query calibrated optical interferometry data (OIFITS format) as well as regularly-updated observation logs obtained with a wide range of interferometric instruments. It relies on Virtual Observatory standards and tools to increase diffusion and operability. Scientific and technical background of OiDb are described in the paper <a href="#TBD">Haubois et al., 2014, SPIE”.</a>
+            </p>
+            <p>
+                <em>OiDb is currently in development and this version is a prototype. <a href="feedback.html">User’s feedback</a> are very welcome.</em>
+            </p>
+        </div>
     </div>
+    <hr/>
     <div class="row">
         <div class="col-md-6">
             <h2 id="changelog">ChangeLog</h2>
@@ -30,12 +31,33 @@
         <div class="col-md-6">
             <h2 id="credits">Credits</h2>
             <ul>
-                <li>JMMC: oitools/OIFitsViewer, resources</li>
-                <li>eXist-db</li>
-                <li>
-                    <a href="https://github.com/gmantele/taplib/">TAPlib</a>
+                <li>VO Tools:
+                    <ul>
+                        <li>
+                            <a href="https://github.com/gmantele/taplib/">TAPlib</a> for the underlying <abbr title="Table Access Protocol">TAP</abbr> engine</li>
+                        <li>SampJS library for VO interprocess communication</li>
+                    </ul>
                 </li>
-                <li>datasources: PIONIER, VEGA, VizieR, SESAME</li>
+                <li>Datasources:
+                    <ul>
+                        <li>
+                            <a href="http://ipag.osug.fr/pionier">PIONIER</a>
+                        </li>
+                        <li>VEGA</li>
+                        <li>
+                            <a href="http://vizier.u-strasbg.fr">VizieR / CDS</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>Remote services:
+                    <ul>
+                        <li>
+                            <a href="http://cds.u-strasbg.fr/cgi-bin/Sesame">SESAME / CDS</a> name resolver</li>
+                    </ul>
+                </li>
+                <li>JMMC: oitools, <a href="http://www.jmmc.fr/oifitsexplorer">OIFitsViewer</a>
+                </li>
+                <li>This web portal is powered by <a href="http://exist-db.org/">eXist-db</a> behind apache web server on a linux server</li>
             </ul>
         </div>
     </div>
