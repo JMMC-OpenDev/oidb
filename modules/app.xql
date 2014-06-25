@@ -534,7 +534,11 @@ declare function app:serialize-query-string() as xs:string* {
             case "band"        return "wavelengthband="    || string-join(for $v in $value return encode-for-uri($v), ',')
             case "collection"  return "collection=" || "~" || encode-for-uri($value)
             case "datapi"      return "datapi=" ||     "~" || encode-for-uri($value)
-            case "reduction"   return "caliblevel="        || string-join(for $v in $value return encode-for-uri($v), ',')
+            case "reduction"   return if (empty(( 0, 1, 2, 3 )[not(string(.)=$value)])) then 
+                    (: default is all calibration level :)
+                    ()
+                else
+                    "caliblevel=" || string-join(for $v in $value return encode-for-uri($v), ',')
             case "available"    return if ($value = ( 'yes', 'no' )) then "public=" || $value else ()
             case "sortby"
                 return concat("order=",
