@@ -633,7 +633,7 @@ declare function app:homepage-header($node as node(), $model as map(*)) {
                 <e><title>FACILITIES</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=facility_name')) || ') AS e')}</c></e>
                 <e><title>INSTRUMENTS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=instrument_name')) || ') AS e')}</c><link>instruments.html</link></e>
                 <e><title>DATA-PIS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_creator_name')) || ') AS e')}</c></e>
-                <e><title>COLLECTIONS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_collection')) || ') AS e')}</c></e>
+                <e><title>COLLECTIONS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_collection')) || ') AS e')}</c></e>
                 <e><title>OIFITS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS e') - 1}</c><link>search.html?caliblevel=1,2,3</link></e>
                 <e><title>GRANULES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=1,2,3')) || ') AS e')}</c><link>search.html?caliblevel=1,2,3</link></e>
                 <e><title>OBS. LOGS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=0')) || ') AS e')}</c><link>search.html?caliblevel=0</link></e>
@@ -646,7 +646,7 @@ declare function app:homepage-header($node as node(), $model as map(*)) {
                 let $link := if(exists($e/link)) then data($e/link) else "#"
                 let $style :=   if (exists($e/icon)) then 
                                     let $cat := lower-case(translate($title," ","")) 
-                                    return 'background-image: url("random-icon.xql?p='||$pos||'&amp;cat='||$cat||'"); margin:0; background-position: center center;'
+                                    return 'background-image: url("random-icon.xql?p='||$pos||'&amp;cat='||$cat||'"); margin:0; background-position: center center; background-repeat: no-repeat;'
                                 else ()                
                 return 
                     <li>
