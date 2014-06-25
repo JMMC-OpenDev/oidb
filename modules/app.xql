@@ -393,7 +393,8 @@ function app:search($node as node(), $model as map(*),
         let $columns := if($all) then
                 $data//th/@name/string()
             else
-                ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels' )
+                (: ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels' ) :)
+                ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'obs_creator_name' )
     
         let $stats   := app:data-stats($params)
     
@@ -571,15 +572,6 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     <td> <a href="{ app:vizcat-url($td/text()) }">{ $td/text() }</a></td>
                 else if ($td[@colname='bib_reference']/node()) then
                     <td> <a href="{ app:adsbib-url($td) }">{ $td/text() }</a></td>
-                else if ($td[@colname='keywords']/node()) then
-                    <td>
-                        <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
-                        <div class="bootstrap-tagsinput"> {
-                            let $keywords := tokenize($td/text(), ";")
-                            for $kw in $keywords
-                            return <span class="tag label label-info">{ $kw }</span>
-                        } </div>
-                    </td>
                 else
                     $td
             } </tr>
@@ -622,14 +614,13 @@ declare function app:homepage-header($node as node(), $model as map(*)) {
     (: TODO resynchronize code with app:data-stats :)
     let $occurences := <occurences>                
                 
-                
-                <e><title>FACILITIES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=facility_name')) || ') AS e')}</c></e>
-                <e><title>INSTRUMENTS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=instrument_name')) || ') AS e')}</c></e>
-                <e><title>DATA-PIS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_creator_name')) || ') AS e')}</c></e>
+                <e><title>FACILITIES</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=facility_name')) || ') AS e')}</c></e>
+                <e><title>INSTRUMENTS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=instrument_name')) || ') AS e')}</c><link>instruments.html</link></e>
+                <e><title>DATA-PIS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_creator_name')) || ') AS e')}</c></e>
                 <e><title>COLLECTIONS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_collection')) || ') AS e')}</c></e>
-                <e><title>OIFITS FILES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS e')}</c><link>search.html</link></e>
-                <e><title>GRANULES</title><c>{ $count(adql:build-query(( $base-query, 'count=*' ))) }</c><link>search.html</link></e>
-                
+                <e><title>OIFITS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS e') - 1}</c><link>search.html?caliblevel=1,2,3</link></e>
+                <e><title>GRANULES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=1,2,3')) || ') AS e')}</c><link>search.html?caliblevel=1,2,3</link></e>
+                <e><title>OBS. LOGS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=0')) || ') AS e')}</c><link>search.html?caliblevel=0</link></e>
             </occurences>
     return  <div class="text-center">
             <ul class="list-inline">
@@ -637,7 +628,10 @@ declare function app:homepage-header($node as node(), $model as map(*)) {
                 let $count := if(exists($e/c/text())) then $e/c/text() else if (exists($e/q/text())) then count( tap:execute($e/q, true())//tr ) else "..."
                 let $title := data($e/title)
                 let $link := if(exists($e/link)) then data($e/link) else "#"
-                let $style := if ($title="FACILITIES") then 'background-image: url("random-icon.xql?'||$pos||'"); margin:0;' else ()
+                let $style :=   if (exists($e/icon)) then 
+                                    let $cat := lower-case(translate($title," ","")) 
+                                    return 'background-image: url("random-icon.xql?p='||$pos||'&amp;cat='||$cat||'"); margin:0; background-position: center center;'
+                                else ()                
                 return 
                     <li>
                         <div class="well" style='{$style}'>
