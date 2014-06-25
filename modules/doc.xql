@@ -24,15 +24,20 @@ declare function doc:main($node as node(), $model as map(*), $update as xs:strin
 
 declare function doc:update() {    
     try {
-        let $mainDoc := doc($config:maindoc-twiki-url)
+        let $mainDoc := httpclient:get(xs:anyURI($config:maindoc-twiki-url), true(), <Headers/>)
         let $contentDiv := $mainDoc//*[@id="natMainContents"]
         let $prevDoc := doc($config:data-root || "/" || $config:maindoc-filename)
         let $store := if (exists($prevDoc)) then
                 (update delete $prevDoc/xhtml:div/*,update insert $contentDiv into $prevDoc/xhtml:div)
             else
                 xmldb:store($config:data-root, $config:maindoc-filename, $contentDiv)
-            (: let $update :=  for $href in $prevDoc//xhtml:a/@href/string()
-                            return update replace :)
+        let $update := for $href in ($prevDoc//xhtml:a/@href, $prevDoc//xhtml:img/@src)
+            return 
+                if ( ends-with($href, "/OiDb") ) 
+                then update value $href with "/"
+                else if ( starts-with($href, "/") ) 
+                then update value $href with "http://www.jmmc.fr"||$href
+                else ()
         return 
             <div class="alert alert-success fade in">
                 <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
