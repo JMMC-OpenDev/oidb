@@ -201,7 +201,7 @@ declare %private function app:format-wavelengths($wl as xs:double) {
  : @return the date in a datetime format
  :)
 declare %private function app:format-mjd($mjd as xs:double) {
-    <a href="#" title="{$mjd}">{substring(string(jmmc-dateutil:MJDtoISO8601($mjd)),0,20)}</a>
+    <span title="{$mjd}">{substring(string(jmmc-dateutil:MJDtoISO8601($mjd)),0,20)}</span>
 };
 
 (:~
