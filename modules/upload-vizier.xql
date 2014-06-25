@@ -76,8 +76,8 @@ declare %private function local:abstract-data($bibcode as xs:string) as node()* 
         (: use first author as collection creator :)
         <obs_creator_name>{ jmmc-ads:get-first-author($record) }</obs_creator_name>,
         (: list of keywords, comma-separated :)
-        (: TODO escape commas in keywords? :)
-        <keywords>{ string-join(jmmc-ads:get-keywords($record), ',') }</keywords>
+        (: TODO escape semi-colons in keywords? :)
+        <keywords>{ string-join(jmmc-ads:get-keywords($record), ';') }</keywords>
     )
 };
 
