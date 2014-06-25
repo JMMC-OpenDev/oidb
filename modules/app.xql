@@ -87,9 +87,11 @@ declare function app:each-row($node as node(), $model as map(*)) as node()* {
  :)
 declare function app:row-cells($node as node(), $model as map(*)) {
     let $row     := $model('row')
-    let $columns := $model('headers')/text()
+    let $columns := $model('headers')
     return
-        for $cell in $row/td[@colname=$columns]
+        (: output cells in the same order as headers :)
+        for $col in $columns
+        let $cell := $row/td[@colname=$col/text()]
         return <td> {
             switch ($cell/@colname)
                 case "access_url"
@@ -398,7 +400,8 @@ function app:search($node as node(), $model as map(*),
     
         let $stats   := app:data-stats($params)
     
-        let $headers := $data//th[@name=$columns]
+        (: select headers, keep column order :)
+        let $headers := for $col in $columns return $data//th[@name=$col]
         (: limit rows to page - skip row of headers :)
         let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
     
