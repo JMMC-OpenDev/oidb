@@ -54,7 +54,7 @@
     </div>
     <div class="panel panel-default">
         <h2 class="panel-heading">From a collection of OIFits files on <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>...</h2>
-        <form action="modules/upload-vizier.xql" method="post" name="vizier" class="panel-body">
+        <form action="collection-vizier.html" method="GET" name="vizier" class="panel-body">
             <p>
                 The <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a> database contains catalogs of observations associated with paper.
                 Given the id of such a catalog, the service can retrieve the files and other data from the associated catalog description.
@@ -67,7 +67,7 @@
             <fieldset>
                 <div class="col-lg-2">
                     <div class="input-group">
-                        <input type="text" class="form-control" name="cat" placeholder="Paste the catalog name"/>
+                        <input type="text" class="form-control" name="catalog" placeholder="Paste the catalog name"/>
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="submit">
                                 <span class="glyphicon glyphicon-search"/>
@@ -140,7 +140,7 @@
                     items: 'all'
                 }
             });
-            $('form').submit(function (e) {
+            $('form:first()').submit(function (e) {
                 var $form = $(this);
                 var $report = $('#report');
                 var $report_body = $('.modal-body', $report);

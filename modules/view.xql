@@ -17,6 +17,9 @@ import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "
 import module namespace doc="http://apps.jmmc.fr/exist/apps/oidb/doc" at "doc.xql";
 import module namespace backoffice="http://apps.jmmc.fr/exist/apps/oidb/backoffice" at "backoffice.xql";
 import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xql";
+import module namespace vizier="http://apps.jmmc.fr/exist/apps/oidb/vizier" at "vizier.xql";
+import module namespace ads="http://apps.jmmc.fr/exist/apps/oidb/ads" at "ads.xql";
+import module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits" at "oifits.xql";
 
 import module namespace jmmc-about="http://exist.jmmc.fr/jmmc-resources/about";
 import module namespace jmmc-web="http://exist.jmmc.fr/jmmc-resources/web";

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tbody xmlns="http://www.w3.org/1999/xhtml" data-template="oifits:granules">
+    <tr>
+        <td colspan="4">
+            <a data-template="helpers:model-value-attribute" data-template-key="url" data-template-name="href">
+                <span data-template="oifits:basename" data-template-key="url"/>
+            </a>
+        </td>
+    </tr>
+    <tr class="granule" data-template="oifits:each-granule">
+        <td>
+            <span data-template="helpers:model-value" data-template-key="target_name"/> -
+            <span data-template="oifits:hms" data-template-key="s_ra"/>&#160;<span data-template="oifits:dms" data-template-key="s_dec"/>
+            <input name="target_name" type="hidden" data-template="helpers:form-control"/>
+            <input name="s_ra" type="hidden" data-template="helpers:form-control"/>
+            <input name="s_dec" type="hidden" data-template="helpers:form-control"/>
+        </td>
+        <td>
+            <span data-template="helpers:model-value" data-template-key="instrument_name"/>
+            <input name="instrument_name" type="hidden" data-template="helpers:form-control"/>
+        </td>
+        <td>
+            &#160;
+        </td>
+        <td>
+            <span data-template="oifits:date" data-template-key="t_min"/> - <span data-template="oifits:date" data-template-key="t_max"/>
+            <input name="t_min" type="hidden" data-template="helpers:form-control"/>
+            <input name="t_max" type="hidden" data-template="helpers:form-control"/>
+        </td>
+        <input type="hidden" data-template="oifits:hidden-inputs"/>
+    </tr>
+</tbody>

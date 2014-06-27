@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="ads:article">
+    <input type="hidden" name="bibcode" data-template="helpers:model-value-attribute" data-template-key="bibcode" data-template-name="value"/>
+    <div>
+        <strong>Title: </strong>
+        <a data-template="helpers:model-value-attribute" data-template-key="ads-url" data-template-name="href" target="_blank">
+            <span data-template="helpers:model-value" data-template-key="title"/>
+        </a>
+        <input type="hidden" name="title" data-template="helpers:model-value-attribute" data-template-key="title" data-template-name="value"/>
+    </div>
+    <div>
+        <strong>Authors: </strong>
+        <ul class="list-inline">
+            <li data-template="templates:each" data-template-from="authors" data-template-to="author">
+                <span data-template="helpers:model-value" data-template-key="author"/>
+                <input type="hidden" name="author" data-template="helpers:model-value-attribute" data-template-key="author" data-template-name="value"/>
+            </li>
+        </ul>
+    </div>
+    <div>
+        <strong>Publication date: </strong>
+        <span>
+            <span data-template="helpers:model-value" data-template-key="pubdate"/>
+            <input type="hidden" name="pubdate" data-template="helpers:model-value-attribute" data-template-key="pubdate" data-template-name="value"/>
+        </span>
+    </div>
+    <div>
+        <strong>Keywords: </strong>
+        <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
+        <div class="bootstrap-tagsinput">
+            <div data-template="templates:each" data-template-from="keywords" data-template-to="keyword" class="tag label label-info">
+                <span data-template="helpers:model-value" data-template-key="keyword"/>
+            </div>
+        </div>
+    </div>
+</div>

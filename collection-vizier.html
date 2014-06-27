@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <form class="form-horizontal">
+        <fieldset id="details" data-template="vizier:catalog-description">
+            <legend>Collection details</legend>
+            <input id="source" name="source" required="" type="hidden" data-template="helpers:form-control"/>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="id">ID</label>
+                <div class="col-md-2">
+                    <input id="id" name="id" placeholder="" class="form-control input-md" required="required" readonly="readonly" type="text" data-template="helpers:form-control"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="title">Title</label>
+                <div class="col-md-6">
+                    <p class="form-control-static">
+                        <input id="title" name="title" type="hidden" data-template="helpers:form-control"/>
+                        <a data-template="helpers:model-value-attribute" data-template-key="source" data-template-name="href" target="_blank">
+                            <span data-template="helpers:model-value" data-template-key="title"/>
+                        </a>
+                    </p>
+                    <!-- <span class="help-block">help</span> -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="description">Description</label>
+                <div class="col-md-6">
+                    <textarea class="form-control" id="description" name="description" required="required" readonly="readonly" data-template="helpers:form-control" rows="8">...</textarea>
+                    <!-- <span class="help-block">help</span> -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label">Articles</label>
+                <div class="col-md-6">
+                    <ul id="articles" class="list-group">
+                        <li data-template="templates:each" data-template-from="bibcodes" data-template-to="bibcode" class="list-group-item">
+                            <span class="badge">
+                                <span data-template="helpers:model-value" data-template-key="bibcode"/>
+                                <input name="bibcode" type="hidden" data-template="helpers:form-control"/>
+                            </span>
+                            <div data-template="templates:include" data-template-path="_article.html"/>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="last-modified">Last modified</label>
+                <div class="col-md-2">
+                    <input id="last-modified" name="last-modified" class="form-control input-md" required="" type="text" readonly="readonly" data-template="helpers:form-control"/>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset id="oifits" data-template="vizier:catalog-files">
+            <legend>OIFITS files</legend>
+            <div class="col-md-offset-1 col-md-10">
+                <table class="table table-bordered table-condensed">
+                    <thead>
+                        <th>Target</th>
+                        <th>Instrument</th>
+                        <th>Instrument mode</th>
+                        <th>Night</th>
+                    </thead>
+                    <div data-template="templates:each" data-template-from="oifits" data-template-to="url">
+                        <tbody data-template="templates:include" data-template-path="_oifits.html"/>
+                    </div>
+                </table>
+            </div>
+        </fieldset>
+        <fieldset>
+            <div class="form-group">
+                <div class="col-md-offset-6 col-md-4">
+                    <button type="submit" class="btn btn-primary btn-block">Save</button>
+                    <a href="submit.html" class="btn btn-default btn-xs btn-block" role="button">Cancel</a>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+    <script type="text/javascript" src="resources/scripts/collection-vizier.js"/>
+</div>
