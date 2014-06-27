@@ -65,14 +65,17 @@
             </p>
             <!-- <div class="alert-error/alert-success/alert-info"></div> -->
             <fieldset>
-                <label for="cat">Catalog</label>
-                <div class="controls">
-                    <input name="cat" placeholder="Paste the catalog name"/>
+                <div class="col-lg-2">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="cat" placeholder="Paste the catalog name"/>
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="submit">
+                                <span class="glyphicon glyphicon-search"/>
+                            </button>
+                        </span>
+                    </div>
                 </div>
             </fieldset>
-            <div class="form-group">
-                <button class="btn btn-primary btn-lg" name="submit" type="submit" id="vizier">Add</button>
-            </div>
         </form>
     </div>
     <div class="panel panel-default">
