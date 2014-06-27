@@ -151,6 +151,14 @@ $(function () {
                 self.$input_ra.val(target.ra);
                 self.$input_dec.val(target.dec);
             });
+            
+            self.$select.change(function () {
+                // set validation state depending on the selected item: anything but first option is ok
+                var klass = ($(this).find(':selected').index() == 0) ? 'has-warning' : 'has-success';
+                self.$element.removeClass('has-warning has-success').addClass(klass);
+            });
+            // run validation on current choice
+            self.$select.change();
         },
 
         destroy: function() {
