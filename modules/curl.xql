@@ -23,7 +23,9 @@ let $response :=
                         (: remove pagination and set of columns :)
                         adql:clear-pagination(
                             adql:clear-select-list(
-                                adql:split-query-string())),
+                                (: FIXME should not have to clear order :)
+                                adql:clear-order(
+                                    adql:split-query-string()))),
                         (: select columns of interest :)
                         for $c in $columns return 'col=' || $c,
                         'distinct'
