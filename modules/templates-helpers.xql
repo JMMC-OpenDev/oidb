@@ -197,6 +197,14 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
                         else
                             $node
                     }
+        case "textarea" return
+            (: try to get value from the model (instead of request parameters) :)
+            let $value := map:get($model, $node/@name/string())
+            return
+                element { node-name($node) } {
+                    $node/@*,
+                    if (exists($value)) then $value else $node/text()
+                }
         default return
             element { node-name($node) } {
                 $node/@*,
