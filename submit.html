@@ -135,7 +135,7 @@
                 maxTags: 6,
                 typeahead: {
                     source: function(query) {
-                        return $.get('./modules/keywords.xql', { 'search': query }, 'json');
+                        return $.get('/exist/restxq/oidb/keyword', { 'q': query }, 'json');
                     },
                     items: 'all'
                 }
