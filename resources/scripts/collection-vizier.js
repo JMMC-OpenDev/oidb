@@ -1,9 +1,12 @@
 $(function () {
     $.fn.serializeXML = function(doc, root) {
         this.each(function () {
-            var e = doc.createElement($(this).attr('name'));
-            e.textContent = $(this).val();
-            root.appendChild(e);
+            var name = $(this).attr('name');
+            if (name) {
+                var e = doc.createElement(name);
+                e.textContent = $(this).val();
+                root.appendChild(e);
+            }
         });
     };
 
