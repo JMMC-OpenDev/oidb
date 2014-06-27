@@ -74,3 +74,122 @@ $(function () {
         e.preventDefault();
     });
 });
+
+
+// A plugin to insert a composite control for selecting target in the granule
+// table. It requests target resolution with Simbad through OiDB from the 
+// initial values of the granule and then update that granule definition on 
+// selection changes.
+(function ($) {
+    "use strict";
+
+    function TargetSelector(element, options) {
+        // all target candidates for this selector
+        this.targets = [];
+
+        this.$element = $(element);
+        this.$input_name = $(':input[name="target_name"]', this.$element);
+        this.$input_ra   = $(':input[name="s_ra"]', this.$element);
+        this.$input_dec  = $(':input[name="s_dec"]', this.$element);
+        
+        // new element for selecting target
+        this.$select     = $('<select>', { class: 'form-control' }).prependTo(this.$element);
+
+        var textNodes = this.$element.contents().filter(function() {
+            return this.nodeType === 3; //Node.TEXT_NODE
+        });
+        // get the current target description
+        var text = $.trim(textNodes.text());
+        this.addTarget(text, { name: this.$input_name.val(), ra: this.$input_ra.val(), dec: this.$input_dec.val() });
+        // remove it from container
+        textNodes.remove();
+        
+        this.build(options);
+    }
+
+    TargetSelector.prototype = {
+        constructor: TargetSelector,
+        
+        addTarget: function(text, target) {
+            // associate target string with target description for selector
+            this.targets[text] = target;
+            // add an option to the select
+            $('<option/>', { text: text }).appendTo(this.$select);
+        },
+
+        targetText: function(target) {
+            // format a target description (then used as text of the select option)
+            return target.name + ' - ' + target.ra_hms + ' ' + target.dec_dms;
+        },
+
+        build: function(options) {
+            var self = this;
+            // search for candidates given initial values
+            // TODO save resolution results from granule to granule
+            $.get(
+                'modules/target.xql', 
+                { name: self.$input_name.val(), ra: self.$input_ra.val(), dec: self.$input_dec.val()},
+                function (data) {
+                    $('target', data).each(function () {
+                        // simple conversion of target from XML to JSON
+                        var target = {};
+                        $(this).children().each(function () { target[this.nodeName] = $(this).text(); });
+                        // register target description
+                        self.addTarget(self.targetText(target), target);
+                    });
+                }
+            );
+
+            // when selecting a target, update the form for the granule
+            self.$select.change(function () {
+                var key = $(this).find(':selected').text();
+                var target = self.targets[key];
+
+                // set value of hidden form fields with target data
+                self.$input_name.val(target.name);
+                self.$input_ra.val(target.ra);
+                self.$input_dec.val(target.dec);
+            });
+        },
+
+        destroy: function() {
+            // preserve current text of selector
+            var text = this.$select.find(':selected').text();
+            // replace the select form element with the target description
+            this.$select.replaceWith(text);
+        },
+    };
+
+    // register plugin
+    $.fn.targetselector = function(arg1, arg2) {
+        var results = [];
+        
+        this.each(function() {
+            var targetselector = $(this).data('targetselector');
+            
+            if (!targetselector) {
+                // new selector
+                targetselector = new TargetSelector(this, arg1);
+                $(this).data('targetselector', targetselector);
+                results.push(targetselector);
+            } else {
+                // invoke function on existing target selector
+                var retVal = targetselector[arg1](arg2);
+                if (retVal !== undefined)
+                    results.push(retVal);
+            }
+        });
+
+        if (typeof arg1 == 'string') {
+            return results.length > 1 ? results : results[0];
+        } else {
+            return results;
+        }
+    };
+
+    $.fn.targetselector.Constructor = TargetSelector;
+
+    $(function() {
+        $('[data-role="targetselector"]').targetselector();
+    });
+})(window.jQuery);

@@ -9,11 +9,12 @@
     </tr>
     <tr class="granule" data-template="oifits:each-granule">
         <td>
-            <span data-template="helpers:model-value" data-template-key="target_name"/> -
-            <span data-template="oifits:hms" data-template-key="s_ra"/>&#160;<span data-template="oifits:dms" data-template-key="s_dec"/>
-            <input name="target_name" type="hidden" data-template="helpers:form-control"/>
-            <input name="s_ra" type="hidden" data-template="helpers:form-control"/>
-            <input name="s_dec" type="hidden" data-template="helpers:form-control"/>
+            <div data-role="targetselector">
+                <span data-template="helpers:model-value" data-template-key="target_name"/> - <span data-template="oifits:hms" data-template-key="s_ra"/>&#160;<span data-template="oifits:dms" data-template-key="s_dec"/>
+                <input name="target_name" type="hidden" data-template="helpers:form-control"/>
+                <input name="s_ra" type="hidden" data-template="helpers:form-control"/>
+                <input name="s_dec" type="hidden" data-template="helpers:form-control"/>
+            </div>
         </td>
         <td>
             <span data-template="helpers:model-value" data-template-key="instrument_name"/>
