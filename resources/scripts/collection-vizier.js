@@ -58,6 +58,7 @@ $(function () {
                 .done(function () {
                     // will not be selected for upload next time
                     $granule.removeClass('granule');
+                    $granule.find('[data-role="targetselector"]').targetselector('destroy');
                 });
         });
 
