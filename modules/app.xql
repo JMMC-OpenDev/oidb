@@ -618,45 +618,26 @@ declare function app:latest($node as node(), $model as map(*)) {
 };
 
 (:~
- : Create a list of general informations to provide on the first homepage.
- : @param query ADQL query for TAP service
- : @param page offset into query result (page * perpage)
- : @return an HTML list
+ : Create model with general informations for homepage templating.
+ : 
+ : @param $node
+ : @param $model
+ : @return a new model with counts for homepage
  :)
-declare function app:homepage-header($node as node(), $model as map(*)) {
-    let $count := function($q) { tap:execute($q, false())//*:TD/text() }
-    let $base-query := ""
-    
-    (: TODO resynchronize code with app:data-stats :)
-    let $occurences := <occurences>                
-                
-                <e><title>FACILITIES</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=facility_name')) || ') AS e')}</c></e>
-                <e><title>INSTRUMENTS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=instrument_name')) || ') AS e')}</c><link>instruments.html</link></e>
-                <e><title>DATA-PIS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_creator_name')) || ') AS e')}</c></e>
-                <e><title>COLLECTIONS</title><icon/><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=obs_collection')) || ') AS e')}</c></e>
-                <e><title>OIFITS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS e') - 1}</c><link>search.html?caliblevel=1,2,3</link></e>
-                <e><title>GRANULES</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=1,2,3')) || ') AS e')}</c><link>search.html?caliblevel=1,2,3</link></e>
-                <e><title>OBS. LOGS</title><c>{$count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=0')) || ') AS e')}</c><link>search.html?caliblevel=0</link></e>
-            </occurences>
-    return  <div class="text-center">
-            <ul class="list-inline">
-            { for $e at $pos in $occurences/e 
-                let $count := if(exists($e/c/text())) then $e/c/text() else if (exists($e/q/text())) then count( tap:execute($e/q, true())//tr ) else "..."
-                let $title := data($e/title)
-                let $link := if(exists($e/link)) then data($e/link) else "#"
-                let $style :=   if (exists($e/icon)) then 
-                                    let $cat := lower-case(translate($title," ","")) 
-                                    return 'background-image: url("random-icon.xql?p='||$pos||'&amp;cat='||$cat||'"); margin:0; background-position: center center; background-repeat: no-repeat;'
-                                else ()                
-                return 
-                    <li>
-                        <div class="well" style='{$style}'>
-                        <a href="{$link}" style="color: #000000;"><div class="well-sm transparent" style="margin:0;">
-                            <h2>{$count}</h2><b>{$title}</b></div>
-                            </a>
-                        </div>
-                    </li>
-            }</ul></div>
+declare
+    %templates:wrap
+function app:homepage-header($node as node(), $model as map(*)) as map(*) {
+    (: count rows and extract result from VOTable :)
+    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query($q) || ') AS e', false())//*:TD/text() }
+    return map {
+        'n_facilities'  := $count(( 'distinct', 'col=facility_name' )),
+        'n_instruments' := $count(( 'distinct', 'col=instrument_name' )),
+        'n_data_pis'    := $count(( 'distinct', 'col=obs_creator_name' )),
+        'n_collections' := $count(( 'distinct', 'col=obs_collection' )),
+        'n_oifits'      := $count(( 'distinct', 'col=access_url' )) - 1,
+        'n_granules'    := $count(( 'caliblevel=1,2,3' )),
+        'n_obs_logs'    := $count(( 'caliblevel=0' ))
+    }
 };
 
 (:~
