@@ -13,12 +13,14 @@ import module namespace scheduler="http://exist-db.org/xquery/scheduler";
 declare variable $backoffice:update-doc := "OiDB doc updater";
 
 (:~
- : Start a new documentation update job in background.
+ : Start a job in the background through the scheduler.
  : 
- : @return false() if it failed to schedule the job or there is already another job running.
+ : @param $resource path to the resource for the job
+ : @param $name name of the job
+ : @return flag indicating successful scheduling
  :)
-declare %private function backoffice:update-doc() as xs:boolean {
-    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-doc]
+declare %private function backoffice:start-job($resource as xs:string, $name as xs:string) as xs:boolean {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$resource]
     return if ($job) then
         (: already running? stalled? :)
         (: FIXME check job state :)
@@ -26,7 +28,16 @@ declare %private function backoffice:update-doc() as xs:boolean {
     else
         (: FIXME login in as dba: nasty! :)
         let $login := xmldb:login("", "oidb", "")
-        return scheduler:schedule-xquery-periodic-job('/db/apps/oidb/modules/update-doc.xql', 0, $backoffice:update-doc, <parameters/>, 0, 0)
+        return scheduler:schedule-xquery-periodic-job($resource, 0, $name, <parameters/>, 0, 0)
+};
+
+(:~
+ : Start a new documentation update job in background.
+ : 
+ : @return false() if it failed to schedule the job or there is already another job running.
+ :)
+declare %private function backoffice:update-doc() as xs:boolean {
+    backoffice:start-job($config:app-root || '/modules/update-doc.xql', $backoffice:update-doc)
 };
 
 (:~
