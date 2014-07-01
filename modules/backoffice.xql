@@ -11,6 +11,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace scheduler="http://exist-db.org/xquery/scheduler";
 
 declare variable $backoffice:update-doc := "OiDB doc updater";
+declare variable $backoffice:update-vega := "OiDB VEGA updater";
 
 (:~
  : Start a job in the background through the scheduler.
@@ -38,6 +39,15 @@ declare %private function backoffice:start-job($resource as xs:string, $name as 
  :)
 declare %private function backoffice:update-doc() as xs:boolean {
     backoffice:start-job($config:app-root || '/modules/update-doc.xql', $backoffice:update-doc)
+};
+
+(:~
+ : Start a new VEGA update job from VegaObs in background.
+ : 
+ : @return false() if it failed to schedule the job or there is already another job running.
+ :)
+declare %private function backoffice:update-vega() as xs:boolean {
+    backoffice:start-job($config:app-root || '/modules/upload-vega.xql', $backoffice:update-vega)
 };
 
 (:~
@@ -83,6 +93,20 @@ function backoffice:action($node as node(), $model as map(*), $do as xs:string*)
                 <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
                 <strong>Action failed ! </strong>
                 <a href="doc.html">Main documentation</a> failed to be properly updated. Can't find remote source <a href="{$config:maindoc-twiki-url}">twiki page</a>. See log for details.
+            </div>
+    else if($action = "vega-update") then
+        let $status := backoffice:update-vega()
+        return if ($status) then
+            <div class="alert alert-success fade in">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                <strong>Action started ! </strong>
+                VEGA observation logs are being updated from <a href="http://vegaobs-ws.oca.eu/">VegaObs</a>.
+            </div>
+        else
+            <div class="alert alert-danger fade in">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                <strong>Action failed ! </strong>
+                VEGA observation logs is already running or failed to be properly updated. See log for details.
             </div>
     else
         <div class="alert alert-danger fade in">

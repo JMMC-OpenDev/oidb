@@ -97,4 +97,4 @@ let $response :=
         }
     } </response>
 
-return (log:submit($response), $response)
+return $response
