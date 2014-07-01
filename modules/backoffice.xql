@@ -23,7 +23,22 @@ declare function backoffice:main($node as node(), $model as map(*), $do as xs:st
         {
             for $action in $do return 
                 if($action="doc-update") then
-                    doc:update()
+                    let $status := util:eval(xs:anyURI('update-doc.xql'))
+                    return if ($status//success) then
+                        <div class="alert alert-success fade in">
+                            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                            <h4>Action successful !</h4>
+                            <p><a href="doc.html">Main documentation</a> updated from <a href="{$config:maindoc-twiki-url}">twiki page</a></p>
+                        </div>
+                    else 
+                        <div class="alert alert-danger fade in">
+                            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                            <h4>Action failed !</h4>                        
+                            <p>
+                                <a href="doc.html">Main documentation</a> was not updated properly. Can't find remote source <a href="{$config:maindoc-twiki-url}">twiki page</a><br/>
+                                <em>Error: { $status//error/text() }</em>
+                            </p>
+                        </div>
                 else
                     <div class="alert alert-danger fade in">
                         <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>

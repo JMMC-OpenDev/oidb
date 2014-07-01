@@ -14,7 +14,6 @@ import module namespace templates="http://exist-db.org/xquery/templates" ;
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
-import module namespace doc="http://apps.jmmc.fr/exist/apps/oidb/doc" at "doc.xql";
 import module namespace backoffice="http://apps.jmmc.fr/exist/apps/oidb/backoffice" at "backoffice.xql";
 import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "query.xql";
 import module namespace vizier="http://apps.jmmc.fr/exist/apps/oidb/vizier" at "vizier.xql";
