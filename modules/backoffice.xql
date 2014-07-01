@@ -30,6 +30,24 @@ declare %private function backoffice:update-doc() as xs:boolean {
 };
 
 (:~
+ : Template helper to display the status of the documentation.
+ : 
+ : @param $node
+ : @param $model
+ : @return a string with the date the documentation was last updated or status if the job is still running
+ :)
+declare function backoffice:doc-status($node as node(), $model as map(*)) as xs:string {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-doc]
+    return if ($job) then
+        (: currently executing :)
+        'Running...'
+    else
+        (: no logging of operation at the moment :)
+        (:instead show last modified date of resource :)
+        xs:string(xmldb:last-modified($config:data-root, $config:maindoc-filename))
+};
+
+(:~
  : Handle any action for the backoffice page.
  : 
  : @param $node
