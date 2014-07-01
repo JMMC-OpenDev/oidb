@@ -69,6 +69,23 @@ declare function backoffice:doc-status($node as node(), $model as map(*)) as xs:
 };
 
 (:~
+ : Template helper to display the status of the VEGA update.
+ : 
+ : @param $node
+ : @param $model
+ : @return
+ :)
+declare function backoffice:vega-status($node as node(), $model as map(*)) as xs:string {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-vega]
+    return if ($job) then
+        (: currently executing :)
+        'Running...'
+    else
+        (: TODO :)
+        '-'
+};
+
+(:~
  : Handle any action for the backoffice page.
  : 
  : @param $node
