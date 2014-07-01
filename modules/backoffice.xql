@@ -8,6 +8,26 @@ module namespace backoffice="http://apps.jmmc.fr/exist/apps/oidb/backoffice";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace scheduler="http://exist-db.org/xquery/scheduler";
+
+declare variable $backoffice:update-doc := "OiDB doc updater";
+
+(:~
+ : Start a new documentation update job in background.
+ : 
+ : @return false() if it failed to schedule the job or there is already another job running.
+ :)
+declare %private function backoffice:update-doc() as xs:boolean {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-doc]
+    return if ($job) then
+        (: already running? stalled? :)
+        (: FIXME check job state :)
+        false()
+    else
+        (: FIXME login in as dba: nasty! :)
+        let $login := xmldb:login("", "oidb", "")
+        return scheduler:schedule-xquery-periodic-job('/db/apps/oidb/modules/update-doc.xql', 0, $backoffice:update-doc, <parameters/>, 0, 0)
+};
 
 (:~
  : Handle any action for the backoffice page.
@@ -22,26 +42,23 @@ declare
 function backoffice:action($node as node(), $model as map(*), $do as xs:string*) as node()* {
     for $action in $do
     return if($action="doc-update") then
-        let $status := util:eval(xs:anyURI('update-doc.xql'))
-        return if ($status//success) then
+        let $status := backoffice:update-doc()
+        return if ($status) then
             <div class="alert alert-success fade in">
                 <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-                <h4>Action successful !</h4>
-                <p><a href="doc.html">Main documentation</a> updated from <a href="{$config:maindoc-twiki-url}">twiki page</a></p>
+                <strong>Action started ! </strong>
+                <a href="doc.html">Main documentation</a> is being updated from the <a href="{$config:maindoc-twiki-url}">twiki page</a>.
             </div>
         else
             <div class="alert alert-danger fade in">
                 <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-                <h4>Action failed !</h4>
-                <p>
-                    <a href="doc.html">Main documentation</a> was not updated properly. Can't find remote source <a href="{$config:maindoc-twiki-url}">twiki page</a><br/>
-                    <em>Error: { $status//error/text() }</em>
-                </p>
+                <strong>Action failed ! </strong>
+                <a href="doc.html">Main documentation</a> failed to be properly updated. Can't find remote source <a href="{$config:maindoc-twiki-url}">twiki page</a>. See log for details.
             </div>
     else
         <div class="alert alert-danger fade in">
             <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-            <h4>Action {$action} not supported !</h4>
-            <p>Please report this error if you think that it should not have occured.</p>
+            <strong>Action {$action} not supported ! </strong>
+            Please report this error if you think that it should not have occured.
         </div>
 };
