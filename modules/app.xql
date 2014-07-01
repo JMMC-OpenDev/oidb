@@ -694,3 +694,14 @@ declare function app:input-user-email($elt as element(), $model as map(*)) {
 declare function app:input-user-name($elt as element(), $model as map(*)) {
     app:add-attribute($elt, 'value', login:user-name())
 };
+
+(:~
+ : Replace node with documentation extracted from TWiki.
+ : 
+ : @param $node the placeholder for documentation
+ : @param $model
+ : @return a document fragment with documentation
+ :)
+declare function app:doc($node as node(), $model as map(*)) {
+    doc($config:data-root || "/" || $config:maindoc-filename)
+};
