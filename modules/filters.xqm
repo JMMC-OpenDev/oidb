@@ -193,25 +193,10 @@ declare function filters:conesearch($params as xs:string) as xs:string {
     let $dec    := xs:double($cs[2])
     let $radius := xs:double($cs[3])
     
-(:    return "( CONTAINS(" ||:)
-(:        "POINT('ICRS', " || $adql:correlation-name || ".s_ra, " || $adql:correlation-name || ".s_dec), " ||:)
-(:        "CIRCLE('ICRS', " || $ra || ", " || $dec || ", " || $radius || ")" ||:)
-(:        ")=1 )":)
-
-    (: alternate SQL condition for Cone Search with AstroGrid DSA :)
-    let $dec-min := $dec - $radius
-    let $dec-max := $dec + $radius
-    let $ra-min := $ra - m:degrees(m:radians($radius) div m:cos(m:radians($dec)))
-    let $ra-max := $ra + m:degrees(m:radians($radius) div m:cos(m:radians($dec)))
-    (: rough bounding box, then spherical law of cosine :)
-    return "( " ||
-            $adql:correlation-name || ".s_dec <= " || $dec-max || " AND " || $adql:correlation-name || ".s_dec >= " || $dec-min || " AND " ||
-            $adql:correlation-name || ".s_ra  <= " || $ra-max  || " AND " || $adql:correlation-name || ".s_ra  >= " || $ra-min  || " AND " ||
-            "ACOS(" ||
-                "SIN(RADIANS(" || $adql:correlation-name || ".s_dec)) * SIN(" || m:radians($dec) || ") + " ||
-                "COS(RADIANS(" || $adql:correlation-name || ".s_dec)) * COS(" || m:radians($dec) || ") * COS(RADIANS(" || $adql:correlation-name || ".s_ra) - " || m:radians($ra) || ")" ||
-            ") <= " || m:radians($radius) ||
-        " )"
+    return "( CONTAINS(" ||
+        "POINT('ICRS', " || $adql:correlation-name || ".s_ra, " || $adql:correlation-name || ".s_dec), " ||
+        "CIRCLE('ICRS', " || $ra || ", " || $dec || ", " || $radius || ")" ||
+        ")=1 )"
 };
 
 (:~
