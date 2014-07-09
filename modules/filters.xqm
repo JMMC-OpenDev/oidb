@@ -188,7 +188,7 @@ import module namespace m="http://exist-db.org/xquery/math";
  : @return an ADQL condition selecting items for the defined region
  :)
 declare function filters:conesearch($params as xs:string) as xs:string {
-    let $cs     := filters:parse-conesearch(xmldb:decode($params))
+    let $cs     := filters:parse-conesearch($params)
     let $ra     := xs:double($cs[1])
     let $dec    := xs:double($cs[2])
     let $radius := xs:double($cs[3])
