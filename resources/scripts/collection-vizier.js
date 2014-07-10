@@ -59,6 +59,7 @@ $(function () {
                     // will not be selected for upload next time
                     $granule.removeClass('granule');
                     $granule.find('[data-role="targetselector"]').targetselector('destroy');
+                    $granule.find('[data-role="instrumentselector"]').instrumentselector('destroy');
                 });
         });
 
@@ -200,5 +201,130 @@ $(function () {
 
     $(function() {
         $('[data-role="targetselector"]').targetselector();
+    });
+})(window.jQuery);
+
+
+// A plugin to insert a composite control for selecting instrument in the granule
+// table. It queries OiDB to build an option list of instruments and facilities.
+// The definition of the granule is updated on selection of an entry.
+// TODO rewrite and merge with target selector
+(function ($) {
+    "use strict";
+
+    function InstrumentSelector(element, options) {
+        // all instrument candidates for this selector
+        this.instruments = [];
+
+        this.$element = $(element);
+        this.$input_facname = $(':input[name="facility_name"]', this.$element);
+        this.$input_insname = $(':input[name="instrument_name"]', this.$element);
+
+        // new element for selecting instrument
+        this.$select = $('<select>', { class: 'form-control' }).prependTo(this.$element);
+
+        var textNodes = this.$element.contents().filter(function() {
+            return this.nodeType === 3; //Node.TEXT_NODE
+        });
+        // get the current instrument description
+        var text = $.trim(textNodes.text());
+        this.addInstrument(text, { facility: this.$input_facname.val(), name: this.$input_insname.val() });
+        // remove it from container
+        textNodes.remove();
+        
+        this.build(options);
+    }
+
+    InstrumentSelector.prototype = {
+        constructor: InstrumentSelector,
+        
+        addInstrument: function(text, instrument) {
+            // associate instrument string with instrument description for selector
+            this.instruments[text] = instrument;
+            // add an option to the select
+            $('<option/>', { text: text }).appendTo(this.$select);
+        },
+
+        instrumentText: function(instrument) {
+            // format an instrument description (then used as text of the select option)
+            return instrument.facility + ' - ' + instrument.name;
+        },
+
+        build: function(options) {
+            var self = this;
+            // search for candidates given initial values
+            // TODO save results from granule to granule
+            $.get(
+                '/exist/restxq/oidb/instrument', 
+                {},
+                function (data) {
+                    $('instrument', data).each(function () {
+                        // simple conversion of instrument from XML to JSON
+                        var instrument = {};
+                        $(this.attributes).each(function () { instrument[this.name] = this.value; });
+                        // register instrument description
+                        self.addInstrument(self.instrumentText(instrument), instrument);
+                    });
+                }
+            );
+
+            // when selecting an instrument, update the form for the granule
+            self.$select.change(function () {
+                var key = $(this).find(':selected').text();
+                var instrument = self.instruments[key];
+
+                // set value of hidden form fields with instrument data
+                self.$input_facname.val(instrument.facility).change();
+                self.$input_insname.val(instrument.name).change();
+            });
+            
+            self.$select.change(function () {
+                // set validation state depending on the selected item: anything but first option is ok
+                var klass = ($(this).find(':selected').index() == 0) ? 'has-warning' : 'has-success';
+                self.$element.removeClass('has-warning has-success').addClass(klass);
+            });
+            // run validation on current choice
+            self.$select.change();
+        },
+
+        destroy: function() {
+            // preserve current text of selector
+            var text = this.$select.find(':selected').text();
+            // replace the select form element with the instrument description
+            this.$select.replaceWith(text);
+        },
+    };
+
+    // register plugin
+    $.fn.instrumentselector = function(arg1, arg2) {
+        var results = [];
+        
+        this.each(function() {
+            var instrumentselector = $(this).data('instrumentselector');
+            
+            if (!instrumentselector) {
+                // new selector
+                instrumentselector = new InstrumentSelector(this, arg1);
+                $(this).data('instrumentselector', instrumentselector);
+                results.push(instrumentselector);
+            } else {
+                // invoke function on existing instrument selector
+                var retVal = instrumentselector[arg1](arg2);
+                if (retVal !== undefined)
+                    results.push(retVal);
+            }
+        });
+
+        if (typeof arg1 == 'string') {
+            return results.length > 1 ? results : results[0];
+        } else {
+            return results;
+        }
+    };
+
+    $.fn.instrumentselector.Constructor = InstrumentSelector;
+
+    $(function() {
+        $('[data-role="instrumentselector"]').instrumentselector();
     });
 })(window.jQuery);

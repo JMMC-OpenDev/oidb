@@ -17,8 +17,11 @@
             </div>
         </td>
         <td>
-            <span data-template="helpers:model-value" data-template-key="instrument_name"/>
-            <input name="instrument_name" type="hidden" data-template="helpers:form-control"/>
+            <div data-role="instrumentselector">
+                <span data-template="helpers:model-value" data-template-key="facility_name"/> - <span data-template="helpers:model-value" data-template-key="instrument_name"/>
+                <input name="facility_name" type="hidden" data-template="helpers:form-control"/>
+                <input name="instrument_name" type="hidden" data-template="helpers:form-control"/>
+            </div>
         </td>
         <td>
             &#160;
