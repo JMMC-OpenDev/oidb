@@ -60,6 +60,7 @@ $(function () {
                     $granule.removeClass('granule');
                     $granule.find('[data-role="targetselector"]').targetselector('destroy');
                     $granule.find('[data-role="instrumentselector"]').instrumentselector('destroy');
+                    $granule.find(':input[name="instrument_mode"]').replaceWith(function () { return $(':selected', this).text(); });
                 });
         });
 
@@ -75,6 +76,34 @@ $(function () {
 
         e.preventDefault();
     });
+
+    // Drop-down list of instrument:
+    // event handler for updating the list of mode on changes to the instrument
+    $(':input[name="instrument_name"]').change(function (e) {
+        var $insname = $(this);
+        var $granule = $insname.parents('.granule').first();
+        var $insmode = $(':input[name="instrument_mode"]', $granule);
+
+        // TODO filter out possible value from oifits
+        // remove all <option> but first (unknown)
+        $insmode.children('option:gt(0)').remove();
+        // TODO save results from request to request
+        $.get(
+            '/exist/restxq/oidb/instrument/' + encodeURIComponent($insname.val()) + '/mode',
+            {},
+            function (data) {
+		// parse the XML returned for mode names
+                $('mode', data).each(function () {
+                    var mode = this.textContent;
+                    $insmode.append($('<option>', { value: mode, text: mode}));
+                });
+            });
+    });
+    // instrument mode validation: warning if no mode selected, success otherwise
+    $(':input[name="instrument_mode"]').change(function () {
+        var klass = ($(this).find(':selected').index() == 0) ? 'has-warning' : 'has-success';
+        $(this).parent().removeClass('has-warning has-success').addClass(klass);
+    }).change();
 });
 
 
