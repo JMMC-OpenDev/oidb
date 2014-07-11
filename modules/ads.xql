@@ -21,27 +21,33 @@ declare %private function ads:abstract-url($bibcode as xs:string) as xs:string {
 };
 
 (:~
- : Add the description of an article to the model for children of node.
+ : Render the current node and its children with article info.
  : 
- : It expects an entry named 'bibcode' in the current model.
+ : It expects an entry named 'bibcode' in the current model. The data from the 
+ : abstract record are added to the model for templating children node.
  : 
- : @param $node
- : @param $model
- : @return a new model
+ : @param $node  the current node
+ : @param $model the current model
+ : @return the templatized current node or nothing if the bibcode is not linked
+ : to any abstract at ADS.
  :)
-declare
-    %templates:wrap
-function ads:article($node as node(), $model as map(*)) as map(*) {
+declare function ads:article($node as node(), $model as map(*)) as node()? {
     let $bibcode := map:get($model, 'bibcode')
-    (: TODO check returned record :)
     let $record := jmmc-ads:get-record($bibcode)
-
-    return map {
-        'bibcode'  := $bibcode,
-        'title'    := jmmc-ads:get-title($record),
-        'authors'  := jmmc-ads:get-authors($record),
-        'pubdate'  := jmmc-ads:get-pub-date($record),
-        'keywords' := jmmc-ads:get-keywords($record),
-        'ads-url'  := ads:abstract-url($bibcode)
+    return element { node-name($node) } {
+        $node/@*,
+        if ($record) then
+            let $record-model := map {
+                'bibcode'  := $bibcode,
+                'title'    := jmmc-ads:get-title($record),
+                'authors'  := jmmc-ads:get-authors($record),
+                'pubdate'  := jmmc-ads:get-pub-date($record),
+                'keywords' := jmmc-ads:get-keywords($record),
+                'ads-url'  := ads:abstract-url($bibcode)
+            }
+            (: templatize child nodes with article data :)
+            return templates:process($node/node(), map:new(( $model, $record-model )))
+        else
+            '&#160;'
     }
 };
