@@ -10,8 +10,6 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 
 import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
 
-declare namespace abstracts='http://ads.harvard.edu/schema/abs/1.1/abstracts';
-
 (:~
  : Return the URL of the ADS abstract page of given bibcode.
  : 
@@ -38,14 +36,10 @@ function ads:article($node as node(), $model as map(*)) as map(*) {
     (: TODO check returned record :)
     let $record := jmmc-ads:get-record($bibcode)
 
-    (: FIXME move to jmmc-ads :)    
-    let $title   := $record/abstracts:title/text()
-    let $authors := $record/abstracts:author/text()
-
     return map {
         'bibcode'  := $bibcode,
-        'title'    := $title,
-        'authors'  := $authors,
+        'title'    := jmmc-ads:get-title($record),
+        'authors'  := jmmc-ads:get-authors($record),
         'pubdate'  := jmmc-ads:get-pub-date($record),
         'keywords' := jmmc-ads:get-keywords($record),
         'ads-url'  := ads:abstract-url($bibcode)
