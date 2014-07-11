@@ -127,25 +127,4 @@
             <a href="search.html" class="btn btn-default btn-xs btn-block" role="button">Reset</a>
         </div>
     </div>
-    <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
-    <script type="text/javascript">
-        // turn on suggestion with Boostrap typeahead on text inputs
-        $('input.typeahead')
-            .attr('autocomplete', 'off')
-            .typeahead( { 
-                source: function(query, process) {
-                    jQuery.ajax({
-                        url: './typeahead/' + this.$element.attr('name'),
-                        type: 'GET',
-                        dataType: 'json',
-                        data: { 'search': query },
-                        success: function (resp) {
-                            var items = [];
-                            jQuery.each(resp, function (index, item) {
-                                items.push(item);
-                            });
-                            return process(items);
-                        }});
-                }});
-    </script>
 </form>
