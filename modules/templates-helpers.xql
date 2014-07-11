@@ -50,7 +50,7 @@ function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:
  : @param $key   the key to search in the model
  : @return the value for key in model as string or nothing
  :)
-declare function helpers:model-value($node as node(), $model as map(*), $key as xs:string) as xs:string {
+declare function helpers:model-value($node as node(), $model as map(*), $key as xs:string) as xs:string? {
     xs:string($model($key))
 };
 
