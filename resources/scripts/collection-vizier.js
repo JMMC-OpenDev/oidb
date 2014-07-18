@@ -149,7 +149,7 @@ $(function () {
             
             self.$select.change(function () {
                 // set validation state depending on the selected item: anything but first option is ok
-                var klass = ($(this).find(':selected').index() == 0) ? 'has-warning' : 'has-success';
+                var klass = ($(this).find(':selected').index(self.$select.find('option')) == 0) ? 'has-warning' : 'has-success';
                 self.$element.removeClass('has-warning has-success').addClass(klass);
             });
             // run validation on current choice
@@ -201,10 +201,11 @@ $(function () {
         
         // search for candidates given initial values
         this.fetchTargets().done(function (data) {
+            var $optgroup = $('<optgroup/>', { label: 'Simbad objects in vicinity'}).appendTo(self.$select);
             $.each(data, function (idx, target) {
                 var text = target.target_name + ' - ' + target.ra_hms + ' ' + target.dec_dms;
                 // register target description
-                self.addOption(text, target);
+                self.addOption(text, target, $optgroup);
             });
         });
     }
