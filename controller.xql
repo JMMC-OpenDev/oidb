@@ -21,7 +21,7 @@ else if ($exist:path eq "/") then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="index.html"/>
     </dispatch>
-else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html") then
+else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $exist:path eq "/collection-vizier.html") then
     (: require authentification for submitting new data :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         { 
