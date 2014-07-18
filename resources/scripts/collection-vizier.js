@@ -107,73 +107,43 @@ $(function () {
 });
 
 
-// A plugin to insert a composite control for selecting target in the granule
-// table. It requests target resolution with Simbad through OiDB from the 
-// initial values of the granule and then update that granule definition on 
-// selection changes.
 (function ($) {
     "use strict";
 
-    function TargetSelector(element, options) {
+    // A base object for inserting a drop-down list of options for multiple,
+    // hidden input fields.
+    function Selector(element, options) {
         this.$element = $(element);
-        this.$input_name = $(':input[name="target_name"]', this.$element);
-        this.$input_ra   = $(':input[name="s_ra"]', this.$element);
-        this.$input_dec  = $(':input[name="s_dec"]', this.$element);
         
-        // new element for selecting target
-        this.$select     = $('<select>', { class: 'form-control' }).prependTo(this.$element);
+        // new element for displaying choices
+        this.$select = $('<select>', { class: 'form-control' }).prependTo(this.$element);
 
+        // save initial description as first select option
         var textNodes = this.$element.contents().filter(function() {
             return this.nodeType === 3; //Node.TEXT_NODE
         });
-        // get the current target description
         var text = $.trim(textNodes.text());
-        this.addTarget(text, { name: this.$input_name.val(), ra: this.$input_ra.val(), dec: this.$input_dec.val() });
-        // remove it from container
         textNodes.remove();
+        this.addOption(text, this.val());
         
         this.build(options);
     }
-
-    TargetSelector.prototype = {
-        constructor: TargetSelector,
+    Selector.prototype = {
+        constructor: Selector,
         
-        addTarget: function(text, target) {
+        addOption: function(text, data) {
             // add an option to the select
-            $('<option/>', { text: text }).data(target).appendTo(this.$select);
-        },
-
-        targetText: function(target) {
-            // format a target description (then used as text of the select option)
-            return target.name + ' - ' + target.ra_hms + ' ' + target.dec_dms;
+            $('<option/>', { text: text }).data(data).appendTo(this.$select);
         },
 
         build: function(options) {
             var self = this;
-            // search for candidates given initial values
-            // TODO save resolution results from granule to granule
-            $.get(
-                'modules/target.xql', 
-                { name: self.$input_name.val(), ra: self.$input_ra.val(), dec: self.$input_dec.val()},
-                function (data) {
-                    $('target', data).each(function () {
-                        // simple conversion of target from XML to JSON
-                        var target = {};
-                        $(this).children().each(function () { target[this.nodeName] = $(this).text(); });
-                        // register target description
-                        self.addTarget(self.targetText(target), target);
-                    });
-                }
-            );
 
-            // when selecting a target, update the form for the granule
+            // when selecting an option, update the form inputs
             self.$select.change(function () {
-                var target = $(this).find(':selected').data();
-
-                // set value of hidden form fields with target data
-                self.$input_name.val(target.name);
-                self.$input_ra.val(target.ra);
-                self.$input_dec.val(target.dec);
+                var data = $(this).find(':selected').data();
+                // set value of hidden form fields with selected data
+                self.val(data);
             });
             
             self.$select.change(function () {
@@ -186,14 +156,78 @@ $(function () {
         },
 
         destroy: function() {
-            // preserve current text of selector
-            var text = this.$select.find(':selected').text();
-            // replace the select form element with the target description
-            this.$select.replaceWith(text);
+            // replace the select form element with the selected option text
+            this.$select.replaceWith(this.text());
+        },
+
+        val: function(value) {
+            var $inputs = $(':input:hidden', this.$element);
+            if (!arguments.length) {
+                // get the current value of the input fields
+                var value = {};
+                $inputs.each(function () {
+                    var $input = $(this);
+                    value[$input.attr('name')] = $input.val();
+                });
+                return value;
+            } else {
+                // set the current value of the input fields
+                $inputs.each(function () {
+                    var $input = $(this);
+                    $input.val(value[$input.attr('name')]);
+                });
+            }
+        },
+        
+        text: function() {
+            // return the text of the selected option
+            return this.$select.find(':selected').text();
+        },
+        
+        select: function() {
+            // return the internal <select/> element 
+            return this.$select;
         },
     };
 
-    // register plugin
+    // A plugin to insert a composite control for selecting target in the
+    // granule table. It requests target resolution with Simbad through OiDB 
+    // from the initial values of the granule and then update that granule
+    // definition on selection changes.
+    function TargetSelector() {
+        var self = this;
+        Selector.apply(self, arguments);
+        
+        // search for candidates given initial values
+        var value = this.val();
+        // TODO save results from granule to granule
+        $.get(
+            'modules/target.xql', 
+            { name: value.target_name, ra: value.s_ra, dec: value.s_dec },
+            function (data) {
+                $('target', data).each(function () {
+                    var target = {};
+                    $(this).children().each(function () {
+                        var text = $(this).text();
+                        switch (this.nodeName) {
+                            // convert from node names to column names
+                            case "name": target.target_name = text; break;
+                            case "ra":   target.s_ra        = text; break;
+                            case "dec":  target.s_dec       = text; break;
+                            default:     target[this.nodeName] = text;
+                        }
+                    });
+                    var text = target.target_name + ' - ' + target.ra_hms + ' ' + target.dec_dms;
+                    // register target description
+                    self.addOption(text, target);
+                });
+            }
+        );
+    }
+    TargetSelector.prototype = new Selector();
+    TargetSelector.prototype.constructor = TargetSelector;
+
+    // register target selector as jQuery plugin
     $.fn.targetselector = function(arg1, arg2) {
         var results = [];
         
@@ -212,113 +246,41 @@ $(function () {
                     results.push(retVal);
             }
         });
-
-        if (typeof arg1 == 'string') {
-            return results.length > 1 ? results : results[0];
-        } else {
-            return results;
-        }
+        
+        return results;
     };
-
     $.fn.targetselector.Constructor = TargetSelector;
-
-    $(function() {
-        $('[data-role="targetselector"]').targetselector();
-    });
-})(window.jQuery);
-
-
-// A plugin to insert a composite control for selecting instrument in the granule
-// table. It queries OiDB to build an option list of instruments and facilities.
-// The definition of the granule is updated on selection of an entry.
-// TODO rewrite and merge with target selector
-(function ($) {
-    "use strict";
-
-    function InstrumentSelector(element, options) {
-        // all instrument candidates for this selector
-        this.instruments = [];
-
-        this.$element = $(element);
-        this.$input_facname = $(':input[name="facility_name"]', this.$element);
-        this.$input_insname = $(':input[name="instrument_name"]', this.$element);
-
-        // new element for selecting instrument
-        this.$select = $('<select>', { class: 'form-control' }).prependTo(this.$element);
-
-        var textNodes = this.$element.contents().filter(function() {
-            return this.nodeType === 3; //Node.TEXT_NODE
-        });
-        // get the current instrument description
-        var text = $.trim(textNodes.text());
-        this.addInstrument(text, { facility: this.$input_facname.val(), name: this.$input_insname.val() });
-        // remove it from container
-        textNodes.remove();
+    
+    // A plugin to insert a composite control for selecting instrument in the
+    // granule table. It queries OiDB to build an option list of instruments
+    // and facilities.The definition of the granule is updated on selection of
+    // an entry.
+    function InstrumentSelector() {
+        var self = this;
+        Selector.apply(self, arguments);
         
-        this.build(options);
+        // search for candidates given initial values
+        var value = this.val();
+        // TODO save results from granule to granule
+        $.get(
+            '/exist/restxq/oidb/instrument', 
+            {},
+            function (data) {
+                $('instrument', data).each(function () {
+                    // simple conversion of instrument from XML to JSON
+                    var instrument = {};
+                    $(this.attributes).each(function () { instrument[this.name] = this.value; });
+                    // register instrument description
+                    var text = instrument.facility + ' - ' + instrument.name;
+                    self.addOption(text, instrument);
+                });
+            }
+        );
     }
+    InstrumentSelector.prototype = new Selector();
+    InstrumentSelector.prototype.constructor = InstrumentSelector;
 
-    InstrumentSelector.prototype = {
-        constructor: InstrumentSelector,
-        
-        addInstrument: function(text, instrument) {
-            // associate instrument string with instrument description for selector
-            this.instruments[text] = instrument;
-            // add an option to the select
-            $('<option/>', { text: text }).appendTo(this.$select);
-        },
-
-        instrumentText: function(instrument) {
-            // format an instrument description (then used as text of the select option)
-            return instrument.facility + ' - ' + instrument.name;
-        },
-
-        build: function(options) {
-            var self = this;
-            // search for candidates given initial values
-            // TODO save results from granule to granule
-            $.get(
-                '/exist/restxq/oidb/instrument', 
-                {},
-                function (data) {
-                    $('instrument', data).each(function () {
-                        // simple conversion of instrument from XML to JSON
-                        var instrument = {};
-                        $(this.attributes).each(function () { instrument[this.name] = this.value; });
-                        // register instrument description
-                        self.addInstrument(self.instrumentText(instrument), instrument);
-                    });
-                }
-            );
-
-            // when selecting an instrument, update the form for the granule
-            self.$select.change(function () {
-                var key = $(this).find(':selected').text();
-                var instrument = self.instruments[key];
-
-                // set value of hidden form fields with instrument data
-                self.$input_facname.val(instrument.facility).change();
-                self.$input_insname.val(instrument.name).change();
-            });
-            
-            self.$select.change(function () {
-                // set validation state depending on the selected item: anything but first option is ok
-                var klass = ($(this).find(':selected').index() == 0) ? 'has-warning' : 'has-success';
-                self.$element.removeClass('has-warning has-success').addClass(klass);
-            });
-            // run validation on current choice
-            self.$select.change();
-        },
-
-        destroy: function() {
-            // preserve current text of selector
-            var text = this.$select.find(':selected').text();
-            // replace the select form element with the instrument description
-            this.$select.replaceWith(text);
-        },
-    };
-
-    // register plugin
+    // register instrument selector as jQuery plugin
     $.fn.instrumentselector = function(arg1, arg2) {
         var results = [];
         
@@ -337,17 +299,13 @@ $(function () {
                     results.push(retVal);
             }
         });
-
-        if (typeof arg1 == 'string') {
-            return results.length > 1 ? results : results[0];
-        } else {
-            return results;
-        }
+        
+        return results;
     };
-
     $.fn.instrumentselector.Constructor = InstrumentSelector;
 
     $(function() {
+        $('[data-role="targetselector"]').targetselector();
         $('[data-role="instrumentselector"]').instrumentselector();
     });
 })(window.jQuery);
