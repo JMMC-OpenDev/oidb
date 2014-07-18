@@ -274,25 +274,39 @@ $(function () {
         Selector.apply(self, arguments);
         
         // search for candidates given initial values
-        var value = this.val();
-        // TODO save results from granule to granule
-        $.get(
-            '/exist/restxq/oidb/instrument', 
-            {},
-            function (data) {
-                $('instrument', data).each(function () {
-                    // simple conversion of instrument from XML to JSON
-                    var instrument = {};
-                    $(this.attributes).each(function () { instrument[this.name] = this.value; });
-                    // register instrument description
-                    var text = instrument.facility + ' - ' + instrument.name;
-                    self.addOption(text, instrument);
-                });
-            }
-        );
+        this.fetchInstruments().done(function (data) {
+            $.each(data, function (idx, instrument) {
+                var text = instrument.facility_name + ' - ' + instrument.instrument_name;
+                // register instrument description
+                self.addOption(text, instrument);
+            });
+        });
     }
     InstrumentSelector.prototype = new Selector();
     InstrumentSelector.prototype.constructor = InstrumentSelector;
+    InstrumentSelector.prototype.instrumentCache = {};
+    InstrumentSelector.prototype.fetchInstruments = function () {
+        // translate single XML instrument element into JavaScript object
+        function transformInstrument(idx, instrument) {
+            var $instrument = $(instrument);
+            var ret = {};
+            ret.instrument_name = $instrument.attr('name');
+            ret.facility_name   = $instrument.attr('facility');
+            return ret;
+        }
+
+        var text = this.text();
+        if (!(text in this.instrumentCache)) {
+            var value = this.val();
+            // caching results of the query
+            this.instrumentCache[text] = $
+                .get('/exist/restxq/oidb/instrument', {})
+                .pipe(function (data) {
+                    return $('instrument', data).map(transformInstrument).toArray();
+                });
+        }
+        return this.instrumentCache[text];
+    };
 
     // register instrument selector as jQuery plugin
     $.fn.instrumentselector = function(arg1, arg2) {
