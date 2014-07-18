@@ -84,34 +84,6 @@ $(function () {
             // set SAMP parameter to URL of the relevant OIFITS file
             return { "url": $(this).siblings('a').attr('href') };
         });
-
-    // Drop-down list of instrument:
-    // event handler for updating the list of mode on changes to the instrument
-    $(':input[name="instrument_name"]').change(function (e) {
-        var $insname = $(this);
-        var $granule = $insname.parents('.granule').first();
-        var $insmode = $(':input[name="instrument_mode"]', $granule);
-
-        // TODO filter out possible value from oifits
-        // remove all <option> but first (unknown)
-        $insmode.children('option:gt(0)').remove();
-        // TODO save results from request to request
-        $.get(
-            '/exist/restxq/oidb/instrument/' + encodeURIComponent($insname.val()) + '/mode',
-            {},
-            function (data) {
-		// parse the XML returned for mode names
-                $('mode', data).each(function () {
-                    var mode = this.textContent;
-                    $insmode.append($('<option>', { value: mode, text: mode}));
-                });
-            });
-    });
-    // instrument mode validation: warning if no mode selected, success otherwise
-    $(':input[name="instrument_mode"]').change(function () {
-        var klass = ($(this).find(':selected').index() == 0) ? 'has-warning' : 'has-success';
-        $(this).parent().removeClass('has-warning has-success').addClass(klass);
-    }).change();
 });
 
 
@@ -357,8 +329,80 @@ $(function () {
     };
     $.fn.instrumentselector.Constructor = InstrumentSelector;
 
+    // A plugin to insert a control for selecting instrument mode in the
+    // granule table. It connects to the instrument selector and updates the
+    // options on instrument changes.
+    function ModeSelector(target, trigger) {
+        var self = this;
+        Selector.apply(self, [ target ]);
+
+        self.$source = $(trigger);
+        self.$source.change(function (e) {
+            // remove suggestion for last choice of instrument name
+            self.purge();
+            // replace with mode for current instrument
+            self.fetchModes().done(function (modes) {
+                $.each(modes, function () {
+                    self.addOption(this.instrument_mode, this); 
+                });
+            });
+        });
+    }
+    ModeSelector.prototype = new Selector();
+    ModeSelector.prototype.constructor = ModeSelector;
+    ModeSelector.prototype.modeCache = {};
+    ModeSelector.prototype.fetchModes = function () {
+        // translate single XML mode element into JavaScript object
+        function transformMode(idx, mode) {
+            return { instrument_mode: $(mode).text() };
+        }
+        
+        var insname = this.$source.val();
+        if (!(insname in this.modeCache)) {
+            // caching results of the query
+            this.modeCache[insname] = $
+                .get('/exist/restxq/oidb/instrument/' + encodeURIComponent(insname) + '/mode', {})
+                .pipe(function (data) {
+                    return $('mode', data).map(transformMode).toArray();
+                });
+        }
+        return this.modeCache[insname];
+    };
+
+    // register mode selector as jQuery plugin
+    $.fn.modeselector = function(arg1, arg2) {
+        var results = [];
+        
+        this.each(function() {
+            var modeselector = $(this).data('modeselector');
+            
+            if (!modeselector) {
+                // new selector
+                modeselector = new ModeSelector(this, arg1);
+                $(this).data('modeselector', modeselector);
+                results.push(modeselector);
+            } else {
+                // invoke function on existing mode selector
+                var retVal = modeselector[arg1](arg2);
+                if (retVal !== undefined)
+                    results.push(retVal);
+            }
+        });
+        
+        return results;
+    };
+    $.fn.modeselector.Constructor = ModeSelector;
+
     $(function() {
         $('[data-role="targetselector"]').targetselector();
         $('[data-role="instrumentselector"]').instrumentselector();
+
+        $('[data-role="modeselector"]').each(function () {
+            // connect to its respective instrument selector
+            var $row = $(this).closest('tr');
+            var $insname = $(':input[name="instrument_name"]', $row);
+
+            $(this).modeselector($insname);
+        });
     });
 })(window.jQuery);

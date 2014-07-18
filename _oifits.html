@@ -31,10 +31,9 @@
             </div>
         </td>
         <td>
-            <div>
-                <select class="form-control" name="instrument_mode" data-template="helpers:form-control">
-                    <option value="">Unknown</option>
-                </select>
+            <div data-role="modeselector">
+                <span data-template="helpers:model-value" data-template-key="instrument_mode"/>
+                <input name="instrument_mode" type="hidden" data-template="helpers:form-control"/>
             </div>
         </td>
         <td>
