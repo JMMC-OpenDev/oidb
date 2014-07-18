@@ -15,6 +15,9 @@ import module namespace jmmc-vizier="http://exist.jmmc.fr/jmmc-resources/vizier"
  : 
  : It takes the catalog ID from a 'catalog' HTTP parameter in the request.
  : 
+ : If no catalog exists with the given ID, it requests a redirect to the
+ : submission start page.
+ : 
  : @param $node
  : @param $model
  : @return a model with description of VizieR catalog
@@ -24,8 +27,13 @@ declare
 function vizier:catalog-description($node as node(), $model as map(*)) as map(*) {
     let $id := request:get-parameter('catalog', '')
     (: TODO check id :)
-    let $readme := jmmc-vizier:catalog($id)
-    (: TODO check readme :)
+    let $readme := try {
+            jmmc-vizier:catalog($id)
+        } catch * {
+            (: back to submit start page :)
+            (: TODO display status message :)
+            response:redirect-to(resolve-uri('submit.html')), ''
+        }
     return map {
         'source'        := 'http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=' || encode-for-uri($id),
         'id'            := $id,
