@@ -115,9 +115,6 @@ $(function () {
     "use strict";
 
     function TargetSelector(element, options) {
-        // all target candidates for this selector
-        this.targets = [];
-
         this.$element = $(element);
         this.$input_name = $(':input[name="target_name"]', this.$element);
         this.$input_ra   = $(':input[name="s_ra"]', this.$element);
@@ -142,10 +139,8 @@ $(function () {
         constructor: TargetSelector,
         
         addTarget: function(text, target) {
-            // associate target string with target description for selector
-            this.targets[text] = target;
             // add an option to the select
-            $('<option/>', { text: text }).appendTo(this.$select);
+            $('<option/>', { text: text }).data(target).appendTo(this.$select);
         },
 
         targetText: function(target) {
@@ -173,8 +168,7 @@ $(function () {
 
             // when selecting a target, update the form for the granule
             self.$select.change(function () {
-                var key = $(this).find(':selected').text();
-                var target = self.targets[key];
+                var target = $(this).find(':selected').data();
 
                 // set value of hidden form fields with target data
                 self.$input_name.val(target.name);
