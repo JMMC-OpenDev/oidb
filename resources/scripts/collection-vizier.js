@@ -199,33 +199,47 @@ $(function () {
         Selector.apply(self, arguments);
         
         // search for candidates given initial values
-        var value = this.val();
-        // TODO save results from granule to granule
-        $.get(
-            'modules/target.xql', 
-            { name: value.target_name, ra: value.s_ra, dec: value.s_dec },
-            function (data) {
-                $('target', data).each(function () {
-                    var target = {};
-                    $(this).children().each(function () {
-                        var text = $(this).text();
-                        switch (this.nodeName) {
-                            // convert from node names to column names
-                            case "name": target.target_name = text; break;
-                            case "ra":   target.s_ra        = text; break;
-                            case "dec":  target.s_dec       = text; break;
-                            default:     target[this.nodeName] = text;
-                        }
-                    });
-                    var text = target.target_name + ' - ' + target.ra_hms + ' ' + target.dec_dms;
-                    // register target description
-                    self.addOption(text, target);
-                });
-            }
-        );
+        this.fetchTargets().done(function (data) {
+            $.each(data, function (idx, target) {
+                var text = target.target_name + ' - ' + target.ra_hms + ' ' + target.dec_dms;
+                // register target description
+                self.addOption(text, target);
+            });
+        });
     }
     TargetSelector.prototype = new Selector();
     TargetSelector.prototype.constructor = TargetSelector;
+    TargetSelector.prototype.targetCache = {};
+    TargetSelector.prototype.fetchTargets = function () {
+        // translate single XML target element into JavaScript object
+        function transformTarget(idx, target) {
+            var ret = {};
+            $(target).children().each(function () {
+                var text = $(this).text();
+                switch (this.nodeName) {
+                    // convert from node names to column names
+                    case "name": ret.target_name = text; break;
+                    case "ra":   ret.s_ra        = text; break;
+                    case "dec":  ret.s_dec       = text; break;
+                    default:     ret[this.nodeName] = text;
+                }
+            });
+            return ret;
+        }
+
+        var text = this.text();
+        if (!(text in this.targetCache)) {
+            var value = this.val();
+            // caching results of the query
+            this.targetCache[text] = $
+                .get('modules/target.xql', { name: value.target_name, ra: value.s_ra, dec: value.s_dec })
+                .pipe(function (data) {
+                    // transform XML document to JavaScript array
+                    return $('target', data).map(transformTarget).toArray();
+                });
+        }
+        return this.targetCache[text];
+    };
 
     // register target selector as jQuery plugin
     $.fn.targetselector = function(arg1, arg2) {
