@@ -283,6 +283,10 @@ $(function () {
                 // register instrument description
                 self.addOption(text, instrument, $optgroup);
             });
+            
+            // try to autoselect valid facility/instrument pair
+            // (skip over option from file, pick suggested instead)
+            $('option:contains("' + self.text() + '"):eq(1)', self.$select).prop('selected', true).change();
         });
     }
     InstrumentSelector.prototype = new Selector();
