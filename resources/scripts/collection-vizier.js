@@ -300,7 +300,7 @@ $(function () {
             var value = this.val();
             // caching results of the query
             this.instrumentCache[text] = $
-                .get('/exist/restxq/oidb/instrument', {})
+                .get('/exist/restxq/oidb/instrument', this.val())
                 .pipe(function (data) {
                     return $('instrument', data).map(transformInstrument).toArray();
                 });
