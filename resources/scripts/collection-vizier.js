@@ -174,7 +174,7 @@ $(function () {
                 // set the current value of the input fields
                 $inputs.each(function () {
                     var $input = $(this);
-                    $input.val(value[$input.attr('name')]);
+                    $input.val(value[$input.attr('name')]).change();
                 });
             }
         },
