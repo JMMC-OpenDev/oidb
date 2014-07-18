@@ -277,10 +277,11 @@ $(function () {
         
         // search for candidates given initial values
         this.fetchInstruments().done(function (data) {
+            var $optgroup = $('<optgroup/>', { label: 'Facilities and instruments'}).appendTo(self.$select);
             $.each(data, function (idx, instrument) {
                 var text = instrument.facility_name + ' - ' + instrument.instrument_name;
                 // register instrument description
-                self.addOption(text, instrument);
+                self.addOption(text, instrument, $optgroup);
             });
         });
     }
