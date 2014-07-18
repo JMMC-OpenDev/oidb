@@ -131,9 +131,10 @@ $(function () {
     Selector.prototype = {
         constructor: Selector,
         
-        addOption: function(text, data) {
-            // add an option to the select
-            $('<option/>', { text: text }).data(data).appendTo(this.$select);
+        addOption: function(text, data, parent) {
+            parent = $(parent || this.$select);
+            // add an option
+            $('<option/>', { text: text }).data(data).appendTo(parent);
         },
 
         build: function(options) {
