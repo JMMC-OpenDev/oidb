@@ -197,6 +197,16 @@ $(function () {
             // return the internal <select/> element 
             return this.$select;
         },
+
+        purge: function() {
+            // remove all but first option from internal <select/>
+            this.$select.children('option')
+                // force select the first (default) option
+                .eq(1).prop('selected', true).end()
+                // remove all options but first
+                .not(':first').remove().end();
+            this.$select.change();
+        },
     };
 
     // A plugin to insert a composite control for selecting target in the
