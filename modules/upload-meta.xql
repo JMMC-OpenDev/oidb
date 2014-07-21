@@ -64,11 +64,10 @@ let $response :=
                     $obs_creator_name
                 )
             
-                for $target in $file/metadata/target
-                return upload:upload(
-                    $db_handle, 
-                    ( $target/*, $more )),
-                <success>Successfully uploaded metadata file</success>
+                let $ids :=
+                    for $target in $file/metadata/target
+                    return upload:upload($db_handle, ( $target/*, $more ))
+                return <success>Successfully uploaded metadata file</success>
             )
         } catch * {
             <error> { $err:description } </error>

@@ -54,7 +54,9 @@ declare %private function upload:insert-statement($metadata as node()*) {
         $config:sql-table,
         " ( " || string-join($columns, ', ') || " ) ",
         "VALUES",
-        " ( " || string-join($values,  ', ') || " )")
+        " ( " || string-join($values,  ', ') || " ) ",
+        (: Note: PostgreSQL extension :)
+        "RETURNING id")
 };
 
 (:~
@@ -65,9 +67,9 @@ declare %private function upload:insert-statement($metadata as node()*) {
  : @param $db_handle database handle 
  : @param $metadata a sequence of nodes with the metadata
  : @error failed to upload (SQL exception)
- : @return nothing
+ : @return the id of the just inserted row if available
  :)
-declare function upload:upload($db_handle as xs:long, $metadata as node()*) {
+declare function upload:upload($db_handle as xs:long, $metadata as node()*) as xs:integer {
     let $statement := upload:insert-statement($metadata)
     let $result := sql:execute($db_handle, $statement, false())
     return
@@ -75,7 +77,8 @@ declare function upload:upload($db_handle as xs:long, $metadata as node()*) {
             error(xs:QName('upload:SQLInsert'),
                 "Failed to upload: " || $result//sql:message/text() || ", query: " || $statement)
         else
-            ()
+            (: return the id of the inserted row :)
+            $result//sql:field[@name='id'][1]
 };
 
 (:~
@@ -108,14 +111,15 @@ declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $mo
     let $report := $data//checkReport/node()
     (: TODO check report for major problems before going further :)
     return (
-        for $target in $data//metadata/target
-        return try {
-            upload:upload($db_handle, ($target/*, $more))
-        } catch * {
-            (: add report to exception value :)
-            error($err:code , $err:description, ($err:value, $report))
-        },
-        $report
+        let $ids :=
+            for $target in $data//metadata/target
+            return try {
+                upload:upload($db_handle, ($target/*, $more))
+            } catch * {
+                (: add report to exception value :)
+                error($err:code , $err:description, ($err:value, $report))
+            }
+        return $report
     )
 };
 

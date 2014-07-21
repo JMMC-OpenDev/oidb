@@ -24,8 +24,8 @@ let $db_handle := config:get-db-connection()
 let $response :=
     <response> {
         try {
-            upload:upload($db_handle, ( $data/granule/*, <dataproduct_type> </dataproduct_type> )),
-            <success>Successfully uploaded metadata file</success>
+            <id>{ upload:upload($db_handle, $data/granule/*) }</id>,
+            <success>Successfully uploaded granule</success>
         } catch * {
             response:set-status-code(400) (: Bad Request:),
             <error> { $err:description } </error>

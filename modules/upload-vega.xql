@@ -89,8 +89,10 @@ let $response :=
                 (: remove old data from db :)
                 let $remove := local:delete-collection($handle)
                 (: push new data in database :)
-                for $x in $new
-                return upload:upload($handle, local:metadata($x)/node())
+                let $ids :=
+                    for $x in $new
+                    return upload:upload($handle, local:metadata($x)/node())
+                return ''
             } </success>
         } catch * {
             <error> { $err:code, $err:description } </error>
