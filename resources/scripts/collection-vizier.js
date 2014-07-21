@@ -60,7 +60,7 @@ $(function () {
                     $granule.removeClass('granule');
                     $granule.find('[data-role="targetselector"]').targetselector('destroy');
                     $granule.find('[data-role="instrumentselector"]').instrumentselector('destroy');
-                    $granule.find(':input[name="instrument_mode"]').replaceWith(function () { return $(':selected', this).text(); });
+                    $granule.find('[data-role="modeselector"]').modeselector('destroy');
                 });
         });
 
