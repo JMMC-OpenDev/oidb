@@ -55,12 +55,24 @@ $(function () {
             $(':input', this).serializeXML(granule, granule.documentElement);
 
             return $.ajax('modules/upload-granule.xql', { data: s.serializeToString(granule), contentType: 'application/xml', type: 'POST' })
-                .done(function () {
+                .done(function (data) {
                     // will not be selected for upload next time
                     $granule.removeClass('granule');
                     $granule.find('[data-role="targetselector"]').targetselector('destroy');
                     $granule.find('[data-role="instrumentselector"]').instrumentselector('destroy');
                     $granule.find('[data-role="modeselector"]').modeselector('destroy');
+                    
+                    // turn row into clickable links to granule details
+                    var id = parseInt($('id', data).text(), 10);
+                    $granule
+                        .addClass('pointer')
+                        .click(function (e) {
+                            if (e.target instanceof HTMLInputElement ||
+                                e.target instanceof HTMLAnchorElement) {
+                                return;
+                            }
+                            window.open('show.html?id=' + id);
+                        });
                 });
         });
 

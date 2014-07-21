@@ -10,3 +10,8 @@ input {
   background:#7f7f7f;
   background:rgba(255,255,255,0.5);
 }
+
+/* used on granule tables for links to details page */
+.pointer {
+  cursor: pointer;
+ }
