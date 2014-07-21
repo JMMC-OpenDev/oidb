@@ -66,8 +66,12 @@ $(function () {
 
         $.when.apply($, uploads)
             .done(function(x) {
-                // all granule successfully uploaded, redirect
-                document.location = "submit.html";
+                // all granule successfully uploaded, reuse the submit button
+                $buttons.filter(':submit')
+                    .children('img').remove().end()
+                    .removeAttr('disabled')
+                    .text('Done')
+                    .click(function () { document.location = "submit.html"; });
             })
             .fail(function (x) {
                 // had some failures, let user have another chance
