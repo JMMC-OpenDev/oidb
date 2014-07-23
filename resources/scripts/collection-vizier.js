@@ -54,7 +54,7 @@ $(function () {
 
             $(':input', this).serializeXML(granule, granule.documentElement);
 
-            return $.ajax('modules/upload-granule.xql', { data: s.serializeToString(granule), contentType: 'application/xml', type: 'POST' })
+            return $.ajax('modules/upload-granules.xql', { data: s.serializeToString(granule), contentType: 'application/xml', type: 'POST' })
                 .done(function (data) {
                     // will not be selected for upload next time
                     $granule.removeClass('granule');
