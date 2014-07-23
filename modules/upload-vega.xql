@@ -5,6 +5,9 @@ xquery version "3.0";
  :
  : The observations previously imported by the same way are deleted.
  : 
+ : All database operations in this script are executed within a 
+ : transaction: if any failure occurs, the database is left unchanged.
+ : 
  : It returns a <response> fragment with the status of the operation.
  :)
 
@@ -80,19 +83,28 @@ declare function local:metadata($observation as node()) as node() {
     } </metadata>
 };
 
+(:~
+ : Push observation logs in the database.
+ : 
+ : @param $handle a database connection handle
+ : @param $observations observation logs from VegaObs
+ : @return a list of the ids of the new granules
+ :)
+declare function local:upload($handle as xs:long, $observations as node()*) as xs:integer* {
+    (: remove old data from db :)
+    let $delete := local:delete-collection($handle)
+    (: insert new granules in db :)
+    for $o in $observations
+    return upload:upload($handle, local:metadata($o)/node())
+};
+
 let $response :=
     <response> {
         try {
             <success> {
-                let $handle := config:get-db-connection()
                 let $new := vega:get-observations()
-                (: remove old data from db :)
-                let $remove := local:delete-collection($handle)
-                (: push new data in database :)
-                let $ids :=
-                    for $x in $new
-                    return upload:upload($handle, local:metadata($x)/node())
-                return ''
+                let $ids := upload:within-transaction(local:upload(?, $new))
+                return $ids
             } </success>
         } catch * {
             <error> { $err:code, $err:description } </error>
