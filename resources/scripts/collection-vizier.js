@@ -22,16 +22,16 @@ $(function () {
         // Turn form into XML collection
         var collection = (new DOMParser()).parseFromString('<collection/>', 'text/xml');
         $('fieldset:first :input').not($('#articles :input')).serializeXML(collection, collection.documentElement);
-        $('#articles li').each(function () {
+        $('#articles > li').each(function () {
             var article = collection.createElement('article');
             $(':input', this).serializeXML(collection, article);
             collection.documentElement.appendChild(article);
         });
 
+        var id = $('fieldset:first input[name="id"]').val();
         $.ajax('/exist/restxq/oidb/collection/' + encodeURIComponent(id), { data: s.serializeToString(collection), contentType: 'application/xml', type: 'PUT' });
 
         // data from collection to add to each granule
-        var id       = $('fieldset:first input[name="id"]').val();
         var $article = $('fieldset:first #articles > li:first');
         var creator  = $('input[name="author"]:first', $article).val();
         var bibcode  = $('input[name="bibcode"]:first', $article).val();

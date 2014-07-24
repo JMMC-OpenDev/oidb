@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="ads:article">
-    <input type="hidden" name="bibcode" data-template="helpers:model-value-attribute" data-template-key="bibcode" data-template-name="value"/>
     <div>
         <strong>Title: </strong>
         <a data-template="helpers:model-value-attribute" data-template-key="ads-url" data-template-name="href" target="_blank">
@@ -30,6 +29,7 @@
         <div class="bootstrap-tagsinput">
             <div data-template="templates:each" data-template-from="keywords" data-template-to="keyword" class="tag label label-info">
                 <span data-template="helpers:model-value" data-template-key="keyword"/>
+                <input type="hidden" name="keyword" data-template="helpers:model-value-attribute" data-template-key="keyword" data-template-name="value"/>
             </div>
         </div>
     </div>
