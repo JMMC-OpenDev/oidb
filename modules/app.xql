@@ -717,6 +717,25 @@ declare function app:collection-ids($node as node(), $model as map(*)) as map(*)
 };
 
 (:~
+ : Iterate over each data collection, and templatize children nodes.
+ : 
+ : @note
+ : This function templatizes the children of the current node.
+ : 
+ : @param $node  the parent node of the children to templatize
+ : @param $model the current model
+ : @return a sequence of nodes, one for each row
+ :)
+declare function app:each-collection($node as node(), $model as map(*), $from as xs:string) as node() {
+    let $collections := $model($from)
+    return element { $node/name() } {
+        $node/@*,
+        for $collection in $collections
+        return templates:process($node/node(), map:new(( $model, map:entry('collection', $collection) )))
+    }
+};
+
+(:~
  : Add collection details to the model for templating.
  : 
  : @param $node
@@ -732,6 +751,7 @@ declare function app:collection-info($node as node(), $model as map(*), $key as 
     return map {
         'n_oifits'    := $count(( 'distinct', 'col=access_url' )),
         'n_granules'  := $count(()),
+        'id'          := $collection/id,
         'title'       := $collection/title,
         'description' := $collection/description
     }
