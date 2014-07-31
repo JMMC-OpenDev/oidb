@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div data-template="app:collection-ids">
+        <h2>VizieR astronomical catalogues</h2>
+        <ul>
+            <li data-template="templates:each" data-template-from="vizier-collections" data-template-to="collection">
+                <div data-template="app:collection-info" data-template-key="collection">
+                    <a>
+                        <span data-template="helpers:model-value" data-template-key="collection"/> - <span data-template="helpers:model-value" data-template-key="title"/>
+                    </a>
+                    <div>
+                        <span data-template="app:ellipsize" data-template-key="description"/>
+                    </div>
+                    <div>
+                        <span data-template="helpers:model-value" data-template-key="n_granules"/> granules in
+                        <span data-template="helpers:model-value" data-template-key="n_oifits"/> OIFITS files.
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>

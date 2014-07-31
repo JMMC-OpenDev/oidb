@@ -686,3 +686,57 @@ declare function app:input-user-name($elt as element(), $model as map(*)) {
 declare function app:doc($node as node(), $model as map(*)) {
     doc($config:data-root || "/" || $config:maindoc-filename)
 };
+
+(:~
+ : Add collection ids to the model.
+ : 
+ : @param $node
+ : @param $model
+ : @return a new submodel with collection ids
+ :)
+declare function app:collection-ids($node as node(), $model as map(*)) as map(*) {
+    map {
+        (: currently only vizier collections :)
+        'vizier-collections' := collection("/db/apps/oidb-data/collections")/collection[starts-with(./source, 'http://cdsarc.u-strasbg.fr/viz-bin/Cat')]/id/text()
+    }
+};
+
+(:~
+ : Add collection details to the model for templating.
+ : 
+ : @param $node
+ : @param $model the current model
+ : @param $key the entry name in model with collection id
+ : @return a new submodel with details of the requested collection
+ :)
+declare function app:collection-info($node as node(), $model as map(*), $key as xs:string) as map(*) {
+    let $id := $model($key)
+    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, 'collection=~' || encode-for-uri($id) )) || ') AS e', false())//*:TD/text() }
+    let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
+
+    return map {
+        'n_oifits'    := $count(( 'distinct', 'col=access_url' )),
+        'n_granules'  := $count(()),
+        'title'       := $collection/title,
+        'description' := $collection/description
+    }
+};
+
+(:~
+ : Truncate a text string from the model to a given length.
+ : 
+ : @param $node the placeholder for the ellipsized text
+ : @param $model
+ : @param $key the key to lookup in the model for source text
+ : @param $length the maximum size of text returned
+ : @return a ellipsized text if too long
+ :)
+declare 
+    %templates:default("length", "300")
+function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $length as xs:integer) as xs:string {
+    let $text := $model($key)
+    return if (string-length($text) > $length) then
+        substring($model($key), 1, $length) || '…'
+    else
+        $text
+};
