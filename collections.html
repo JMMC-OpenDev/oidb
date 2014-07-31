@@ -18,5 +18,22 @@
                 </div>
             </li>
         </ul>
+        <h2>Other collections</h2>
+        <ul>
+            <li data-template="templates:each" data-template-from="other-collections" data-template-to="collection">
+                <div data-template="app:collection-info" data-template-key="collection">
+                    <a data-template="helpers:model-value-attribute" data-template-key="url" data-template-name="href">
+                        <span data-template="helpers:model-value" data-template-key="collection"/> - <span data-template="helpers:model-value" data-template-key="title"/>
+                    </a>
+                    <div>
+                        <span data-template="app:ellipsize" data-template-key="description"/>
+                    </div>
+                    <div>
+                        <span data-template="helpers:model-value" data-template-key="n_granules"/> granules in
+                        <span data-template="helpers:model-value" data-template-key="n_oifits"/> OIFITS files.
+                    </div>
+                </div>
+            </li>
+        </ul>
     </div>
 </div>

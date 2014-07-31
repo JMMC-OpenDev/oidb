@@ -688,16 +688,31 @@ declare function app:doc($node as node(), $model as map(*)) {
 };
 
 (:~
+ : Test if a collection is from a VizieR astronomical catalog.
+ : 
+ : @param $c a <collection> element
+ : @return true if the collection is from a VizieR catalog
+ :)
+declare %private function app:vizier-collection($c as element(collection)) as xs:boolean {
+    starts-with(data($c/source), 'http://cdsarc.u-strasbg.fr/viz-bin/Cat')
+};
+
+(:~
  : Add collection ids to the model.
+ : 
+ : It separates collections based on their origin (at the moment, from VizieR
+ : astronomical catalog or user-defined).
  : 
  : @param $node
  : @param $model
  : @return a new submodel with collection ids
  :)
 declare function app:collection-ids($node as node(), $model as map(*)) as map(*) {
-    map {
-        (: currently only vizier collections :)
-        'vizier-collections' := collection("/db/apps/oidb-data/collections")/collection[starts-with(./source, 'http://cdsarc.u-strasbg.fr/viz-bin/Cat')]/id/text()
+    let $collections := collection("/db/apps/oidb-data/collections")/collection
+    let $vizier-collections := $collections[app:vizier-collection(.)]
+    return map {
+        'vizier-collections' := $vizier-collections/id/text(),
+        'other-collections'  := $collections[not(.=$vizier-collections)]/id/text()
     }
 };
 
