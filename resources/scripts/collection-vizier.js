@@ -52,7 +52,7 @@ $(function () {
             add('obs_collection',   id);
             add('bib_reference',    bibcode);
 
-            $(':input', this).serializeXML(granule, granule.documentElement);
+            $(':input', this).prop('disabled', true).serializeXML(granule, granule.documentElement);
 
             return $.ajax('modules/upload-granules.xql', { data: s.serializeToString(granule), contentType: 'application/xml', type: 'POST' })
                 .done(function (data) {
@@ -88,6 +88,8 @@ $(function () {
             .fail(function (x) {
                 // had some failures, let user have another chance
                 $buttons.removeAttr('disabled').children('img').remove();
+                // re-enable inputs of granules
+                $('tr.granule').prop('disabled', false);
             });
 
         e.preventDefault();
