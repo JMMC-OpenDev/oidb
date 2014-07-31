@@ -151,6 +151,27 @@
                 var $button = $("button[type='submit']", $form)
                 $button.append('&lt;img src="resources/images/spinner.gif"/&gt;')
 
+                // Turn form into XML collection
+                // TODO refactor the form, change names for simpler serialization
+                var id = $("input[name='obs_collection']", $form).val();
+                var collection = (new DOMParser()).parseFromString('&lt;collection/&gt;', 'text/xml');
+                $(collection.createElement('id')).text(id).appendTo(collection.documentElement);
+                var bibcode = $("input[name='bib_reference']").val();
+                if (bibcode) {
+                    var article = collection.createElement('article');
+                    var elt = collection.createElement('bibcode');
+                    elt.textContent = bibcode;
+                    article.appendChild(elt);
+                    collection.documentElement.appendChild(article);
+                }
+                $.each($("select[name='keywords']", $form).val(), function () {
+                    var keyword = collection.createElement('keyword');
+                    keyword.textContent = this;
+                    collection.documentElement.appendChild(keyword);
+                });
+                //save the collection
+                $.ajax('/exist/restxq/oidb/collection/' + encodeURIComponent(id), { data: new XMLSerializer().serializeToString(collection), contentType: 'application/xml', type: 'PUT' });
+
                 var action = $form.attr('action');
                 var params = $form.serialize();
                 // do the submit with AJAX
