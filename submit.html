@@ -17,6 +17,18 @@
                 </div>
             </fieldset>
             <fieldset>
+                <label for="title">Title</label>
+                <div class="controls">
+                    <input name="title" type="text" class="col-md-12"/>
+                </div>
+            </fieldset>
+            <fieldset>
+                <label for="description">Description</label>
+                <div class="controls">
+                    <textarea name="description" rows="8" class="col-md-12"/>
+                </div>
+            </fieldset>
+            <fieldset>
                 <label for="calib_level">Calibration level (0,1,2,3)</label>
                 <div class="controls">
                     <input name="calib_level" type="number" min="0" max="3" step="1"/>
@@ -131,6 +143,18 @@
     <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
     <script type="text/javascript">
         $(function () {
+            // TODO same as in collection-vizier.js
+            $.fn.serializeXML = function(doc, root) {
+                this.each(function () {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        var e = doc.createElement(name);
+                        e.textContent = $(this).val();
+                        root.appendChild(e);
+                    }
+                });
+            };
+
             $('select[name="keywords"]').tagsinput({
                 maxTags: 6,
                 typeahead: {
@@ -156,6 +180,7 @@
                 var id = $("input[name='obs_collection']", $form).val();
                 var collection = (new DOMParser()).parseFromString('&lt;collection/&gt;', 'text/xml');
                 $(collection.createElement('id')).text(id).appendTo(collection.documentElement);
+                $("input[name='title'], textarea[name='description']").serializeXML(collection, collection.documentElement);
                 var bibcode = $("input[name='bib_reference']").val();
                 if (bibcode) {
                     var article = collection.createElement('article');
