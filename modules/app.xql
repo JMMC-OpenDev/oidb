@@ -748,13 +748,12 @@ declare function app:collection-info($node as node(), $model as map(*), $key as 
     let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, 'collection=~' || encode-for-uri($id) )) || ') AS e', false())//*:TD/text() }
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
 
-    return map {
-        'n_oifits'    := $count(( 'distinct', 'col=access_url' )),
-        'n_granules'  := $count(()),
-        'id'          := $collection/id,
-        'title'       := $collection/title,
-        'description' := $collection/description
-    }
+    return map:new((
+        map:entry('n_oifits',   $count(( 'distinct', 'col=access_url' ))),
+        map:entry('n_granules', $count(())),
+        for $node in $collection/node() 
+        return map:entry($node/name(), data($node))
+        ))
 };
 
 (:~
