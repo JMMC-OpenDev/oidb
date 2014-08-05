@@ -56,14 +56,13 @@ declare function sesame:resolve-sesame($names as xs:string+) as item()* {
     (: @todo response not always valid, see HD166014, report upstream? :)
 (:    else if (not(validation:validate($response//httpclient:body/Sesame, $sesame:SCHEMA))) then:)
 (:        error(xs:QName('sesame:validation'), 'Invalid response from Sesame' || $response):)
+    (: check there is something returned for each name :)
+    else if($response//httpclient:body/Sesame/Target[not(./Resolver)]) then
+        let $idx := count($response//Target[not(./Resolver)]/preceding-sibling::*)+1
+        return error(xs:QName('sesame:resolve'), 'No result for ' || $names[$idx])
     else
-        (: check there is something returned for each name :)
-        for $name in $names
-        let $target := $response//httpclient:body/Sesame/Target[./name=$name]
-        return if (exists($target) and exists($target/Resolver)) then
-                sesame:target($target)
-            else
-                error(xs:QName('sesame:resolve'), 'No result for ' || $name || '.')
+        for $target in $response//httpclient:body/Sesame/Target
+        return sesame:target($target)
 };
 
 (:~
