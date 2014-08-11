@@ -741,6 +741,21 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
 };
 
 (:~
+ : Count the number of OIFITS files and granules matching a given query.
+ : 
+ : @param $query the ADQL query
+ : @return a map with counts of OIFITS and granules
+ :)
+declare %private function app:stats($query as item()*) as map(*) {
+    let $count := function($q) { number(tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, $query )) || ') AS e', false())//*:TD) }
+
+    return map {
+        'n_oifits'   := $count(( 'distinct', 'col=access_url' )),
+        'n_granules' := $count(())
+    }
+};
+
+(:~
  : Add collection stats to the model for templating.
  : 
  : @param $node
@@ -750,12 +765,7 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
  :)
 declare function app:collection-stats($node as node(), $model as map(*), $key as xs:string) as map(*) {
     let $id := helpers:get($model, $key)
-    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, 'collection=' || encode-for-uri($id) )) || ') AS e', false())//*:TD/text() }
-
-    return map {
-        'n_oifits'   := $count(( 'distinct', 'col=access_url' )),
-        'n_granules' := $count(())
-    }
+    return app:stats(( 'collection=' || encode-for-uri($id) ))
 };
 
 (:~
