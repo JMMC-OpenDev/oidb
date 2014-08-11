@@ -784,6 +784,32 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
 };
 
 (:~
+ : Return for templating the granules matching a query grouped by source.
+ : 
+ : @param $query the description of the ADQL query
+ : @return a sequence of granule grouped by source
+ :)
+declare %private function app:granules($query as item()*) as node()* {
+    (: search for granules matching query :)
+    let $votable := tap:execute(adql:build-query($query), false())
+
+    let $rows := $votable//votable:TR
+
+    (: transform the VOTable :)
+    let $fields := data($votable//votable:FIELD/@ID)
+    let $url-pos := index-of($fields, 'access_url')
+    return
+        (: group by source file (access_url) :)
+        for $url in distinct-values($rows/votable:TD[position()=$url-pos])
+        return <file> {
+            <url>{ $url }</url>,
+            for $tr in $rows
+            where $tr/votable:TD[position()=$url-pos]/text() = $url
+            return app:votable-row-to-granule($fields, $tr)
+        } </file>
+};
+
+(:~
  : Put collection granules into model from templating.
  : 
  : It takes the collection ID from a 'id' HTTP parameter in the request.
@@ -793,27 +819,13 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
  : 
  : @param $node  the current node
  : @param $model the current model
- : @param $key   the key for the entry with the collection id
- : @param a submodel with granules data
+ : @param $id    the collection identifier
+ : @return a submodel with granules data
  :)
-declare function app:collection-granules($node as node(), $model as map(*)) as map(*) {
-    let $id := request:get-parameter('id', '')
-    (: search for collection granules :)
-    let $votable := tap:execute(adql:build-query(( 'collection=' || encode-for-uri($id) )), false())
+declare function app:collection-granules($node as node(), $model as map(*), $id as xs:string) as map(*) {
+    let $query := ( 'collection=' || encode-for-uri($id) )
 
-    let $fields   := data($votable//votable:FIELD/@ID)
-    let $url-pos  := index-of($fields, 'access_url')
-    let $granules :=
-        (: group by source file (access_url) :)
-        for $url in distinct-values($votable//votable:TR/votable:TD[position()=$url-pos])
-        return <file> {
-            <url>{ $url }</url>,
-            for $tr in $votable//votable:TR
-            where $tr/votable:TD[position()=$url-pos]/text() = $url
-            return app:votable-row-to-granule($fields, $tr)
-        } </file>
-
-    return map { 'granules' := $granules }
+    return map { 'granules' := app:granules($query) }
 };
 
 (:~
