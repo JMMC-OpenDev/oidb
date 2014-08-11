@@ -7,6 +7,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
+import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
@@ -744,7 +745,7 @@ declare function app:each-collection($node as node(), $model as map(*), $from as
  : @return a new submodel with details of the requested collection
  :)
 declare function app:collection-info($node as node(), $model as map(*), $key as xs:string) as map(*) {
-    let $id := $model($key)
+    let $id := helpers:get($model, $key)
     let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, 'collection=~' || encode-for-uri($id) )) || ') AS e', false())//*:TD/text() }
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
 
@@ -768,7 +769,7 @@ declare function app:collection-info($node as node(), $model as map(*), $key as 
 declare 
     %templates:default("length", "300")
 function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $length as xs:integer) as xs:string {
-    let $text := $model($key)
+    let $text := helpers:get($model, $key)
     return if (string-length($text) > $length) then
         substring($model($key), 1, $length) || '…'
     else

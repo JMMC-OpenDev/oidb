@@ -8,6 +8,8 @@ module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
 
+import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers";
+
 import module namespace jmmc-oiexplorer="http://exist.jmmc.fr/jmmc-resources/oiexplorer";
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
@@ -97,7 +99,7 @@ declare function oifits:hidden-inputs($node as node(), $model as map(*)) as node
  : @return a string with the formatted date
  :)
 declare function oifits:date($node as node(), $model as map(*), $key as xs:string) as xs:string {
-    let $date := map:get($model, $key)
+    let $date := helpers:get($model, $key)
     return format-dateTime(jmmc-dateutil:MJDtoISO8601($date), "[Y0001]-[M01]-[D01] [H01]:[m01]:[s01]")
 };
 
@@ -110,7 +112,7 @@ declare function oifits:date($node as node(), $model as map(*), $key as xs:strin
  : @return a string with the formatted angle
  :)
 declare function oifits:hms($node as node(), $model as map(*), $key as xs:string) as xs:string {
-    jmmc-astro:to-hms(map:get($model, $key))
+    jmmc-astro:to-hms(helpers:get($model, $key))
 };
 
 (:~
@@ -122,7 +124,7 @@ declare function oifits:hms($node as node(), $model as map(*), $key as xs:string
  : @return a string with the formatted angle
  :)
 declare function oifits:dms($node as node(), $model as map(*), $key as xs:string) as xs:string {
-    jmmc-astro:to-dms(map:get($model, $key))
+    jmmc-astro:to-dms(helpers:get($model, $key))
 };
 
 (:~
@@ -134,5 +136,5 @@ declare function oifits:dms($node as node(), $model as map(*), $key as xs:string
  : @return a string with the basename of the path
  :)
 declare function oifits:basename($node as node(), $model as map(*), $key as xs:string) as xs:string {
-    tokenize(map:get($model, $key), '/')[last()]
+    tokenize(helpers:get($model, $key), '/')[last()]
 };

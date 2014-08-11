@@ -3,6 +3,9 @@ xquery version "3.0";
 (:~
  : This module provides a set of helper functions for HTML templating
  : that are not part of the upstream templates module.
+ : 
+ : It also extends eXist-db model for templating by supporting hierarchical
+ : keys and composite model (XQuery maps with possibly XML element as values).
  :)
 module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers";
 
@@ -19,7 +22,7 @@ import module namespace templates="http://exist-db.org/xquery/templates";
 declare
     %templates:wrap
 function helpers:if-model-key($node as node(), $model as map(*), $key as xs:string) {
-    if (map:contains($model, $key)) then
+    if (exists(helpers:get($model, $key))) then
         templates:process($node/node(), $model)
     else
         ()
@@ -36,10 +39,43 @@ function helpers:if-model-key($node as node(), $model as map(*), $key as xs:stri
 declare
     %templates:wrap
 function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:string) {
-    if (map:contains($model, $key)) then
+    if (exists(helpers:get($model, $key))) then
         ()
     else
         templates:process($node/node(), $model)
+};
+
+(:~
+ : Return the value associated with the key in an extended model.
+ : 
+ : @param $model the extended model
+ : @param $key   the key to search for
+ : @return the value of the key in the model
+ :)
+declare function helpers:get($model as item()*, $key as xs:string) as item()* {
+    (: split complex key :)
+    let $prefix := substring-before($key, '.')
+    let $local-key := if($prefix) then $prefix else $key
+    (: search for value of entry with local prefix :)
+    let $value :=
+        if ($model instance of map(*)) then
+            (: simple case: get entry for local-key in map :)
+            map:get($model, $local-key)
+        else if ($model instance of element()) then
+            (: pick all elements with name equal to local-key as value :)
+            $model/*[name()=$local-key]
+        else
+            (: bad model :)
+            ()
+    return if (exists($value) and $prefix) then
+        (: keep going down in the model for subkeys :)
+        helpers:get($value, substring-after($key, '.'))
+    else if ($prefix and empty($value)) then
+        (: complex key with no value in model :)
+        ()
+    else
+        (: value found or no value for simple key :)
+        $value
 };
 
 (:~
@@ -50,7 +86,7 @@ function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:
  : @return a string with value of the key in the model
  :)
 declare %private function helpers:model-value($model as map(*), $key as xs:string) as xs:string? {
-    xs:string($model($key))
+    xs:string(helpers:get($model, $key))
 };
 
 (:~
