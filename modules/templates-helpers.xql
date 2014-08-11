@@ -43,6 +43,17 @@ function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:
 };
 
 (:~
+ : Helper function for getting value in a model as a string.
+ : 
+ : @param $model the current model
+ : @param $key   the key to search for in the model
+ : @return a string with value of the key in the model
+ :)
+declare %private function helpers:model-value($model as map(*), $key as xs:string) as xs:string? {
+    xs:string($model($key))
+};
+
+(:~
  : Return the value of the given key in the model as text.
  : 
  : @param $node  a placeholder for text
@@ -51,7 +62,7 @@ function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:
  : @return the value for key in model as string or nothing
  :)
 declare function helpers:model-value($node as node(), $model as map(*), $key as xs:string) as xs:string? {
-    xs:string($model($key))
+    helpers:model-value($model, $key)
 };
 
 (:~
@@ -69,7 +80,7 @@ declare function helpers:model-value($node as node(), $model as map(*), $key as 
  :)
 declare function helpers:model-value-attribute($node as node(), $model as map(*), $key as xs:string, $name as xs:string) {
     element { node-name($node) } {
-        attribute { $name } { $model($key) },
+        attribute { $name } { helpers:model-value($model, $key) },
         $node/@*,
         templates:process($node/node(), $model)
     }
