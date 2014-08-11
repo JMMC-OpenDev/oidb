@@ -46,6 +46,34 @@ function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:
 };
 
 (:~
+ : Derive a key prefix from a partial path.
+ : 
+ : @param $partial the partial path
+ : @return a key prefix
+ :)
+declare %private function helpers:key-prefix-from-partial($partial as xs:string) as xs:string {
+    substring-before(substring-after(tokenize($partial, '/')[last()], '_'), '.')
+};
+
+(:~
+ : Iterate over values for a key in model and repeatedly process nested contents.
+ : 
+ : @param $node  the template node to repeat
+ : @param $model the current model
+ : @param $from  the key in model for entry with values to iterate over
+ : @param $to    the name of the new entry in each iteration
+ : @return a sequence of nodes, one for each value
+ :)
+declare function helpers:each($node as node(), $model as map(*), $from as xs:string, $to as xs:string) as node()* {
+    for $item in helpers:get($model, $from)
+    return
+        element { node-name($node) } {
+            $node/@*,
+            templates:process($node/node(), map:new(($model, map:entry($to, $item))))
+        }
+};
+
+(:~
  : Return the value associated with the key in an extended model.
  : 
  : @param $model the extended model
