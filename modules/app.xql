@@ -841,10 +841,10 @@ declare function app:each-granule($node as node(), $model as map(*), $from as xs
  :)
 declare 
     %templates:default("length", "300")
-function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $length as xs:integer) as xs:string {
+function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $length as xs:integer) as xs:string? {
     let $text := helpers:get($model, $key)
     return if (string-length($text) > $length) then
-        substring($model($key), 1, $length) || '…'
+        substring($text, 1, $length) || '…'
     else
         $text
 };
