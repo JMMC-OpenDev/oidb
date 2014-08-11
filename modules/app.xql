@@ -750,7 +750,7 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
  :)
 declare function app:collection-stats($node as node(), $model as map(*), $key as xs:string) as map(*) {
     let $id := helpers:get($model, $key)
-    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, 'collection=~' || encode-for-uri($id) )) || ') AS e', false())//*:TD/text() }
+    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, 'collection=' || encode-for-uri($id) )) || ') AS e', false())//*:TD/text() }
 
     return map {
         'n_oifits'   := $count(( 'distinct', 'col=access_url' )),
@@ -789,7 +789,7 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
 declare function app:collection-granules($node as node(), $model as map(*)) as map(*) {
     let $id := request:get-parameter('id', '')
     (: search for collection granules :)
-    let $votable := tap:execute(adql:build-query(( 'collection=~' || encode-for-uri($id) )), false())
+    let $votable := tap:execute(adql:build-query(( 'collection=' || encode-for-uri($id) )), false())
 
     let $fields   := data($votable//votable:FIELD/@ID)
     let $url-pos  := index-of($fields, 'access_url')
