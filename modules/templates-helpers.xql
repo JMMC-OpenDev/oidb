@@ -56,6 +56,35 @@ declare %private function helpers:key-prefix-from-partial($partial as xs:string)
 };
 
 (:~
+ : Render a partial with additional data from model entry.
+ : 
+ : If the key refers to a model entry containing a sequence, the partial is
+ : repeated once for each item of the sequence.
+ : 
+ : @param $node    the current node
+ : @param $model   the current model
+ : @param $partial the path to the partial to render
+ : @param $key     the key to search in model for partial data
+ : @param $as      the name of the model entry to hold data within the partial
+ : @return a sequence of nodes as result of each partial templating
+ :)
+declare function helpers:render($node as node(), $model as map(*), $partial as xs:string, $key as xs:string, $as as xs:string?) as node()* {
+    let $as := if ($as) then $as else helpers:key-prefix-from-partial($partial)
+    (: adapted from templates:include() to save cycles :)
+    let $partial := doc(concat(
+        if (starts-with($partial, "/")) then
+            (: search document relative to app root :)
+            templates:get-app-root($model)
+        else
+            (: locate template relative to HTML file :)
+            templates:get-root($model),
+        "/", $partial))
+    (: repeat for each item of value :)
+    for $item in helpers:get($model, $key)
+    return templates:process($partial/node(), map:new(( $model, map:entry($as, $item) )))
+};
+
+(:~
  : Iterate over values for a key in model and repeatedly process nested contents.
  : 
  : @param $node  the template node to repeat
