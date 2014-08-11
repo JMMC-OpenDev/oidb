@@ -793,7 +793,16 @@ declare %private function app:granules($query as item()*) as node()* {
     (: search for granules matching query :)
     let $votable := tap:execute(adql:build-query($query), false())
 
-    let $rows := $votable//votable:TR
+    (: select VOTable rows for page :)
+    let $rows :=
+        let $page  := number(substring-after($query[starts-with(., 'page=')], '='))
+        return subsequence($votable//votable:TR,
+            if (string($page) = 'NaN') then
+                1
+            else
+                let $perpage := number($query[starts-with(., 'perpage=')])
+                let $perpage := if (string($perpage) = 'NaN') then 25 else $perpage
+                return 1 + ($page - 1) * $perpage)
 
     (: transform the VOTable :)
     let $fields := data($votable//votable:FIELD/@ID)
@@ -820,12 +829,21 @@ declare %private function app:granules($query as item()*) as node()* {
  : @param $node  the current node
  : @param $model the current model
  : @param $id    the collection identifier
- : @return a submodel with granules data
+ : @param $page  offset into query result (page * perpage)
+ : @param $perpage number of results per page
+ : @return a submodel with granules data and pagination info
  :)
-declare function app:collection-granules($node as node(), $model as map(*), $id as xs:string) as map(*) {
-    let $query := ( 'collection=' || encode-for-uri($id) )
+declare
+    %templates:default("page", 1)
+    %templates:default("perpage", 25)
+function app:collection-granules($node as node(), $model as map(*), $id as xs:string, $page as xs:integer, $perpage as xs:integer) as map(*) {
+    let $query := ( 'collection=' || encode-for-uri($id), 'order=^access_url' )
+    let $stats := app:stats($query)
 
-    return map { 'granules' := app:granules($query) }
+    return map {
+        'granules' := app:granules(( $query, 'page=' || $page, 'perpage=' || $perpage )),
+        'pagination' := map { 'page' := $page, 'npages' := ceiling($stats('n_granules') div $perpage) }
+    }
 };
 
 (:~
