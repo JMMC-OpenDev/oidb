@@ -807,6 +807,30 @@ declare function app:collection-granules($node as node(), $model as map(*)) as m
 };
 
 (:~
+ : Iterate over granules from a model entry and repeatedly process nested contents.
+ : 
+ : @note
+ : This function differs from helpers:each() in that it adds a 'data-id'
+ : attribute to each node.
+ : 
+ : @param $node  the template node to repeat
+ : @param $model the current model
+ : @param $from  the key in model for entry with granules to iterate over
+ : @param $to    the name of the new entry in each iteration
+ : @return a sequence of nodes, one for each granule
+ :)
+declare function app:each-granule($node as node(), $model as map(*), $from as xs:string, $to as xs:string) as node()* {
+    for $granule in helpers:get($model, $from)
+    return
+        element { node-name($node) } {
+            $node/@*,
+            (: here is the magic: attach id to element for later scripting :)
+            attribute { 'data-id' } { helpers:get($granule, 'id') },
+            templates:process($node/node(), map:new(($model, map:entry($to, $granule))))
+        }
+};
+
+(:~
  : Truncate a text string from the model to a given length.
  : 
  : @param $node the placeholder for the ellipsized text
