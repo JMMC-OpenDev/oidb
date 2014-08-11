@@ -441,7 +441,7 @@ declare
 function app:deserialize-query-string($node as node(), $model as map(*)) as map(*) {
     map:new((
         (: --- FILTERS --- :)
-        (: target=[!]~<data> :)
+        (: target=[!][~]<data> :)
         map {
             'target_name' := substring-after(request:get-parameter('target', ''), '~')
         },
@@ -469,11 +469,11 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         map {
             'band'        := tokenize(request:get-parameter('wavelengthband', ''), ',')
         },
-        (: collection=[!]~<data> :)
+        (: collection=[!][~]<data> :)
         map {
             'collection'  := substring-after(request:get-parameter('collection', ''), '~')
         },
-        (: datapi=[!]~<data> :)
+        (: datapi=[!][~]<data> :)
         map {
             'datapi'      := substring-after(request:get-parameter('datapi', ''), '~')
         },

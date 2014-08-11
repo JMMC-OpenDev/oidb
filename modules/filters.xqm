@@ -25,19 +25,20 @@ import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
  : a given column.
  : 
  : It builds the condition matching the text of the parameter
- : and depending on whether it is prefixed by '~' or '!~'.
+ : and depending on whether it is prefixed by '!', '~' or '!~'.
  : 
  : @param $params the text prefixed by '~' or '!~'
- : @return a LIKE predicate or () if bad pattern format
+ : @return a LIKE predicate
  :)
 declare %private function filters:like-text($params as xs:string, $column as xs:string) {
-    if (starts-with($params, '~') or starts-with($params, '!~')) then
-        let $not  := if (starts-with($params, '!')) then 'NOT ' else ''
-        let $name := adql:escape(substring-after($params, '~'))
-        return
-            "( " || $adql:correlation-name || "." || $column || " " || $not || "LIKE " || "'%" || $name || "%' )"
-    else
-        ()
+    let $not := if (starts-with($params, '!')) then ' NOT ' else ''
+    let $pattern :=
+        if ((starts-with($params, '~') or starts-with($params, '!~'))) then
+            '%' || substring-after($params, '~') || '%'
+        else
+            if ($not) then substring-after($params, '!') else $params
+    return
+        "( " || $adql:correlation-name || "." || $column || $not || " LIKE " || "'" || adql:escape($pattern) || "' )"
 };
 
 (:~
