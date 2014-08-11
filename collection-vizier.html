@@ -56,9 +56,7 @@
                         <th>Instrument mode</th>
                         <th>Night</th>
                     </thead>
-                    <div data-template="templates:each" data-template-from="oifits" data-template-to="url">
-                        <tbody data-template="templates:include" data-template-path="_oifits.html"/>
-                    </div>
+                    <tbody data-template="helpers:render" data-template-partial="_oifits.html" data-template-key="oifits" data-template-as="url"/>
                 </table>
             </div>
         </fieldset>

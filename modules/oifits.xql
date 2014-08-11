@@ -46,32 +46,6 @@ function oifits:granules($node as node(), $model as map(*)) as map(*) {
 };
 
 (:~
- : Iterate over each granule in the model and templatize child nodes.
- : 
- : The granules are taken from the 'granules' key in the current model as XML
- : fragments. The children of the root element are translated into model
- : entries for templating.
- : 
- : @param $node  the current node, taken as pattern at each iteration
- : @param $model the current model
- : @return a sequence of nodes, one for each granule
- :)
-declare function oifits:each-granule($node as node(), $model as map(*)) as node()* {
-    for $granule in $model('granules')
-    return element { node-name($node) } {
-        $node/@*,
-        (: templatize child nodes with granule data :)
-        templates:process($node/node(), 
-            map:new((
-                $model, 
-                (: add the raw XML fragment of granule to model... :)
-                map:entry('granule', $granule),
-                (: ... and break out granule data into individual model entries :)
-                for $e in $granule/* return map:entry($e/name(), $e/text()))))
-    }
-};
-
-(:~
  : Insert into the current node the missing data for a granule.
  : 
  : It produces an hidden input element for each piece of data from the granule

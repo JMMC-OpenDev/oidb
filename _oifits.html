@@ -14,34 +14,34 @@
             </span>
         </td>
     </tr>
-    <tr class="granule" data-template="oifits:each-granule">
+    <tr class="granule" data-template="helpers:each" data-template-from="granules" data-template-to="granule">
         <td>
             <div data-role="targetselector">
-                <span data-template="helpers:model-value" data-template-key="target_name"/> - <span data-template="oifits:hms" data-template-key="s_ra"/>&#160;<span data-template="oifits:dms" data-template-key="s_dec"/>
-                <input name="target_name" type="hidden" data-template="helpers:form-control"/>
-                <input name="s_ra" type="hidden" data-template="helpers:form-control"/>
-                <input name="s_dec" type="hidden" data-template="helpers:form-control"/>
+                <span data-template="helpers:model-value" data-template-key="granule.target_name"/> - <span data-template="oifits:hms" data-template-key="granule.s_ra"/>&#160;<span data-template="oifits:dms" data-template-key="granule.s_dec"/>
+                <input name="target_name" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.target_name" data-template-name="value"/>
+                <input name="s_ra" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.s_ra" data-template-name="value"/>
+                <input name="s_dec" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.s_dec" data-template-name="value"/>
             </div>
         </td>
         <td>
             <div data-role="instrumentselector">
-                <span data-template="helpers:model-value" data-template-key="facility_name"/> - <span data-template="helpers:model-value" data-template-key="instrument_name"/>
-                <input name="facility_name" type="hidden" data-template="helpers:form-control"/>
-                <input name="instrument_name" type="hidden" data-template="helpers:form-control"/>
+                <span data-template="helpers:model-value" data-template-key="granule.facility_name"/> - <span data-template="helpers:model-value" data-template-key="granule.instrument_name"/>
+                <input name="facility_name" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.facility_name" data-template-name="value"/>
+                <input name="instrument_name" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.instrument_name" data-template-name="value"/>
             </div>
         </td>
         <td>
             <div data-role="modeselector">
-                <span data-template="helpers:model-value" data-template-key="instrument_mode"/>
-                <input name="instrument_mode" type="hidden" data-template="helpers:form-control"/>
+                <span data-template="helpers:model-value" data-template-key="granule.instrument_mode"/>
+                <input name="instrument_mode" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.instrument_mode" data-template-name="value"/>
             </div>
         </td>
         <td>
             <p class="form-control-static">
-                <span data-template="oifits:date" data-template-key="t_min"/> - <span data-template="oifits:date" data-template-key="t_max"/>
+                <span data-template="oifits:date" data-template-key="granule.t_min"/> - <span data-template="oifits:date" data-template-key="granule.t_max"/>
             </p>
-            <input name="t_min" type="hidden" data-template="helpers:form-control"/>
-            <input name="t_max" type="hidden" data-template="helpers:form-control"/>
+            <input name="t_min" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.t_min" data-template-name="value"/>
+            <input name="t_max" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.t_max" data-template-name="value"/>
         </td>
         <input type="hidden" data-template="oifits:hidden-inputs"/>
     </tr>

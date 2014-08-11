@@ -12,6 +12,8 @@ import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-h
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 
+declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
+
 (:~
  : Create a model for the context of the node with statistics on results.
  : 
@@ -740,6 +742,53 @@ declare function app:collection-stats($node as node(), $model as map(*), $key as
         'n_granules' := $count(())
     }
 };
+
+(:~
+ : Convert a row of a granule from a VOTable to XML granule.
+ : 
+ : @param $fields the VOTable column names
+ : @param $row    the VOTable row
+ : @return a XML granule
+ :)
+declare %private function app:votable-row-to-granule($fields as xs:string*, $row as element(votable:TR)) as element(granule){
+    <granule> {
+        (: turn each cell into child element whose name is the respective column name :)
+        for $td at $i in $row/votable:TD
+        return element { $fields[$i] } { $td/text() }
+    } </granule>
+};
+
+(:~
+ : Put collection granules into model from templating.
+ : 
+ : It takes the collection ID from a 'id' HTTP parameter in the request.
+ : 
+ : It ultimately adds a 'granules' entry to the model containing a sequence of
+ : the collection granules grouped by source file.
+ : 
+ : @param $node  the current node
+ : @param $model the current model
+ : @param $key   the key for the entry with the collection id
+ : @param a submodel with granules data
+ :)
+declare function app:collection-granules($node as node(), $model as map(*)) as map(*) {
+    let $id := request:get-parameter('id', '')
+    (: search for collection granules :)
+    let $votable := tap:execute(adql:build-query(( 'collection=~' || encode-for-uri($id) )), false())
+
+    let $fields   := data($votable//votable:FIELD/@ID)
+    let $url-pos  := index-of($fields, 'access_url')
+    let $granules :=
+        (: group by source file (access_url) :)
+        for $url in distinct-values($votable//votable:TR/votable:TD[position()=$url-pos])
+        return <file> {
+            <url>{ $url }</url>,
+            for $tr in $votable//votable:TR
+            where $tr/votable:TD[position()=$url-pos]/text() = $url
+            return app:votable-row-to-granule($fields, $tr)
+        } </file>
+
+    return map { 'granules' := $granules }
 };
 
 (:~
