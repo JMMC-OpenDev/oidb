@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<li xmlns="http://www.w3.org/1999/xhtml" class="list-group-item">
+    <span class="badge">
+        <span data-template="helpers:model-value" data-template-key="article.bibcode"/>
+        <input name="bibcode" type="hidden" data-template="helpers:model-value-attribute" data-template-key="article.bibcode" data-template-name="value"/>
+    </span>
+    <div>
+        <strong>Title: </strong>
+        <span data-template="helpers:model-value" data-template-key="article.title"/>
+    </div>
+    <div>
+        <strong>Authors: </strong>
+        <ul class="list-inline">
+            <li data-template="helpers:each" data-template-from="article.author" data-template-to="author">
+                <span data-template="helpers:model-value" data-template-key="author"/>
+            </li>
+        </ul>
+    </div>
+    <div>
+        <strong>Publication date: </strong>
+        <span>
+            <span data-template="helpers:model-value" data-template-key="article.pubdate"/>
+        </span>
+    </div>
+    <div>
+        <strong>Keywords: </strong>
+        <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
+        <div class="bootstrap-tagsinput">
+            <div data-template="helpers:each" data-template-from="article.keyword" data-template-to="keyword" class="tag label label-info">
+                <span data-template="helpers:model-value" data-template-key="keyword"/>
+            </div>
+        </div>
+    </div>
+</li>

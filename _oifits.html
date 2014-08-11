@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tbody xmlns="http://www.w3.org/1999/xhtml">
+    <tr>
+        <td colspan="4">
+            <a data-template="helpers:model-value-attribute" data-template-key="oifits.url" data-template-name="href">
+                <span data-template="oifits:basename" data-template-key="oifits.url"/>
+            </a>
+        </td>
+    </tr>
+    <tr class="granule" data-template="helpers:each" data-template-from="oifits.granule" data-template-to="granule">
+        <td>
+            <span data-template="helpers:model-value" data-template-key="granule.target_name"/> - <span data-template="oifits:hms" data-template-key="granule.s_ra"/>&#160;<span data-template="oifits:dms" data-template-key="granule.s_dec"/>
+        </td>
+        <td>
+            <span data-template="helpers:model-value" data-template-key="granule.facility_name"/> - <span data-template="helpers:model-value" data-template-key="granule.instrument_name"/>
+        </td>
+        <td>
+            <span data-template="helpers:model-value" data-template-key="granule.instrument_mode"/>
+        </td>
+        <td>
+            <span data-template="oifits:date" data-template-key="granule.t_min"/> - <span data-template="oifits:date" data-template-key="granule.t_max"/>
+        </td>
+    </tr>
+</tbody>

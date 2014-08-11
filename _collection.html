@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml">
+    <div>
+        <strong>ID: </strong>
+        <span data-template="helpers:model-value" data-template-key="collection.id"/>
+    </div>
+    <div>
+        <strong>Title: </strong>
+        <span data-template="helpers:model-value" data-template-key="collection.title"/>
+    </div>
+    <div>
+        <strong>Description: </strong>
+        <div style="white-space: pre-wrap; height: 200px; overflow-y: auto;" class="well">
+            <span data-template="helpers:model-value" data-template-key="collection.description"/>
+        </div>
+    </div>
+    <div>
+        <strong>Articles: </strong>
+        <ul class="list-group">
+            <li data-template="helpers:render" data-template-partial="_article-view.html" data-template-key="collection.article" data-template-as="article"/>
+        </ul>
+    </div>
+</div>

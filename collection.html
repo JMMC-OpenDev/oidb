@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div class="col-md-offset-1 col-md-10">
+        <div data-template="app:collection">
+            <h1>
+                <span data-template="app:ellipsize" data-template-key="collection.title" data-template-length="80"/>
+            </h1>
+            <h2>Description</h2>
+            <div data-template="helpers:render" data-template-partial="_collection.html" data-template-key="collection"/>
+            <h2>Granules</h2>
+            <div data-template="app:collection-granules">
+                <table class="table table-bordered table-condensed">
+                    <thead>
+                        <th>Target</th>
+                        <th>Instrument</th>
+                        <th>Instrument mode</th>
+                        <th>Night</th>
+                    </thead>
+                    <tbody data-template="helpers:render" data-template-partial="_oifits.html" data-template-key="granules" data-template-as="oifits"/>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="resources/scripts/collection.js"/>
+</div>

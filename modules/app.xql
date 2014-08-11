@@ -726,6 +726,21 @@ declare function app:collections($node as node(), $model as map(*)) as map(*) {
 };
 
 (:~
+ : Put collection details into model for templating.
+ : 
+ : It takes the collection ID from a 'id' HTTP parameter in the request.
+ : 
+ : @param $node
+ : @param $model the current model
+ : @return a submodel with collection description
+ :)
+declare function app:collection($node as node(), $model as map(*)) as map(*) {
+    let $id := request:get-parameter('id', '')
+    let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
+    return map { 'collection' := $collection }
+};
+
+(:~
  : Add collection stats to the model for templating.
  : 
  : @param $node
