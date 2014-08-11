@@ -699,62 +699,47 @@ declare %private function app:vizier-collection($c as element(collection)) as xs
 };
 
 (:~
- : Add collection ids to the model.
+ : Add collections to the model.
  : 
  : It separates collections based on their origin (at the moment, from VizieR
  : astronomical catalog or user-defined).
  : 
  : @param $node
  : @param $model
- : @return a new submodel with collection ids
+ : @return a new submodel with collections
  :)
-declare function app:collection-ids($node as node(), $model as map(*)) as map(*) {
-    let $collections := collection("/db/apps/oidb-data/collections")/collection
+declare function app:collections($node as node(), $model as map(*)) as map(*) {
+    let $collections :=
+        for $collection in collection("/db/apps/oidb-data/collections")/collection
+        (: open up collection and add link to full description page :)
+        return <collection> {
+            $collection/*,
+            <url>{ 'collection.html?id=' || encode-for-uri($collection/@id) }</url>
+        } </collection>
     let $vizier-collections := $collections[app:vizier-collection(.)]
     return map {
-        'vizier-collections' := $vizier-collections/id/text(),
-        'other-collections'  := $collections[not(.=$vizier-collections)]/id/text()
+        'vizier-collections' := $vizier-collections,
+        'other-collections'  := $collections[not(.=$vizier-collections)]
     }
 };
 
 (:~
- : Iterate over each data collection, and templatize children nodes.
- : 
- : @note
- : This function templatizes the children of the current node.
- : 
- : @param $node  the parent node of the children to templatize
- : @param $model the current model
- : @return a sequence of nodes, one for each row
- :)
-declare function app:each-collection($node as node(), $model as map(*), $from as xs:string) as node() {
-    let $collections := $model($from)
-    return element { $node/name() } {
-        $node/@*,
-        for $collection in $collections
-        return templates:process($node/node(), map:new(( $model, map:entry('collection', $collection) )))
-    }
-};
-
-(:~
- : Add collection details to the model for templating.
+ : Add collection stats to the model for templating.
  : 
  : @param $node
  : @param $model the current model
  : @param $key the entry name in model with collection id
- : @return a new submodel with details of the requested collection
+ : @return a submodel with stats of the requested collection
  :)
-declare function app:collection-info($node as node(), $model as map(*), $key as xs:string) as map(*) {
+declare function app:collection-stats($node as node(), $model as map(*), $key as xs:string) as map(*) {
     let $id := helpers:get($model, $key)
     let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, 'collection=~' || encode-for-uri($id) )) || ') AS e', false())//*:TD/text() }
-    let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
 
-    return map:new((
-        map:entry('n_oifits',   $count(( 'distinct', 'col=access_url' ))),
-        map:entry('n_granules', $count(())),
-        for $node in $collection/node() 
-        return map:entry($node/name(), data($node))
-        ))
+    return map {
+        'n_oifits'   := $count(( 'distinct', 'col=access_url' )),
+        'n_granules' := $count(())
+    }
+};
 };
 
 (:~

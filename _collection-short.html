@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<a xmlns="http://www.w3.org/1999/xhtml" class="list-group-item" data-template="helpers:model-value-attribute" data-template-key="collection.url" data-template-name="href">
+    <h4 class="list-group-item-heading">
+        <span data-template="helpers:model-value" data-template-key="collection.id"/> - <span data-template="helpers:model-value" data-template-key="collection.title"/>
+    </h4>
+    <div class="list-group-item-text">
+        <p style="white-space: pre-wrap;">
+            <span data-template="app:ellipsize" data-template-key="collection.description"/>
+        </p>
+        <p data-template="app:collection-stats" data-template-key="collection.id">
+            <em>
+                <span data-template="helpers:model-value" data-template-key="n_granules"/> granules in
+                <span data-template="helpers:model-value" data-template-key="n_oifits"/> OIFITS files.
+            </em>
+        </p>
+    </div>
+</a>

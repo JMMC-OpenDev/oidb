@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <h1>Collections</h1>
-    <div data-template="app:collection-ids">
+    <div data-template="app:collections">
         <h2>VizieR astronomical catalogues</h2>
         <div class="row">
-            <div class="list-group col-md-offset-1 col-md-10" data-template="app:each-collection" data-template-from="vizier-collections">
-                <div data-template="templates:include" data-template-path="_collection.html"/>
+            <div class="list-group col-md-offset-1 col-md-10">
+                <div data-template="helpers:render" data-template-partial="_collection-short.html" data-template-key="vizier-collections" data-template-as="collection"/>
             </div>
         </div>
         <h2>Other collections</h2>
         <div class="row">
-            <div class="list-group col-md-offset-1 col-md-10" data-template="app:each-collection" data-template-from="other-collections">
-                <div data-template="templates:include" data-template-path="_collection.html"/>
+            <div class="list-group col-md-offset-1 col-md-10">
+                <div data-template="helpers:render" data-template-partial="_collection-short.html" data-template-key="other-collections" data-template-as="collection"/>
             </div>
         </div>
     </div>
