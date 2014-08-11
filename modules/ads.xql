@@ -6,7 +6,7 @@ xquery version "3.0";
 module namespace ads="http://apps.jmmc.fr/exist/apps/oidb/ads";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
-import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
 import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
 
@@ -21,33 +21,44 @@ declare %private function ads:abstract-url($bibcode as xs:string) as xs:string {
 };
 
 (:~
- : Render the current node and its children with article info.
+ : Return a description of an article from its ADS record as map for templating.
  : 
- : It expects an entry named 'bibcode' in the current model. The data from the 
- : abstract record are added to the model for templating children node.
- : 
- : @param $node  the current node
- : @param $model the current model
- : @return the templatized current node or nothing if the bibcode is not linked
- : to any abstract at ADS.
+ : @param $bibcode the bibcode to search
+ : @return a map as model for templating
  :)
-declare function ads:article($node as node(), $model as map(*)) as node()? {
-    let $bibcode := map:get($model, 'bibcode')
-    let $record := jmmc-ads:get-record($bibcode)
-    return element { node-name($node) } {
-        $node/@*,
-        if ($record) then
-            let $record-model := map {
-                'bibcode'  := $bibcode,
+declare %private function ads:article($bibcode as xs:string) as map(*)? {
+    map:new((
+        map:entry('bibcode', $bibcode),
+        let $record := jmmc-ads:get-record($bibcode)
+        return if ($record) then
+            (: turn record into model entries :)
+            map {
                 'title'    := jmmc-ads:get-title($record),
                 'authors'  := jmmc-ads:get-authors($record),
                 'pubdate'  := jmmc-ads:get-pub-date($record),
                 'keywords' := jmmc-ads:get-keywords($record),
                 'ads-url'  := ads:abstract-url($bibcode)
             }
-            (: templatize child nodes with article data :)
-            return templates:process($node/node(), map:new(( $model, $record-model )))
         else
-            '&#160;'
+            (: unknown article, return only bibcode in model :)
+            ()))
+};
+
+(:~
+ : Add article descriptions to model from bibcodes.
+ : 
+ : It creates an entry with name 'articles' and value as sequence of
+ : description of articles.
+ : 
+ : @param $node  the current node
+ : @param $model the current model
+ : @param $key   the name of the entry containing the bibcodes to search.
+ : @return a new model with article descriptions
+ :)
+declare function ads:articles($node as node(), $model as map(*), $key as xs:string) as map(*) {
+    let $bibcodes := helpers:get($model, $key)
+    return map { 'articles' :=
+        for $bibcode in $bibcodes
+        return ads:article($bibcode)
     }
 };

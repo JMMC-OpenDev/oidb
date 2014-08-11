@@ -32,15 +32,11 @@
             <div class="form-group">
                 <label class="col-md-2 control-label">Articles</label>
                 <div class="col-md-8">
-                    <ul id="articles" class="list-group">
-                        <li data-template="templates:each" data-template-from="bibcodes" data-template-to="bibcode" class="list-group-item">
-                            <span class="badge">
-                                <span data-template="helpers:model-value" data-template-key="bibcode"/>
-                                <input name="bibcode" type="hidden" data-template="helpers:form-control"/>
-                            </span>
-                            <div data-template="templates:include" data-template-path="_article.html"/>
-                        </li>
-                    </ul>
+                    <div data-template="ads:articles" data-template-key="bibcodes">
+                        <ul id="articles" class="list-group">
+                            <li data-template="helpers:render" data-template-partial="_article.html" data-template-key="articles"/>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="form-group">
