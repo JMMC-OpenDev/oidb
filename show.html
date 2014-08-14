@@ -3,10 +3,19 @@
     <div data-template="app:show"/>
     <h1>Comments</h1>
     <div class="col-md-offset-1 col-md-10">
+        <div data-template="templates:if-parameter-set" data-template-param="message">
+            <div data-template="app:add-comment"/>
+        </div>
         <div data-template="app:comments">
-            <ul class="media-list">
+            <ul class="media-list" id="comments">
                 <li data-template="helpers:render" data-template-partial="_comment.html" data-template-key="comments"/>
             </ul>
+            <div data-template="templates:if-attribute-set" data-template-attribute="user">
+                <a href="#" class="btn btn-default btn-sm btn-block add-comment" role="button">
+                    <span class="glyphicon glyphicon-plus"/> Add new comment</a>
+                <div data-template="templates:include" data-template-path="_comment-form.html"/>
+            </div>
         </div>
     </div>
+    <script type="text/javascript" src="resources/scripts/show.js"/>
 </div>

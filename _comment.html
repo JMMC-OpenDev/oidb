@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<li xmlns="http://www.w3.org/1999/xhtml" class="media">
+<li xmlns="http://www.w3.org/1999/xhtml" class="media" data-template="helpers:model-value-attribute" data-template-key="comment.id" data-template-name="id">
     <a class="pull-left" href="#">
         <img class="media-object" src="./resources/images/vignettes/data-pis/bonhommebleu.jpg" height="64" width="64"/>
     </a>
@@ -18,8 +18,14 @@
                 </small>
             </div>
         </h4>
-        <div style="white-space: pre-wrap">
+        <div style="white-space: pre-wrap; min-height: 40px;">
             <span data-template="helpers:model-value" data-template-key="comment.text"/>
+        </div>
+        <div>
+            <div data-template="templates:if-attribute-set" data-template-attribute="user">
+                <a href="#" class="btn btn-default btn-xs add-comment" role="button">
+                    <span class="glyphicon glyphicon-comment"/> Reply</a>
+            </div>
         </div>
         <ul class="media-list">
             <li data-template="helpers:render" data-template-key="comment.comment" data-template-partial="_comment.html"/>
