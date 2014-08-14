@@ -119,8 +119,8 @@ declare function helpers:get($model as item()*, $key as xs:string) as item()* {
             (: simple case: get entry for local-key in map :)
             map:get($model, $local-key)
         else if ($model instance of element()) then
-            (: pick all elements with name equal to local-key as value :)
-            $model/*[name()=$local-key]
+            (: pick all elements or attribute with name equal to local-key as value :)
+            ( $model/*[name()=$local-key], $model/@*[name()=$local-key] )
         else
             (: bad model :)
             ()
