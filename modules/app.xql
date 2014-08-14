@@ -11,6 +11,7 @@ import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-h
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
+import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 
@@ -868,6 +869,18 @@ declare function app:each-granule($node as node(), $model as map(*), $from as xs
             attribute { 'data-id' } { helpers:get($granule, 'id') },
             templates:process($node/node(), map:new(($model, map:entry($to, $granule))))
         }
+};
+
+(:~
+ : Add the comments attached to a granule to the model for templating.
+ : 
+ : @param $node  the current node
+ : @param $model the current model
+ : @param $id    the granule id
+ : @return a new model with comments for the granule
+ :)
+declare function app:comments($node as node(), $model as map(*), $id as xs:integer) as map(*) {
+    map { 'comments' := collection('/db/apps/oidb-data/comments')//comment[@granule-id=$id] }
 };
 
 (:~

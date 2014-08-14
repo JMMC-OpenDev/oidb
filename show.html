@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div data-template="app:show"/>
+    <h1>Comments</h1>
+    <div class="col-md-offset-1 col-md-10">
+        <div data-template="app:comments">
+            <ul class="media-list">
+                <li data-template="helpers:render" data-template-partial="_comment.html" data-template-key="comments"/>
+            </ul>
+        </div>
+    </div>
 </div>

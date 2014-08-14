@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<li xmlns="http://www.w3.org/1999/xhtml" class="media">
+    <a class="pull-left" href="#">
+        <img class="media-object" src="./resources/images/vignettes/data-pis/bonhommebleu.jpg" height="64" width="64"/>
+    </a>
+    <div class="media-body">
+        <h4 class="media-heading">
+            <div>
+                <span data-template="helpers:model-value" data-template-key="comment.author"/>
+                &#160;
+                <small>
+                    <i>Posted on <span data-template="helpers:model-value" data-template-key="comment.date"/></i>
+                </small>
+            </div>
+        </h4>
+        <div style="white-space: pre-wrap">
+            <span data-template="helpers:model-value" data-template-key="comment.text"/>
+        </div>
+        <ul class="media-list">
+            <li data-template="helpers:render" data-template-key="comment.comment" data-template-partial="_comment.html"/>
+        </ul>
+    </div>
+</li>
