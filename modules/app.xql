@@ -884,6 +884,19 @@ declare function app:comments($node as node(), $model as map(*), $id as xs:integ
 };
 
 (:~
+ : Add the user information (name, email, affiliation) to the model for templating.
+ : 
+ : @param $node  the current node
+ : @param $modem the current model
+ : @param $key   the key to the entry in model with user id
+ : @return a new model with user information
+ :)
+declare function app:user-info($node as node(), $model as map(*), $key as xs:string) as map(*) {
+    let $user := helpers:get($model, $key)
+    return map { 'user' := jmmc-auth:getInfo($user) }
+};
+
+(:~
  : Truncate a text string from the model to a given length.
  : 
  : @param $node the placeholder for the ellipsized text

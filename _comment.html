@@ -5,8 +5,13 @@
     </a>
     <div class="media-body">
         <h4 class="media-heading">
-            <div>
-                <span data-template="helpers:model-value" data-template-key="comment.author"/>
+            <div data-template="app:user-info" data-template-key="comment.author">
+                <span data-template="helpers:model-value" data-template-key="user.name"/>
+                <span data-template="helpers:if-model-key" data-template-key="user.affiliation">
+                    &#160;(<small>
+                        <span data-template="helpers:model-value" data-template-key="user.affiliation"/>
+                    </small>)
+                </span>
                 &#160;
                 <small>
                     <i>Posted on <span data-template="helpers:model-value" data-template-key="comment.date"/></i>
