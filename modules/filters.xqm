@@ -203,10 +203,10 @@ declare function filters:conesearch($params as xs:string) as xs:string {
 (:~
  : Format an ADQL condition on observation date as interval.
  : 
- : If there is a single date, it is taken as the start date of
+ : If there is a single date, it is taken as the start date (start of the day) of
  : the interval. If the single date is prefixed by '..', the date
- : is taken as the upper limit of the interval.
- : 
+ : is taken as the upper limit of the interval ( end of the day ).
+ :  
  : It generates an error if the format of the dates is incorrect.
  : 
  : @param $params a '..' separated couple of date as YYYY-MM-DD
@@ -214,11 +214,12 @@ declare function filters:conesearch($params as xs:string) as xs:string {
  : @error Invalid date format
  :)
 declare function filters:observationdate($params as xs:string) as xs:string {
-    (: string -> MJD, false if empty string, error if malformed string :)
-    let $to-mjd := function ($x as xs:string?) {
+    (: string -> MJD (+1 day if it is an upper date), false if empty string, error if malformed string :)
+    let $to-mjd := function ($x as xs:string?, $from-date as xs:boolean) {
         if (exists($x) and $x != '') then
             try { 
-                jmmc-dateutil:ISO8601toMJD(xs:dateTime(xs:date($x)))
+                let $d := if($from-date) then xs:date($x) else xs:date($x) + xs:dayTimeDuration('P1D')
+                return jmmc-dateutil:ISO8601toMJD(xs:dateTime($d))
             } catch * {
                 error(xs:QName("filters:error"), "Invalid date " || $x)
             }
@@ -226,15 +227,15 @@ declare function filters:observationdate($params as xs:string) as xs:string {
             false()
     }
     let $dates := tokenize($params, '\.\.')
-    let $start-date := $to-mjd($dates[1]), $end-date := $to-mjd($dates[2])
+    let $start-date := $to-mjd($dates[1], true()), $end-date := $to-mjd($dates[2], false())
     return "( " || string-join((
         if ($start-date) then 
-            $adql:correlation-name || ".t_min >= " || $start-date
+            $adql:correlation-name || ".t_max >= " || $start-date
         else
             (),
         if ($start-date and $end-date) then "AND" else (),
         if ($end-date) then
-            $adql:correlation-name || ".t_max <= " || $end-date
+            $adql:correlation-name || ".t_min <= " || $end-date
         else
             ()
     ), ' ') || " )"
