@@ -707,6 +707,9 @@ declare %private function app:vizier-collection($c as element(collection)) as xs
  : It separates collections based on their origin (at the moment, from VizieR
  : astronomical catalog or user-defined).
  : 
+ : templates may call one of them using following snippet :
+ : <div data-template="helpers:render" data-template-partial="_collection-short.html" data-template-key="other-collections" data-template-as="collection"/>
+ : 
  : @param $node
  : @param $model
  : @return a new submodel with collections
@@ -716,7 +719,8 @@ declare function app:collections($node as node(), $model as map(*)) as map(*) {
         for $collection in collection("/db/apps/oidb-data/collections")/collection
         (: open up collection and add link to full description page :)
         return <collection> {
-            $collection/*,
+            $collection/@*,
+            $collection/node(),
             <url>{ 'collection.html?id=' || encode-for-uri($collection/@id) }</url>
         } </collection>
     let $vizier-collections := $collections[app:vizier-collection(.)]
