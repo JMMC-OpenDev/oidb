@@ -2,6 +2,19 @@
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div class="col-md-offset-1 col-md-10" data-template="backoffice:action"/>
     <div class="row">
+        <div class="col-md-offset-1 col-md-10">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-signal"/>&#160;Main Status</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="backoffice:main-status"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-md-5 col-md-offset-1">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -43,9 +56,7 @@
                         <i class="glyphicon glyphicon-upload"/>&#160;Submission dashboard</h3>
                 </div>
                 <div class="panel-body">
-                    <form method="post" class="form-inline" role="form">
-                        <div class="form-group">TBD</div>
-                    </form>
+                    <div class="backoffice:submission-status"/>
                 </div>
             </div>
         </div>
