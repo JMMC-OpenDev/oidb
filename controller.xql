@@ -41,6 +41,10 @@ else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $
                 <set-header name="Expires" value="0"/>
             </forward>
         </view>
+        <error-handler>
+			<forward url="{$exist:controller}/error-page.html" method="get"/>
+			<forward url="{$exist:controller}/modules/view.xql"/>
+		</error-handler>
     </dispatch>
 else if (starts-with($exist:path, '/modules/upload-')) then (
     (: also protect the submit endpoints to prevent anonymous submit :)
