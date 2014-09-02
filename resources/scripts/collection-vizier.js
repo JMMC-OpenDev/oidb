@@ -28,7 +28,7 @@ $(function () {
             collection.documentElement.appendChild(article);
         });
 
-        var id = $('fieldset:first input[name="id"]').val();
+        var id = $('fieldset:first input[name="name"]').val();
         $.ajax('/exist/restxq/oidb/collection/' + encodeURIComponent(id), { data: s.serializeToString(collection), contentType: 'application/xml', type: 'PUT' });
 
         // data from collection to add to each granule

@@ -240,7 +240,7 @@ declare %private function app:vizcat-url($catalogue as xs:string) as xs:string {
 };
 
 
-declare variable $app:collections-query := adql:build-query(( 'col=obs_collection', 'col=obs_creator_name', 'collection=!~VegaObs Import' ));
+declare variable $app:collections-query := adql:build-query(( 'col=obs_collection', 'distinct' ));
 
 (:~
  : Build a map for collections and put it in the model for templating.
@@ -255,15 +255,15 @@ declare
     %templates:wrap
 function app:collections-options($node as node(), $model as map(*)) as map(*) {
     let $data := tap:execute($app:collections-query, true())
-
-    return map:new(
-        map:entry('collections',
-            map:new(
-                for $tr in $data//tr
-                let $name    := $tr/td[@colname='obs_collection']/text()
-                let $creator := $tr/td[@colname='obs_creator_name']/text()
-                where $name != ''
-                return map:entry($name, if($creator != '') then $name || " - " || $creator else $name))))
+    let $ids := $data//td[@colname='obs_collection']/text()
+    let $collections := collection("/db/apps/oidb-data/collections")/collection
+    return map {
+        'collections' := map:new(
+            for $id in $ids
+            let $name := $collections[@id=$id]/name/text()
+            return map:entry($id, $name)
+        )
+    }
 };
 
 declare variable $app:facilities-query := adql:build-query(( 'col=facility_name', 'distinct' ));
