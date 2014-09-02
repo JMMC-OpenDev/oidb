@@ -62,10 +62,13 @@ declare function backoffice:doc-status($node as node(), $model as map(*)) as xs:
     return if ($job) then
         (: currently executing :)
         'Running...'
-    else
+    else if (doc-available(resolve-uri($config:maindoc-filename, $config:data-root))) then
         (: no logging of operation at the moment :)
         (:instead show last modified date of resource :)
         xs:string(xmldb:last-modified($config:data-root, $config:maindoc-filename))
+    else
+        (: no imported documentation found :)
+        '-'
 };
 
 (:~
