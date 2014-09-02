@@ -233,9 +233,11 @@ declare function helpers:select-options($node as node(), $model as map(*), $key 
     let $options := $model($key)
     return if ($options instance of map(*)) then
         for $key in map:keys($options)
+        order by $key
         return <option value="{ $key }">{ map:get($options, $key) }</option>
     else
         for $value in $options
+        order by $value
         return <option value="{ $value }">{ $value }</option>
 };
 
