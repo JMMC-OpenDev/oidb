@@ -253,7 +253,7 @@ declare variable $app:collections-query := adql:build-query(( 'col=obs_collectio
  :)
 declare
     %templates:wrap
-function app:collections($node as node(), $model as map(*)) as map(*) {
+function app:collections-options($node as node(), $model as map(*)) as map(*) {
     let $data := tap:execute($app:collections-query, true())
 
     return map:new(
