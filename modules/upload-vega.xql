@@ -21,7 +21,7 @@ import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
 (: the special collection name for VegaObs imports :)
-declare variable $local:collection := 'VegaObs Import';
+declare variable $local:collection := 'vegaobs_import';
 
 (:~
  : Remove all Vega records from a previous import.

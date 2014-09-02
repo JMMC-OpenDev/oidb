@@ -41,7 +41,7 @@ declare variable $local:T0_OBS   := 13;
 declare variable $local:T0_500nm := 14;
 
 (: the special collection name for CHARA imports :)
-declare variable $local:collection := 'CHARA Import';
+declare variable $local:collection := 'chara_import';
 
 (: the path to the ASPRO XML configuration in the database :)
 declare variable $local:asproconf-uri := '/db/apps/oidb-data/instruments';
