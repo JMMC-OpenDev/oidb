@@ -193,18 +193,30 @@ declare %private function adql:predicate($param as xs:string) as xs:string? {
  : Format a WHERE clause from the parameters of the request.
  : 
  : It takes filter definitions from the sequence of parameters and returns a
- : clause with conditions combined by AND operations.
+ : clause with conditions combined by implicit AND operations. The special
+ : parameter 'or' instead requests an OR operation between the preceding and
+ : following filters.
  : 
  : @param $params a sequence of parameters
  : @return an ADQL where clause with condition from the parameters or '' if no
  : filter
- : @todo redo the OR combination of filters
  :)
 declare %private function adql:where_clause($params as xs:string*) as xs:string {
-    let $search-condition := string-join(
-        for $p in $params[starts-with(., $adql:filters)]
-        return adql:predicate($p),
-        ' AND ')
+    (: filter out conditions and operators from all params :)
+    let $filters := $params[starts-with(., $adql:filters) or . = 'or']
+    let $search-condition :=
+        (: identify chunks of conditions between 'or' :)
+        let $or-idx := index-of($filters, 'or')
+        let $starts  := ( 1, for $i in $or-idx return $i + 1 )
+        let $lengths := map-pairs(function ($i, $j) { $i - $j }, ( $or-idx, count($filters) + 1 ), $starts)
+        return string-join(
+            (: skip leading, trailing, as well as multiple 'or' in params :)
+            map-pairs(
+                function ($start, $length) {
+                    let $conditions := for $p in subsequence($filters, $start, $length) return adql:predicate($p)
+                    return string-join($conditions, ' AND ')
+                }, $starts, $lengths)[. != ''],
+            ' OR ')
     return if($search-condition != '') then
         'WHERE ' || $search-condition
     else
