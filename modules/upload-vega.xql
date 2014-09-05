@@ -33,6 +33,22 @@ declare function local:delete-collection($handle as xs:long) {
 };
 
 (:~
+ : Search for a target by name.
+ : 
+ : @param $name a target name
+ : @return a target description
+ : @error unknown target
+ :)
+declare function local:resolve-target($name as xs:string) {
+    (: catch name resolution errors :)
+    try {
+        sesame:resolve($name)
+    } catch * {
+        error(xs:QName('error'), 'Unable to resolve target: ' || $err:description, $err:value)
+    }
+};
+
+(:~
  : Turn a Vega observation into a metadata fragment for upload.
  : 
  : @param $observation an observation
@@ -46,7 +62,9 @@ declare function local:metadata($observation as node()) as node() {
     let $data-pi     := vega:get-user-name($observation/DataPI)
     (: resolve star coordinates from star name with Sesame :)
     let $target-name := $observation/StarHD
-    let $ra-dec      := data(sesame:resolve($target-name)/target/(@s_ra,@s_dec))
+    let $target      := local:resolve-target($target-name)
+    let $ra          := data($target/target/@s_ra)
+    let $dec         := data($target/target/@s_dec)
     let $date        := jmmc-dateutil:ISO8601toMJD( 
         (: change the time delimiter in Date for ISO8601 :)
         xs:dateTime(translate($observation/Date, ' ', 'T')))
@@ -61,8 +79,8 @@ declare function local:metadata($observation as node()) as node() {
         <obs_collection>{ $local:collection }</obs_collection>,
         <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
         <access_url> -/- </access_url>, (: FIXME no file :)
-        <s_ra>  { $ra-dec[1] } </s_ra>,
-        <s_dec> { $ra-dec[2] } </s_dec>,
+        <s_ra>  { $ra } </s_ra>,
+        <s_dec> { $dec } </s_dec>,
         <t_min> { $date } </t_min>, (: FIXME :)
         <t_max> { $date } </t_max>, (: FIXME :)
         <t_exptime>0</t_exptime>, (: FIXME :)
@@ -90,12 +108,16 @@ declare function local:metadata($observation as node()) as node() {
  : @param $observations observation logs from VegaObs
  : @return a list of the ids of the new granules
  :)
-declare function local:upload($handle as xs:long, $observations as node()*) as xs:integer* {
+declare function local:upload($handle as xs:long, $observations as node()*) as item()* {
     (: remove old data from db :)
     let $delete := local:delete-collection($handle)
     (: insert new granules in db :)
     for $o in $observations
-    return upload:upload($handle, local:metadata($o)/node())
+    return try {
+        <id>{ upload:upload($handle, local:metadata($o)/node()) }</id>
+    } catch * {
+        <warning>Failed to convert observation log to granule (VegaObs ID { $o/ID/text() }): { $err:description } { $err:value }</warning>
+    }
 };
 
 let $response :=
