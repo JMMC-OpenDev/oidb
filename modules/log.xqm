@@ -37,6 +37,17 @@ declare function log:check-files() {
     </table>
 };
 
+(:~
+ : Turn the request parameters into a <request> element for logging.
+ : 
+ : @return a <request> element
+ :)
+declare %private function log:serialize-request() as element() {
+    <request> {
+        for $n in request:get-parameter-names()
+        return element { $n } { request:get-parameter($n, '') }
+    } </request>
+};
 
 (:~
  : Add an element to the download log detailing the request parameters and the
@@ -50,10 +61,7 @@ declare function log:get-data($granuleid as xs:integer, $url as xs:string?) {
     update
         insert
             <download time="{ current-dateTime() }" user="{ request:get-attribute('user') }">
-                <request>{
-                    for $n in request:get-parameter-names()
-                    return element { $n } { request:get-parameter($n, '') }
-                }</request>
+                { log:serialize-request() }
                 { if ($url) then (element {"url"} {$url},<success/>) else <error>no-data</error> }
             </download>
         into doc($log:downloads)/downloads
@@ -70,10 +78,7 @@ declare function log:submit($response as node()) {
     update
         insert
             <submit time="{ current-dateTime() }" user="{ request:get-attribute('user') }">
-                <request> {
-                    for $n in request:get-parameter-names()
-                    return element { $n } { request:get-parameter($n, '') }
-                } </request>
+                { log:serialize-request() }
                 { $response }
             </submit>
         into doc($log:submits)/submits
