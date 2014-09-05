@@ -40,7 +40,8 @@ declare function log:check-files() {
 (:~
  : Add a message to a given log file.
  : 
- : It adds a timestamp and username if the data is missing from the message.
+ : It adds a timestamp, as well as the username if a request object is 
+ : available and the data is missing from the message.
  : 
  : @param $log     the log URI
  : @param $message the message to save as an element
@@ -50,7 +51,13 @@ declare %private function log:log($log as xs:string, $message as element()) {
     (: automatically add missing bits to the log message :)
     let $message := element { name($message) } {
         if ($message/@date) then () else attribute { 'date' } { current-dateTime() },
-        if ($message/@user) then () else attribute { 'user' }   { request:get-attribute('user') },
+        if (request:exists()) then
+            (: HTTP interaction, extract data from request object if missing from message :)
+            (
+                if ($message/@user)   then () else attribute { 'user' }   { request:get-attribute('user') },
+            )
+        else
+            (),
         $message/@*,
         $message/*
     }
@@ -99,11 +106,14 @@ declare function log:submit($request as node()?, $response as node()) {
 (:~
  : Add an event to the submits log.
  : 
+ : If a request object is available, it tries to serialize its parameters into
+ : a <request> element.
+ : 
  : @param $response
  : @return empty
  :)
 declare function log:submit($response as node()) {
-    let $request := log:serialize-request()
+    let $request := if (request:exists()) then log:serialize-request() else ()
     return log:submit($request, $response)
 };
 
