@@ -8,6 +8,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
+import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
@@ -101,10 +102,11 @@ declare function app:row-cells($node as node(), $model as map(*)) {
                 case "access_url"
                     return
                         let $access-url := data($cell)
+                        let $id := $row/td[@colname='id']
                         let $data-rights := $row/td[@colname='data_rights']
                         let $obs-release-date := $row/td[@colname='obs_release_date']
                         return if($data-rights and $obs-release-date) then
-                            app:format-access-url($access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'])
+                            app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'])
                         else
                             $access-url
                 case "s_ra"
@@ -171,11 +173,11 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
  : @param $creator_name owner of the data
  : @return an <a> element
  :)
-declare %private function app:format-access-url($url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?) {
+declare %private function app:format-access-url($id as xs:string, $url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?) {
     let $public := app:public-status($data_rights, $release_date)
     return 
         element {"a"} {
-        attribute { "href" } { $url }, 
+        attribute { "href" } { "get-data.html?id="||$id (: $url :) }, 
         if ($public or $creator_name = '') then
             ()
           else 
@@ -597,6 +599,35 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
             } </tr>
         }
     </table>
+};
+
+(:~
+ : Provide information to retrieve original data.
+ : It returns a 303 return code if an url associated to the granule id is found else an error message is thrown.
+ : A log is also store for statistic purpose.
+ : a flash is thrown if url is missing
+ : 
+ : @param $node  the current node
+ : @param $model the current model
+ : @param $id    the granule id (caller template show not call this function if id is missing)
+ : @return a new model with comments for the granule
+ :)
+declare function app:get-data($node as node(), $model as map(*), $id as xs:integer) as map(*) {
+    let $query := "SELECT access_url FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
+    (: send query by TAP :)
+    let $data := tap:execute($query, true())
+    let $data-url := data($data//td[@colname='access_url'])
+    
+    let $activate-303 := if ($data-url) then
+        (response:set-header("Location", $data-url),
+        response:set-status-code(303))
+        else ()
+        
+    let $do-log := log:get-data( $id, $data-url ) 
+    
+
+    return  map { 'data-url' := if($data-url) then $data-url else (),
+                      'flash'    := if($data-url) then () else "can't find associated data, please check your granule id (given is '" || $id || "')" }
 };
 
 (: Query to get the 3 last entries :)
