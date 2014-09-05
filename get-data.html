@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <h1>Data retrieval</h1>
+    <div data-template="templates:if-parameter-set" data-template-param="id">
+        <div class="col-md-offset-1 col-md-10" data-template="app:get-data">
+            <div id="url" data-template="helpers:if-model-key" data-template-key="data-url">
+                <div class="alert alert-info alert-dismissable col-md-offset-2 col-md-8">
+                    You should be redirected to following url: <br/>
+                    <kbd>
+                        <span data-template="helpers:model-value" data-template-key="data-url"/>
+                    </kbd>.
+                </div>
+            </div>
+            <div id="flash" data-template="helpers:if-model-key" data-template-key="flash">
+                <div class="alert alert-danger alert-dismissable col-md-offset-2 col-md-8">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                    <strong>Error!</strong>&#160;
+                  <span data-template="helpers:model-value" data-template-key="flash"/>.
+                </div>
+            </div>
+            <span data-template="helpers:model-value" data-template-key="n_oifits"/>
+        </div>
+    </div>
+    <div data-template="templates:if-parameter-unset" data-template-param="id">
+        <div class="alert alert-warning fade in">
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+            <strong>Can't display any information</strong>
+                Please provide a granule id in url. e.g ?id=123
+        </div>
+    </div>
+</div>
