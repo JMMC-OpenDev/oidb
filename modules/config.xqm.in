@@ -130,9 +130,11 @@ declare function config:get-db-connection() as xs:long{
 declare variable $config:sql-table := "@sql-table@";
 
 (:~
- : TAP sync request URL
+ : TAP request URLs
  :)
-declare variable $config:TAP_SYNC := "@tap-sync-url@";
+declare variable $config:TAP_BASEURL := "@tap-baseurl@";
+declare variable $config:TAP_SYNC := $config:TAP_BASEURL || "sync";
+declare variable $config:TAP_TABLES := $config:TAP_BASEURL || "tables";
 
 
 (: define main doc filename and url  :)
