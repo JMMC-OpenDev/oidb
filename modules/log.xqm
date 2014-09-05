@@ -40,8 +40,8 @@ declare function log:check-files() {
 (:~
  : Add a message to a given log file.
  : 
- : It adds a timestamp, as well as the username if a request object is 
- : available and the data is missing from the message.
+ : It adds a timestamp, as well as the username and remote info if a request
+ : object is available and the data is missing from the message.
  : 
  : @param $log     the log URI
  : @param $message the message to save as an element
@@ -55,6 +55,7 @@ declare %private function log:log($log as xs:string, $message as element()) {
             (: HTTP interaction, extract data from request object if missing from message :)
             (
                 if ($message/@user)   then () else attribute { 'user' }   { request:get-attribute('user') },
+                if ($message/@remote) then () else attribute { 'remote' } { request:get-remote-host() }
             )
         else
             (),
