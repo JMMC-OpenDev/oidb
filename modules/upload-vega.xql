@@ -133,4 +133,4 @@ let $response :=
         }
     } </response>
 
-return $response
+return ( log:submit($response), $response )

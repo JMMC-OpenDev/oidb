@@ -21,6 +21,7 @@ import module namespace util = "http://exist-db.org/xquery/util";
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
+import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 import module namespace jmmc-simbad="http://exist.jmmc.fr/jmmc-resources/simbad";
 
@@ -185,4 +186,4 @@ let $response :=
         }
     } </response>
 
-return $response
+return ( log:submit($response), $response )
