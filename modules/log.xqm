@@ -38,6 +38,26 @@ declare function log:check-files() {
 };
 
 (:~
+ : Add a message to a given log file.
+ : 
+ : It adds a timestamp and username if the data is missing from the message.
+ : 
+ : @param $log     the log URI
+ : @param $message the message to save as an element
+ : @return emtpy
+ :)
+declare %private function log:log($log as xs:string, $message as element()) {
+    (: automatically add missing bits to the log message :)
+    let $message := element { name($message) } {
+        if ($message/@date) then () else attribute { 'date' } { current-dateTime() },
+        if ($message/@user) then () else attribute { 'user' }   { request:get-attribute('user') },
+        $message/@*,
+        $message/*
+    }
+    return update insert $message into doc($log)/*
+};
+
+(:~
  : Turn the request parameters into a <request> element for logging.
  : 
  : @return a <request> element
@@ -58,30 +78,33 @@ declare %private function log:serialize-request() as element() {
  : @return ignore
  :)
 declare function log:get-data($granuleid as xs:integer, $url as xs:string?) {
-    update
-        insert
-            <download time="{ current-dateTime() }" user="{ request:get-attribute('user') }">
-                { log:serialize-request() }
-                { if ($url) then (element {"url"} {$url},<success/>) else <error>no-data</error> }
-            </download>
-        into doc($log:downloads)/downloads
+    let $message := <download>
+        { log:serialize-request() }
+        { if ($url) then (element {"url"} {$url},<success/>) else <error>no-data</error> }
+    </download>
+    return log:log($log:downloads, $message)
 };
 
 (:~
- : Add an element to the submits log detailing the request parameters and the
- : response.
+ : Add an event to the submits log.
+ : 
+ : @param $request
+ : @param $response
+ : @return empty
+ :)
+declare function log:submit($request as node()?, $response as node()) {
+    log:log($log:submits, <submit>{ $request, $response }</submit>)
+};
+
+(:~
+ : Add an event to the submits log.
  : 
  : @param $response
- : @return ignore
+ : @return empty
  :)
 declare function log:submit($response as node()) {
-    update
-        insert
-            <submit time="{ current-dateTime() }" user="{ request:get-attribute('user') }">
-                { log:serialize-request() }
-                { $response }
-            </submit>
-        into doc($log:submits)/submits
+    let $request := log:serialize-request()
+    return log:submit($request, $response)
 };
 
 declare %private function log:report-submits($max as xs:integer, $successful as xs:boolean)as node()*{
