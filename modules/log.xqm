@@ -50,7 +50,7 @@ declare function log:check-files() {
 declare %private function log:log($log as xs:string, $message as element()) {
     (: automatically add missing bits to the log message :)
     let $message := element { name($message) } {
-        if ($message/@date) then () else attribute { 'date' } { current-dateTime() },
+        if ($message/@time) then () else attribute { 'time' } { current-dateTime() },
         if (request:exists()) then
             (: HTTP interaction, extract data from request object if missing from message :)
             (
