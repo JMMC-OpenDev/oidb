@@ -20,6 +20,24 @@ import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 
+(:~
+ : Push a granule in the database.
+ : 
+ : @param $handle  a database connection handle
+ : @param $granule a XML granule description
+ : @return the id of the new granule or error
+ : @error unknown collection, failed to upload granule
+ :)
+declare function local:upload($handle as xs:long, $granule as node()) as xs:integer {
+    let $collection := $granule/obs_collection/text()
+    return
+        (: check that parent collection of granule exists :)
+        if (exists($collection) and empty(collection("/db/apps/oidb-data/collections")/collection[@id=$collection])) then
+            error(xs:QName('error'), 'Unknown collection id: ' || $collection)
+        else
+             upload:upload($handle, $granule/*)
+};
+
 (: get the data from the request: data in POST request or from filled-in form :)
 let $content-type := request:get-header('Content-Type')
 let $data :=
@@ -36,7 +54,8 @@ let $response :=
             return upload:within-transaction(
                 function($handle as xs:long) as element(id)* {
                     for $granule in $granules//granule
-                    return <id>{ upload:upload($handle, $granule/*) }</id>
+                    let $id := local:upload($handle, $granule)
+                    return <id>{ $id }</id>
                 }),
                 <success>Successfully uploaded granule(s)</success>
         } catch * {
