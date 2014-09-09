@@ -1,141 +1,160 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.w3.org/1999/xhtml" action="search.html" method="post" class="form-horizontal" data-template="app:deserialize-query-string">
-    <fieldset>
-        <div class="form-group">
-            <label class="col-sm-2 control-label" for="cs_position">Position:</label>
-            <div class="form-inline">
-                <input class="form-control" name="cs_position" placeholder="Name or coordinates" data-template="helpers:form-control"/>
-                <select class="form-control" name="cs_equinox">
-                    <option selected="selected">J2000</option>
-                </select>
-                <label class="control-label" for="cs_radius">Radius:</label>
-                <input class="form-control" name="cs_radius" data-template="helpers:form-control" value="2"/>
-                <select class="form-control" name="cs_radius_unit" data-template="helpers:form-control">
-                    <option>arcmin</option>
-                    <option>arcsec</option>
-                    <option>deg</option>
-                </select>
+    <div class="panel-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h6 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#filters" href="#filters">
+                        <i class="indicator glyphicon glyphicon-chevron-down"/> Filters
+                    </a>
+                </h6>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-2 control-label">Date of observation: </label>
-            <div class="col-sm-10">
-                <div class="form-group row">
-                    <span class="col-sm-1 control-label">between</span>
-                    <div class="col-sm-3">
-                        <div class="input-group date">
-                            <input class="form-control" name="date_start" type="date" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
-                            <span class="input-group-addon">
-                                <i class="glyphicon glyphicon-calendar"/>
-                            </span>
+            <div id="filters" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <fieldset>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="cs_position">Position:</label>
+                            <div class="form-inline">
+                                <input class="form-control" name="cs_position" placeholder="Name or coordinates" data-template="helpers:form-control"/>
+                                <select class="form-control" name="cs_equinox">
+                                    <option selected="selected">J2000</option>
+                                </select>
+                                <label class="control-label" for="cs_radius">Radius:</label>
+                                <input class="form-control" name="cs_radius" data-template="helpers:form-control" value="2"/>
+                                <select class="form-control" name="cs_radius_unit" data-template="helpers:form-control">
+                                    <option>arcmin</option>
+                                    <option>arcsec</option>
+                                    <option>deg</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <span class="col-sm-1 control-label">and</span>
-                    <div class="col-sm-3">
-                        <div class="input-group date">
-                            <input class="form-control" name="date_end" type="date" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
-                            <span class="input-group-addon">
-                                <i class="glyphicon glyphicon-calendar"/>
-                            </span>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Date of observation: </label>
+                            <div class="col-sm-10">
+                                <div class="form-group row">
+                                    <span class="col-sm-1 control-label">between</span>
+                                    <div class="col-sm-3">
+                                        <div class="input-group date">
+                                            <input class="form-control" name="date_start" type="date" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
+                                            <span class="input-group-addon">
+                                                <i class="glyphicon glyphicon-calendar"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <span class="col-sm-1 control-label">and</span>
+                                    <div class="col-sm-3">
+                                        <div class="input-group date">
+                                            <input class="form-control" name="date_end" type="date" placeholder="YYYY-MM-DD" data-template="helpers:form-control"/>
+                                            <span class="input-group-addon">
+                                                <i class="glyphicon glyphicon-calendar"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        <div class="form-group" data-template="app:instruments">
+                            <label class="col-sm-2 control-label" for="instrument">Instrument: </label>
+                            <div class="form-inline">
+                                <select class="form-control" name="instrument" data-template="helpers:form-control">
+                                    <option value="">Any Instrument</option>
+                                    <option data-template="helpers:select-options" data-template-key="instruments"/>
+                                </select>
+                            </div>
+                        </div>
+<!--                        <fieldset>-->
+<!--                            <label for="instrument_mode">Instrument mode: </label>-->
+<!--                            <div class="controls">-->
+<!--                            </div>-->
+<!--                        </fieldset>-->
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="band">Wavelength range: </label>
+                            <div class="form-inline">
+                                <input class="checkbox form-control" name="band" type="checkbox" data-template="app:input-each-band">
+                                    &#160;<span data-template="helpers:model-value" data-template-key="band"/>&#160;
+                                </input>
+                                <br/>
+                                <input class="checkbox form-control" name="band" type="checkbox" value="visible" data-template="helpers:form-control">
+                                    &#160;Visible
+                                </input>
+                                <input class="checkbox form-control" name="band" type="checkbox" value="near-ir" data-template="helpers:form-control">
+                                    &#160;Near infrared
+                                </input>
+                                <input class="checkbox form-control" name="band" type="checkbox" value="mid-ir" data-template="helpers:form-control">
+                                    &#160;Mid infrared
+                                </input>
+                            </div>
+                        </div>
+                        <div class="form-group" data-template="app:collections-options">
+                            <label class="col-sm-2 control-label" for="collection">Collection: </label>
+                            <div class="form-inline">
+                                <select class="form-control" name="collection" data-template="helpers:form-control">
+                                    <option value="">Any Collection</option>
+                                    <option data-template="helpers:select-options" data-template-key="collections"/>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" data-template="app:data-pis">
+                            <label class="col-sm-2 control-label" for="datapi">DataPI name: </label>
+                            <div class="form-inline">
+                                <select class="form-control" name="datapi" data-template="helpers:form-control">
+                                    <option value="">Any DataPI</option>
+                                    <option data-template="helpers:select-options" data-template-key="datapis"/>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="reduction">Data reduction level: </label>
+                            <div class="form-inline">
+                                <input class="checkbox form-control" name="reduction" value="0" type="checkbox" checked="checked" data-template="helpers:form-control">
+                                    <a href="#" rel="tooltip" data-original-title="Observation logs">L0</a>
+                                </input>,&#160;
+                                <input class="checkbox form-control" name="reduction" value="1" type="checkbox" checked="checked" data-template="helpers:form-control">
+                                    <a href="#" rel="tooltip" data-original-title="Uncalibrated OIFITS">L1</a>
+                                </input>,&#160;
+                                <input class="checkbox form-control" name="reduction" value="2" type="checkbox" checked="checked" data-template="helpers:form-control">
+                                    <a href="#" rel="tooltip" data-original-title="Calibrated OIFITS">L2</a>
+                                </input>,&#160;
+                                <input class="checkbox form-control" name="reduction" value="3" type="checkbox" checked="checked" data-template="helpers:form-control">
+                                    <a href="#" rel="tooltip" data-original-title="Published calibrated OIFITS">L3</a>
+                                </input>.
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="available">Availability: </label>
+                            <div class="form-inline">
+                                <input class="radio-inline form-control" name="available" value="yes" type="radio" data-template="helpers:form-control">Public</input>
+                                <input class="radio-inline form-control" name="available" value="no" type="radio" data-template="helpers:form-control">Restricted</input>
+                                <input class="radio-inline form-control" name="available" value="all" type="radio" data-template="helpers:form-control" checked="checked">All</input>
+                            </div>
+                        </div>
+                    </fieldset>
                 </div>
             </div>
         </div>
-        <div class="form-group" data-template="app:instruments">
-            <label class="col-sm-2 control-label" for="instrument">Instrument: </label>
-            <div class="form-inline">
-                <select class="form-control" name="instrument" data-template="helpers:form-control">
-                    <option value="">Any Instrument</option>
-                    <option data-template="helpers:select-options" data-template-key="instruments"/>
-                </select>
+    </div>
+    <div class="panel-group" id="filters">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-inline col-sm-6" data-template="app:sort-by">
+                    Sort by 
+                    <select class="form-control" data-template="helpers:form-control" name="sortby">
+                        <option data-template="helpers:select-options" data-template-key="sortbys"/>
+                    </select>
+                    <input class="checkbox form-control" type="checkbox" name="descending" value="yes" data-template="helpers:form-control">&#160;descending</input>.
+                </div>
+                <div class="form-inline col-sm-6">
+                    <span class=" pull-right">
+                        Max rows per page:
+                        <select class="form-control" data-template="helpers:form-control" name="perpage">
+                            <option>10</option>
+                            <option>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                    </span>
+                </div>
             </div>
-        </div>
-<!--    <fieldset>-->
-<!--        <label for="instrument_mode">Instrument mode: </label>-->
-<!--        <div class="controls">-->
-<!--        </div>-->
-<!--    </fieldset>-->
-        <div class="form-group">
-            <label class="col-sm-2 control-label" for="band">Wavelength range: </label>
-            <div class="form-inline">
-                <input class="checkbox form-control" name="band" type="checkbox" data-template="app:input-each-band">
-                    &#160;<span data-template="helpers:model-value" data-template-key="band"/>&#160;
-                </input>
-                <br/>
-                <input class="checkbox form-control" name="band" type="checkbox" value="visible" data-template="helpers:form-control">
-                    &#160;Visible
-                </input>
-                <input class="checkbox form-control" name="band" type="checkbox" value="near-ir" data-template="helpers:form-control">
-                    &#160;Near infrared
-                </input>
-                <input class="checkbox form-control" name="band" type="checkbox" value="mid-ir" data-template="helpers:form-control">
-                    &#160;Mid infrared
-                </input>
-            </div>
-        </div>
-        <div class="form-group" data-template="app:collections-options">
-            <label class="col-sm-2 control-label" for="collection">Collection: </label>
-            <div class="form-inline">
-                <select class="form-control" name="collection" data-template="helpers:form-control">
-                    <option value="">Any Collection</option>
-                    <option data-template="helpers:select-options" data-template-key="collections"/>
-                </select>
-            </div>
-        </div>
-        <div class="form-group" data-template="app:data-pis">
-            <label class="col-sm-2 control-label" for="datapi">DataPI name: </label>
-            <div class="form-inline">
-                <select class="form-control" name="datapi" data-template="helpers:form-control">
-                    <option value="">Any DataPI</option>
-                    <option data-template="helpers:select-options" data-template-key="datapis"/>
-                </select>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-2 control-label" for="reduction">Data reduction level: </label>
-            <div class="form-inline">
-                <input class="checkbox form-control" name="reduction" value="0" type="checkbox" checked="checked" data-template="helpers:form-control">
-                    <a href="#" rel="tooltip" data-original-title="Observation logs">L0</a>
-                </input>,&#160;
-                <input class="checkbox form-control" name="reduction" value="1" type="checkbox" checked="checked" data-template="helpers:form-control">
-                    <a href="#" rel="tooltip" data-original-title="Uncalibrated OIFITS">L1</a>
-                </input>,&#160;
-                <input class="checkbox form-control" name="reduction" value="2" type="checkbox" checked="checked" data-template="helpers:form-control">
-                    <a href="#" rel="tooltip" data-original-title="Calibrated OIFITS">L2</a>
-                </input>,&#160;
-                <input class="checkbox form-control" name="reduction" value="3" type="checkbox" checked="checked" data-template="helpers:form-control">
-                    <a href="#" rel="tooltip" data-original-title="Published calibrated OIFITS">L3</a>
-                </input>.
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-sm-2 control-label" for="available">Availability: </label>
-            <div class="form-inline">
-                <input class="radio-inline form-control" name="available" value="yes" type="radio" data-template="helpers:form-control">Public</input>
-                <input class="radio-inline form-control" name="available" value="no" type="radio" data-template="helpers:form-control">Restricted</input>
-                <input class="radio-inline form-control" name="available" value="all" type="radio" data-template="helpers:form-control" checked="checked">All</input>
-            </div>
-        </div>
-    </fieldset>
-    <div class="well row">
-        <div class="form-inline col-sm-6" data-template="app:sort-by">
-            Sort by 
-            <select class="form-control" data-template="helpers:form-control" name="sortby">
-                <option data-template="helpers:select-options" data-template-key="sortbys"/>
-            </select>
-            <input class="checkbox form-control" type="checkbox" name="descending" value="yes" data-template="helpers:form-control">&#160;descending</input>.
-        </div>
-        <div class="form-inline col-sm-6">
-            <span class=" pull-right">
-                Max rows per page:
-                <select class="form-control" data-template="helpers:form-control" name="perpage">
-                    <option>10</option>
-                    <option>25</option>
-                    <option>50</option>
-                    <option>100</option>
-                </select>
-            </span>
         </div>
     </div>
     <div class="form-group">
