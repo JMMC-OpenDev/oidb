@@ -89,7 +89,7 @@ $(function () {
                 // had some failures, let user have another chance
                 $buttons.removeAttr('disabled').children('img').remove();
                 // re-enable inputs of granules
-                $('tr.granule').prop('disabled', false);
+                $('tr.granule :input').prop('disabled', false);
             });
 
         e.preventDefault();
