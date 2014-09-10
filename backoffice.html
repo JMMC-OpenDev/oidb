@@ -1,24 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div class="col-md-offset-1 col-md-10" data-template="backoffice:action"/>
-    <!-- improve TOC presentation ? -->
     <div class="row">
-        <div class="col-md-offset-1 col-md-10">
+        <div class="col-md-offset-1 col-md-2">
             <div class="panel panel-default">
                 <div class="panel-heading">                    
-                    <a href="#main"><i class="glyphicon glyphicon-signal"/>Main</a>
-                    <a href="#doc"><i class="glyphicon glyphicon-book"/>Doc</a>
-                    <a href="#vega"><i class="glyphicon glyphicon-upload"/>Vega</a>
-                    <a href="#submits"><i class="glyphicon glyphicon-upload"/>Submits</a>
-                    <a href="#downloads"><i class="glyphicon glyphicon-download"/>Downloads</a>                    
+                <!-- improve TOC presentation ? -->
+                    <a href="#main">
+                        <i class="glyphicon glyphicon-signal"/>Main</a>
+                    <br/>
+                    <a href="#doc">
+                        <i class="glyphicon glyphicon-book"/>Doc</a>
+                    <br/>
+                    <a href="#vega">
+                        <i class="glyphicon glyphicon-upload"/>Chara</a>
+                    <br/>
+                    <a href="#vega">
+                        <i class="glyphicon glyphicon-upload"/>Vega</a>
+                    <br/>
+                    <a href="#submits">
+                        <i class="glyphicon glyphicon-upload"/>Submits</a>
+                    <br/>
+                    <a href="#downloads">
+                        <i class="glyphicon glyphicon-download"/>Downloads</a>
+                    <br/>
+                    <a href="#comments">
+                        <i class="glyphicon glyphicon-comment"/>Comments</a>
+                    <br/>
                 </div>
             </div>
         </div>
-    </div> 
-
-    <div class="row">
-        <div class="col-md-offset-1 col-md-10" id="main">
-            <div class="panel panel-default">
+        <div class="col-md-4">
+            <div class="panel panel-default" id="main">
                 <div class="panel-heading">
                     <h3 class="panel-title">
                         <i class="glyphicon glyphicon-signal"/>&#160;Main Status</h3>
@@ -28,10 +41,8 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-md-5 col-md-offset-1" id="doc">
-            <div class="panel panel-default">
+        <div class="col-md-4">
+            <div class="panel panel-default" id="doc">
                 <div class="panel-heading">
                     <h3 class="panel-title">
                         <i class="glyphicon glyphicon-book"/>&#160;Documentation</h3>
@@ -43,6 +54,19 @@
                             <b>Last update</b>: <span data-template="backoffice:doc-status"/>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5 col-md-offset-1" id="chara">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-upload"/>&#160;Chara</h3>
+                </div>
+                <div class="panel-body">
+                    TBD
                 </div>
             </div>
         </div>
@@ -85,6 +109,44 @@
                 </div>
                 <div class="panel-body">
                     <div class="backoffice:download-status"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-offset-1 col-md-10" id="comments">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-comment"/>&#160;Comments dashboard</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-condensed" data-template="comments:last-comments">
+                        <tr>
+                            <th>Type</th>
+                            <th>When</th>
+                            <th>Who</th>
+                            <th>Text</th>
+                        </tr>
+                        <tr data-template="helpers:each" data-template-from="comments" data-template-to="comment">
+                            <tr>
+                                <td>
+                                    <a class="badge" data-template="comments:get-comment-url" data-template-key="comment" data-template-attribute-name="href">
+                                        <span data-template="comments:get-comment-type" data-template-key="comment"/>
+                                    </a>
+                                </td>
+                                <td>
+                                    <span data-template="helpers:model-value" data-template-key="comment.date"/>
+                                </td>
+                                <td>
+                                    <span data-template="app:get-obfuscated-email" data-template-key="comment.author"/>
+                                </td>
+                                <td>
+                                    <span data-template="app:ellipsize" data-template-key="comment.text" data-template-length="80"/>
+                                </td>
+                            </tr>
+                        </tr>
+                    </table>
                 </div>
             </div>
         </div>
