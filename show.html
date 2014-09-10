@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     
     <div data-template="templates:if-parameter-set" data-template-param="id">
@@ -6,10 +7,10 @@
         <h1>Comments</h1>
         <div class="col-md-offset-1 col-md-10">
             <div data-template="templates:if-parameter-set" data-template-param="message">
-                <div data-template="app:add-comment"/>
+                <div data-template="comments:add-comment"/>
             </div>
-            <div data-template="app:comments">
-                <ul class="media-list" id="comments">
+                <div data-template="comments:comments">
+                    <ul class="media-list" id="comments">
                     <li data-template="helpers:render" data-template-partial="_comment.html" data-template-key="comments"/>
                 </ul>
                 <div data-template="templates:if-attribute-set" data-template-attribute="user">

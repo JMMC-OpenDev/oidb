@@ -907,47 +907,6 @@ declare function app:each-granule($node as node(), $model as map(*), $from as xs
 };
 
 (:~
- : Insert a new comment for a granule.
- : 
- : Only comments from authenticated users are accepted. The comment is
- : otherwise discarded.
- : 
- : @param $node    the current node
- : @param $model   the current model
- : @param $id      the id of the granule the comment is for
- : @param $parent  the id of the comment this new comment is a reply of
- : @param $message the text message
- :)
-declare function app:add-comment($node as node(), $model as map(*), $id as xs:integer, $parent as xs:string?, $message as xs:string) as node()? {
-    (: FIXME do not use email for user id :)
-    let $user := login:user-email()
-    return if ($user and request:get-method() = 'POST') then
-        let $comments := doc('/db/apps/oidb-data/comments/comments.xml')/comments
-        let $parent := if ($parent) then $comments//comment[@id=$parent] else $comments
-        let $comment :=
-            <comment id="{ util:uuid() }" granule-id="{ $id }">
-                <author>{ $user }</author>
-                <date>{ current-dateTime() }</date>
-                <text>{ $message }</text>
-            </comment>
-        return update insert $comment into $parent
-    else
-        ()
-};
-
-(:~
- : Add the comments attached to a granule to the model for templating.
- : 
- : @param $node  the current node
- : @param $model the current model
- : @param $id    the granule id
- : @return a new model with comments for the granule
- :)
-declare function app:comments($node as node(), $model as map(*), $id as xs:integer) as map(*) {
-    map { 'comments' := collection('/db/apps/oidb-data/comments')/comments/comment[@granule-id=$id] }
-};
-
-(:~
  : Add the user information (name, email, affiliation) to the model for templating.
  : 
  : @param $node  the current node
@@ -962,9 +921,10 @@ declare function app:user-info($node as node(), $model as map(*), $key as xs:str
 
 (:~
  : Truncate a text string from the model to a given length.
+ : TODO: move to templates-helpers
  : 
- : @param $node the placeholder for the ellipsized text
- : @param $model
+ : @param $node 
+ : @param $model the placeholder for the ellipsized text
  : @param $key the key to lookup in the model for source text
  : @param $length the maximum size of text returned
  : @return a ellipsized text if too long
@@ -977,4 +937,16 @@ function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $le
         substring($text, 1, $length) || '…'
     else
         $text
+};
+
+(:~
+ : wrap jmmc-auth function for templating.
+ : 
+ : @param $node 
+ : @param $model the placeholder for the ellipsized text
+ : @param $key the key to lookup in the model for email text
+ : @return the obfuscated email
+ :)
+declare function app:get-obfuscated-email($node as node(), $model as map(*), $key as xs:string) as xs:string? {
+    jmmc-auth:get-obfuscated-email ( helpers:get($model, $key) )
 };

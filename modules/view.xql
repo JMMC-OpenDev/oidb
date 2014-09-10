@@ -19,6 +19,7 @@ import module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query" at "qu
 import module namespace vizier="http://apps.jmmc.fr/exist/apps/oidb/vizier" at "vizier.xql";
 import module namespace ads="http://apps.jmmc.fr/exist/apps/oidb/ads" at "ads.xql";
 import module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits" at "oifits.xql";
+import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 
 import module namespace jmmc-about="http://exist.jmmc.fr/jmmc-resources/about";
 import module namespace jmmc-web="http://exist.jmmc.fr/jmmc-resources/web";
