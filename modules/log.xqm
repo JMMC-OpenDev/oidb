@@ -127,7 +127,7 @@ declare %private function log:report-submits($max as xs:integer, $successful as 
         let $time := data($item/@time)
         let $success := if( $item//success ) then true() else false()
         let $class := if( $success ) then "success" else "danger"
-        let $by := if ($item/@user) then jmmc-auth:getObfuscatedEmail($item/@user) else ''
+        let $by := if ($item/@user) then jmmc-auth:get-obfuscated-email($item/@user) else ''
         let $granulesOk := count($item//id)
         let $method := if($item//file) then "xml" else if ($item//urls) then "Oifits uploads" else "VizieR"
         return (
@@ -166,7 +166,7 @@ declare function log:report-downloads($max as xs:integer)as node(){
         let $time := data($item/@time)
         let $success := if( $item//success ) then true() else false()
         let $class := if( $success ) then "success" else "danger"
-        let $by := jmmc-auth:getObfuscatedEmail($item/@user)
+        let $by := jmmc-auth:get-obfuscated-email($item/@user)
         let $id := data($item//id)
         let $url := if( $success ) then data($item//url) else ()
         return (

@@ -20,7 +20,7 @@ declare %private function login:clear-credentials() {
  :)
 declare %private function login:create-login($user as xs:string, $password as xs:string) as empty() {
     (: use the JMMC authentication system/database :)
-    if (jmmc-auth:checkPassword($user, $password)) then (
+    if (jmmc-auth:check-password($user, $password)) then (
         (: persist authentication through session :)
         session:set-attribute("user", $user),
         (: set attribute for next action in controller :)
@@ -81,7 +81,7 @@ declare function login:set-user() as empty() {
  :)
 declare %private function login:user-info() as node()? {
     let $user := session:get-attribute("user")
-    return jmmc-auth:getInfo($user)
+    return jmmc-auth:get-info($user)
 };
 
 (:~

@@ -916,7 +916,7 @@ declare function app:each-granule($node as node(), $model as map(*), $from as xs
  :)
 declare function app:user-info($node as node(), $model as map(*), $key as xs:string) as map(*) {
     let $user := helpers:get($model, $key)
-    return map { 'user' := jmmc-auth:getInfo($user) }
+    return map { 'user' := jmmc-auth:get-info($user) }
 };
 
 (:~
