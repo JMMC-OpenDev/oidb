@@ -141,19 +141,6 @@ function backoffice:download-status($node as node(), $model as map(*), $maxDownl
 };
 
 (:~
- : comment for  model for templating.
- : 
- : @param $node
- : @param $model
- : @return
- :)
-declare 
-function backoffice:each-comment($node as node(), $model as map(*)) as node()* {
-    for $c in map:get($model, 'comments')
-        return templates:process($node/node(), map:new(($model, map:entry("comment", $c))))
-};
-
-(:~
  : Handle any action for the backoffice page.
  : 
  : @param $node
