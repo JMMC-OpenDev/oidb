@@ -1,8 +1,21 @@
 $(function () {
-    $('.input-group.date').datepicker({
-        autoclose: true,
-        format: 'yyyy-mm-dd'
-    });
+    $('.input-group.date')
+        .datepicker({
+            autoclose: true,
+            format: 'yyyy-mm-dd'
+        })
+        // put limits on datepickers of filter for observation dates
+        .on('changeDate clearDate', function(e) {
+            var $this = $(this);
+            // find the other datepicker in the row
+            var $other = $this.parents('.form-group').find('.input-group.date').not($this);
+
+            // select method to apply to other datepicker
+            var name  = $this.find(':input').attr('name');
+            var method = (name == 'date_start') ? 'setStartDate' : 'setEndDate';
+            
+            $other.datepicker(method, (e.date) ? e.date : false);
+        });
 
     // the panel with filters fields
     var $filters = $('#filters');
