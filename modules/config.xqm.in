@@ -133,8 +133,8 @@ declare variable $config:sql-table := "@sql-table@";
  : TAP request URLs
  :)
 declare variable $config:TAP_BASEURL := "@tap-baseurl@";
-declare variable $config:TAP_SYNC := $config:TAP_BASEURL || "sync";
-declare variable $config:TAP_TABLES := $config:TAP_BASEURL || "tables";
+declare variable $config:TAP_SYNC := $config:TAP_BASEURL || "/sync";
+declare variable $config:TAP_TABLES := $config:TAP_BASEURL || "/tables";
 
 
 (: define main doc filename and url  :)
