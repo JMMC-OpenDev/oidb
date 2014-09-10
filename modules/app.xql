@@ -923,8 +923,8 @@ declare function app:user-info($node as node(), $model as map(*), $key as xs:str
  : Truncate a text string from the model to a given length.
  : TODO: move to templates-helpers
  : 
- : @param $node 
- : @param $model the placeholder for the ellipsized text
+ : @param $node the placeholder for the ellipsized text
+ : @param $model
  : @param $key the key to lookup in the model for source text
  : @param $length the maximum size of text returned
  : @return a ellipsized text if too long
@@ -942,8 +942,8 @@ function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $le
 (:~
  : wrap jmmc-auth function for templating.
  : 
- : @param $node 
- : @param $model the placeholder for the ellipsized text
+ : @param $node the placeholder for the email
+ : @param $model
  : @param $key the key to lookup in the model for email text
  : @return the obfuscated email
  :)
