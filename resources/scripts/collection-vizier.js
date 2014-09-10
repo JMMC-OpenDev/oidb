@@ -10,14 +10,10 @@ $(function () {
         });
     };
 
-    $('form').submit(function (e) {
+    // Turn fields from the form into a collection XML document and upload it
+    // to the REST endpoint of OiDB.
+    function saveCollection() {
         var s = new XMLSerializer();
-
-        var $buttons = $('.btn', this);
-        // disable form buttons while the data is uploaded
-        $buttons
-            .attr('disabled', 'disabled')
-            .filter(':submit').append('<img src="resources/images/spinner.gif"/>');
 
         // Turn form into XML collection
         var collection = (new DOMParser()).parseFromString('<collection/>', 'text/xml');
@@ -29,7 +25,17 @@ $(function () {
         });
 
         var id = $('fieldset:first input[name="name"]').val();
-        $.ajax('/exist/restxq/oidb/collection/' + encodeURIComponent(id), { data: s.serializeToString(collection), contentType: 'application/xml', type: 'PUT' });
+        // save the collection, return the Deferred object of the operation
+        return $.ajax('/exist/restxq/oidb/collection/' + encodeURIComponent(id), { data: s.serializeToString(collection), contentType: 'application/xml', type: 'PUT' });
+    }
+
+    // Turn granule fields of the form into granule and attach them to the
+    // collection before uploading.
+    function saveGranules() {
+        var s = new XMLSerializer();
+
+        var $collection = $('fieldset:first');
+        var collection_id = $('input[name="name"]', $collection).val();
 
         // data from collection to add to each granule
         var $article = $('fieldset:first #articles > li:first');
@@ -49,7 +55,7 @@ $(function () {
             add('obs_creator_name', creator);
             add('obs_release_date', pubdate);
             add('calib_level',      '3');
-            add('obs_collection',   id);
+            add('obs_collection',   collection_id);
             add('bib_reference',    bibcode);
 
             $(':input', this).prop('disabled', true).serializeXML(granule, granule.documentElement);
@@ -76,7 +82,21 @@ $(function () {
                 });
         });
 
-        $.when.apply($, uploads)
+        // return a Deferred object to wait until all uploads finish
+        return $.when.apply($, uploads);
+    }
+
+    $('form').submit(function (e) {
+        var s = new XMLSerializer();
+
+        var $buttons = $('.btn', this);
+        // disable form buttons while the data is uploaded
+        $buttons
+            .attr('disabled', 'disabled')
+            .filter(':submit').append('<img src="resources/images/spinner.gif"/>');
+
+        saveCollection()
+            .pipe(saveGranules)
             .done(function(x) {
                 // all granule successfully uploaded, reuse the submit button
                 $buttons.filter(':submit')
