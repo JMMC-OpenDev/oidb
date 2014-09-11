@@ -72,8 +72,8 @@ function comments:last-comments($node as node(), $model as map(*), $maxComments 
 (:~
  : Get the type of a given comment for templating.
  :
- : @param $node
- : @param $model the placeholder for the comment element
+ : @param $node  the placeholder for the comment type
+ : @param $model the current model
  : @param $key   the key to the comment in model
  : @return "new" if this comment is not in reply to a previous comment, "reply" else.
  :)
@@ -85,8 +85,8 @@ declare function comments:get-comment-type($node as node(), $model as map(*), $k
 (:~
  : Get the url of a given comment for templating.
  :
- : @param $node
- : @param $model the placeholder for the comment element
+ : @param $node  the parent of the new text node or new attribute with URL
+ : @param $model the current model
  : @param $key   the key to the comment in model
  : @param $attribute-name leave empty to return a string else an attribute will be returned with the given name
  : @return the page where the comment is displayed.
