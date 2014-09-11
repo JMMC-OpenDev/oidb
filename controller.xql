@@ -35,7 +35,6 @@ else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $
         }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
-                <set-attribute name="warning" value="true"/>                
                 <set-header name="Cache-Control" value="no-cache, no-store, must-revalidate"/>
                 <set-header name="Pragma" value="no-cache"/>
                 <set-header name="Expires" value="0"/>
@@ -77,8 +76,6 @@ else if (ends-with($exist:resource, ".html")) then
         }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
-                <!-- hide prototype warning on the feedback page -->
-                <set-attribute name="warning" value="{ if ($exist:resource = "feedback.html") then "" else true() }"/>
                 <set-header name="Cache-Control" value="no-cache, no-store, must-revalidate"/>
                 <set-header name="Pragma" value="no-cache"/>
                 <set-header name="Expires" value="0"/>
