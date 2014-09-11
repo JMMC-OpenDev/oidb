@@ -7,6 +7,7 @@ module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments";
 
 import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "login.xqm";
 import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
 
 (: the resource path for comments :)
@@ -78,7 +79,7 @@ function comments:last-comments($node as node(), $model as map(*), $maxComments 
  : @return "new" if this comment is not in reply to a previous comment, "reply" else.
  :)
 declare function comments:get-comment-type($node as node(), $model as map(*), $key as xs:string) as xs:string{
-    let $comment := map:get($model, $key)
+    let $comment := helpers:get($model, $key)
     return if ( exists($comment/parent::comment) ) then "reply" else "new"
 };
 
@@ -92,7 +93,7 @@ declare function comments:get-comment-type($node as node(), $model as map(*), $k
  : @return the page where the comment is displayed.
  :)
 declare %templates:wrap function comments:get-comment-url($node as node(), $model as map(*), $key as xs:string, $attribute-name as xs:string?) {
-    let $comment := map:get($model, $key)
+    let $comment := helpers:get($model, $key)
     let $granule-id := data($comment/@granule-id)
     let $comment-id := data($comment/@id)
     let $url := if ($granule-id) then "show.html?id="||$granule-id||"#"||$comment-id else ()
