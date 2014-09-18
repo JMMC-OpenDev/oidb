@@ -273,6 +273,22 @@ declare function adql:split-query-string() as item()* {
 };
 
 (:~
+ : Format an HTTP query string from a parameter list.
+ : 
+ : It encodes the values of the parameters and join them together.
+ : 
+ : @param $params a parameter list
+ : @return a HTTP query string
+ :)
+declare function adql:to-query-string($params as xs:string*) as xs:string {
+    string-join(
+        for $p in $params
+        let $key   := substring-before($p, '=')
+        let $value := substring-after($p, '=')
+        return $key || '=' || encode-for-uri($value), '&amp;')
+};
+
+(:~
  : Helper function to filter out specified parameters.
  : 
  : @param $params a sequence of parameters
