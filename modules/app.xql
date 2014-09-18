@@ -246,8 +246,8 @@ declare variable $app:collections-query := adql:build-query(( 'col=obs_collectio
 declare
     %templates:wrap
 function app:collections-options($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:collections-query, true())
-    let $ids := $data//td[@colname='obs_collection']/text()
+    let $data := tap:execute($app:collections-query, false())
+    let $ids := $data//*:TD/text()
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
         'collections' := map:new(
@@ -276,10 +276,10 @@ declare variable $app:instruments-query := adql:build-query(( 'col=instrument_na
 declare
     %templates:wrap
 function app:instruments($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:instruments-query, true())
+    let $data := tap:execute($app:instruments-query, false())
     let $instruments := distinct-values(
-        for $tr in $data//tr
-        return tokenize($tr//td[@colname='instrument_name']/text(), '[^A-Za-z0-9]')[1])
+        for $instrument-name in $data//*:TD/text()
+        return tokenize($instrument-name, '[^A-Za-z0-9]')[1])
 
     return map:new(map:entry('instruments', $instruments))
 };
@@ -298,8 +298,8 @@ declare variable $app:data-pis-query := adql:build-query(( 'col=obs_creator_name
 declare
     %templates:wrap
 function app:data-pis($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:data-pis-query, true())
-    let $datapis := $data//td[@colname='obs_creator_name']/text()
+    let $data := tap:execute($app:data-pis-query, false())
+    let $datapis := $data//*:TD/text()
     return map:new(($model, map:entry('datapis', $datapis)))
 };
 
@@ -613,8 +613,8 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
 declare function app:get-data($node as node(), $model as map(*), $id as xs:integer) as map(*) {
     let $query := "SELECT access_url FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
     (: send query by TAP :)
-    let $data := tap:execute($query, true())
-    let $data-url := data($data//td[@colname='access_url'])
+    let $data := tap:execute($query, false())
+    let $data-url := $data//*:TD/text()
     
     let $activate-303 := if ($data-url) then
         (response:set-header("Location", $data-url),
@@ -639,13 +639,17 @@ declare variable $app:latest-query := adql:build-query(( 'col=target_name', 'col
  : @return an HTML list
  :)
 declare function app:latest($node as node(), $model as map(*)) {
-    let $data := tap:execute($app:latest-query, true())
+    let $data := tap:execute($app:latest-query, false())
+
+    let $fields := data($data//votable:FIELD/@ID)
+    let $name-pos := index-of($fields, 'target_name')
+    let $url-pos  := index-of($fields, 'access_url')
 
     return <ul> {
-        for $row in $data/tr[position() > 1]
+        for $row in $data/*:TR
         return <li>
-            <span> { data($row/td[@colname='target_name']) } </span> - 
-            <span> { data($row/td[@colname='subdate']) } </span>
+            <span> { $row/*:TD[position()=$name-pos]/text() } </span> - 
+            <span> { $row/*:TD[position()=$url-pos]/text() } </span>
         </li>
     } </ul>
 };
