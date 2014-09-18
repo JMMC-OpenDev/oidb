@@ -29,13 +29,19 @@ function query:run($node as node(), $model as map(*),
         let $query := request:get-parameter('query', false())
         let $data := if ($query) then tap:execute($query, true()) else ()
 
-        let $headers := $data//th
+        let $columns :=
+            for $th in $data//th
+            return map {
+                'name'    := data($th/@name),
+                'ucd'     := $th/a/text(),
+                'ucd-url' := data($th/a/@href)
+            }
         (: limit rows to page - skip row of headers :)
         let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
 
         return if ($rows) then
             map {
-                'headers' :=    $headers,
+                'columns' :=    $columns,
                 'rows' :=       $rows,
                 'pagination' := map { 'page' := $page, 'npages' := ceiling(count($data//tr) div $perpage) }
             }

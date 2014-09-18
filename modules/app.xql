@@ -30,17 +30,6 @@ function app:stats($node as node(), $model as map(*)) as map(*) {
 };
 
 (:~
- : Replace a node with the column description from a VOTable header.
- : 
- : @param $node  the node to replace with header data
- : @param $model the current model
- :)
-declare function app:column-header($node as node(), $model as map(*)) {
-    let $header := $model('header')
-    return $header/child::node()
-};
-
-(:~
  : Return a selection of items from the data row as HTML5 data attributes.
  : 
  : If an expected column is found in the row, it creates a 'data-' prefixed
@@ -92,11 +81,12 @@ declare function app:each-row($node as node(), $model as map(*)) as node()* {
  :)
 declare function app:row-cells($node as node(), $model as map(*)) {
     let $row     := $model('row')
-    let $columns := $model('headers')
+    let $columns := $model('columns')
     return
         (: output cells in the same order as headers :)
-        for $col in $columns
-        let $cell := $row/td[@colname=$col/text()]
+        for $column in $columns
+        let $col := map:get($column, 'name')
+        let $cell := $row/td[@colname=$col]
         return <td> {
             switch ($cell/@colname)
                 case "access_url"
@@ -398,7 +388,7 @@ function app:search($node as node(), $model as map(*),
             true())
 
         (: default columns to display :)
-        let $columns := if($all) then
+        let $column-names := if($all) then
                 $data//th/@name/string()
             else
                 (: ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels' ) :)
@@ -406,8 +396,16 @@ function app:search($node as node(), $model as map(*),
     
         let $stats   := app:data-stats($params)
     
-        (: select headers, keep column order :)
-        let $headers := for $col in $columns return $data//th[@name=$col]
+        (: select columns, keep order :)
+        let $columns :=
+            for $name in $column-names
+            let $th := $data//th[@name=$name]
+            return map {
+                'name'    := $name,
+                'ucd'     := $th/a/text(),
+                'ucd-url' := data($th/a/@href)
+            }
+
         (: limit rows to page - skip row of headers :)
         let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
     
@@ -417,7 +415,7 @@ function app:search($node as node(), $model as map(*),
         return map {
             'query' :=      $query,
             'query-edit' := 'query.html?query=' || encode-for-uri($query),
-            'headers' :=    $headers,
+            'columns' :=    $columns,
             'rows' :=       $rows,
             'stats' :=      $stats,
             'pagination' := map { 'page' := $page, 'npages' := ceiling(number($stats/@nobservations) div $perpage) }

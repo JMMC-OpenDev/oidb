@@ -34,8 +34,13 @@
                                 <ul class="dropdown-menu" role="menu"/>
                             </div>
                         </th>
-                        <th data-template="templates:each" data-template-from="headers" data-template-to="header">
-                            <span data-template="app:column-header"/>
+                        <th data-template="templates:each" data-template-from="columns" data-template-to="column">
+                            <span data-template="helpers:model-value" data-template-key="column.name"/>
+                            <div data-template="helpers:if-model-key" data-template-key="column.ucd">
+                                <a data-template="helpers:model-value-attribute" data-template-key="column.ucd-url" data-template-name="href">
+                                    <span data-template="helpers:model-value" data-template-key="column.ucd"/>
+                                </a>
+                            </div>
                         </th>
                     </tr>
                 </thead>
