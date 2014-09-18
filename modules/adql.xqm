@@ -184,7 +184,7 @@ declare %private function adql:predicate($param as xs:string) as xs:string? {
     let $value := substring-after($param, '=')
     let $f := function-lookup(xs:QName('filters:' || $name), 1)
     return if (exists($f)) then 
-        $f(util:unescape-uri($value, 'UTF8'))
+        $f($value)
     else
         error(xs:QName('adql:error'), "Unknown filter " || $name)
 };
@@ -269,7 +269,8 @@ declare %private function adql:get-parameter($all-params as xs:string*, $name as
  : @return a sequence of query parameters
  :)
 declare function adql:split-query-string() as item()* {
-    tokenize(request:get-query-string(), '&amp;')
+    for $p in tokenize(request:get-query-string(), '&amp;')
+    return xmldb:decode($p)
 };
 
 (:~

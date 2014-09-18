@@ -516,14 +516,14 @@ declare function app:serialize-query-string() as xs:string* {
         let $start := request:get-parameter('date_start', '')
         let $end   := request:get-parameter('date_end', '')
         return if($start != '' or $end != '') then
-            "observationdate=" || encode-for-uri($start) || '..' || encode-for-uri($end)
+            "observationdate=" || $start || '..' || $end
         else
             (),
         (: conesearch filter :)
         let $position := request:get-parameter('cs_position', '')
         return if($position != '') then
             "conesearch=" || string-join((
-                encode-for-uri($position),
+                $position,
                 request:get-parameter('cs_equinox',     'J2000'),
                 request:get-parameter('cs_radius',      '2'),
                 request:get-parameter('cs_radius_unit', 'deg')), ',')
@@ -535,23 +535,23 @@ declare function app:serialize-query-string() as xs:string* {
         where exists($value) and $value != ''
         return switch($n)
             (: parameter name         filter with argument :)
-            case "target_name" return "target=" ||     "~" || encode-for-uri($value)
-            case "instrument"  return "instrument="        || encode-for-uri($value)
-            case "band"        return "wavelengthband="    || string-join(for $v in $value return encode-for-uri($v), ',')
-            case "collection"  return "collection=" || "~" || encode-for-uri($value)
-            case "datapi"      return "datapi=" ||     "~" || encode-for-uri($value)
+            case "target_name" return "target=" ||     "~" || $value
+            case "instrument"  return "instrument="        || $value
+            case "band"        return "wavelengthband="    || string-join(for $v in $value return $v, ',')
+            case "collection"  return "collection=" || "~" || $value
+            case "datapi"      return "datapi=" ||     "~" || $value
             case "reduction"   return if (empty(( 0, 1, 2, 3 )[not(string(.)=$value)])) then 
                     (: default is all calibration level :)
                     ()
                 else
-                    "caliblevel=" || string-join(for $v in $value return encode-for-uri($v), ',')
+                    "caliblevel=" || string-join(for $v in $value return $v, ',')
             case "available"    return if ($value = ( 'yes', 'no' )) then "public=" || $value else ()
             case "sortby"
                 return concat("order=",
-                    if(request:get-parameter('descending', ())) then '' else '^',
-                    encode-for-uri($value))
+                    if(request:get-parameter('descending', ())) then '' else '^', $value
+                )
 
-            case "perpage"     return "perpage=" || encode-for-uri($value)
+            case "perpage"     return "perpage=" || $value
 
             default            return ()
     )
@@ -801,7 +801,7 @@ declare %private function app:stats($query as item()*) as map(*) {
  :)
 declare function app:collection-stats($node as node(), $model as map(*), $key as xs:string) as map(*) {
     let $id := helpers:get($model, $key)
-    return app:stats(( 'collection=' || encode-for-uri($id) ))
+    return app:stats(( 'collection=' || $id ))
 };
 
 (:~
@@ -873,7 +873,7 @@ declare
     %templates:default("page", 1)
     %templates:default("perpage", 25)
 function app:collection-granules($node as node(), $model as map(*), $id as xs:string, $page as xs:integer, $perpage as xs:integer) as map(*) {
-    let $query := ( 'collection=' || encode-for-uri($id), 'order=^access_url' )
+    let $query := ( 'collection=' || $id, 'order=^access_url' )
     let $stats := app:stats($query)
 
     return map {

@@ -5,6 +5,7 @@ import module namespace request="http://exist-db.org/xquery/request";
 import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "modules/login.xqm";
 
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "modules/app.xql";
+import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "modules/adql.xql";
 
 declare variable $exist:path external;
 declare variable $exist:resource external;
@@ -61,7 +62,7 @@ else if (starts-with($exist:path, '/modules/upload-')) then (
 else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
     (: interception of POST requests from search page :)
     (: serialize from form elements and redirect (303 See Other) :)
-    let $query-string := string-join(app:serialize-query-string(), '&amp;')
+    let $query-string := adql:to-query-string(app:serialize-query-string())
     let $location := if($query-string = '') then '.' || $exist:path else '.' || $exist:path || '?' || $query-string
     return (
         response:set-status-code(303),
