@@ -948,3 +948,48 @@ function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $le
 declare function app:get-obfuscated-email($node as node(), $model as map(*), $key as xs:string) as xs:string? {
     jmmc-auth:get-obfuscated-email ( helpers:get($model, $key) )
 };
+
+(:~
+ : Build a link to sort the results on the given column.
+ : 
+ : It picks the name of the column from the model and analyzes the current
+ : query string to create a 'href' attribute on the current node to start a
+ : new query with sorting on the current column or inverting the sorting
+ : if the results have already been sorted by the column).
+ : 
+ : It template-processes the children of the node.
+ : 
+ : @param $node  the parent for the href attribute to change sorting
+ : @param $model the current model
+ : @return the templatized node.
+ :)
+declare function app:column-sort($node as node(), $model as map(*)) as node() {
+    let $column := helpers:get($model, 'column')
+    let $column-name := $column('name')
+
+    let $query := adql:split-query-string()
+    (: search for on existing ordering in the query :)
+    let $order := substring-after($query[starts-with(., 'order=')][1], '=')
+    let $asc := starts-with($order[1], '^')
+    let $sort-key := substring($order[1], if ($asc) then 2 else 1)
+    let $same-key := ($sort-key = $column-name)
+
+    let $ordering :=
+        if ($same-key) then
+            (: invert ordering :)
+            if ($asc) then '' else '^'
+        else
+            (: default to ascending :)
+            '^'
+
+    (: the new split query with ordering change :)
+    let $new-query := ( adql:clear-order(adql:clear-pagination($query)), 'order=' || $ordering || $column-name )
+
+    return element { node-name($node) } {
+        $node/@* except ( $node/@href, $node/@class ),
+        attribute { 'href'  }  { '?' || adql:to-query-string($new-query) },
+        attribute { 'class' } { concat(data($node/@class), if ($asc) then ' dropup' else '') },
+        templates:process($node/node(), $model),
+        if ($same-key) then <span class="caret"/> else ()
+    }
+};
