@@ -177,8 +177,6 @@ declare %private function filters:parse-conesearch($coords as xs:string) as item
     return ( $position, $radius )
 };
 
-import module namespace m="http://exist-db.org/xquery/math";
-
 (:~
  : Format a Cone Search as an ADQL condition.
  : 
