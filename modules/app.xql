@@ -99,6 +99,13 @@ declare function app:row-cells($node as node(), $model as map(*)) {
                             app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'])
                         else
                             $access-url
+                case "obs_collection"
+                    return
+                        let $obs-collection := data($cell)
+                        return if ($obs-collection) then
+                            app:format-collection-url($obs-collection)
+                        else
+                            ''
                 case "s_ra"
                     return jmmc-astro:to-hms($cell)
                 case "s_dec"
@@ -178,6 +185,22 @@ declare %private function app:format-access-url($id as xs:string, $url as xs:str
          tokenize($url, "/")[last()] ,
          if ($public) then () else <i class="glyphicon glyphicon-lock"/> 
         }
+};
+
+(:~
+ : Format a cell for the obs_collection column.
+ : 
+ : It builds an anchor element redirecting to the collection page.
+ : 
+ : @param $id the ID of the collection
+ : @return an <a> element
+ :)
+declare %private function app:format-collection-url($id as xs:string) {
+    let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]/name/text()
+    return element { "a" } {
+        attribute { "href" } { "collection.html?id=" || encode-for-uri($id) },
+        if ($collection) then $collection else $id
+    }
 };
 
 (:~
