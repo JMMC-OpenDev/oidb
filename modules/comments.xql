@@ -7,6 +7,7 @@ module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments";
 
 import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "login.xqm";
 import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
 
@@ -30,7 +31,7 @@ declare function comments:add-comment($node as node(), $model as map(*), $id as 
     (: FIXME do not use email for user id :)
     let $user := login:user-email()
     return if ($user and request:get-method() = 'POST') then
-        let $comments := doc('/db/apps/oidb-data/comments/comments.xml')/comments
+        let $comments := doc($comments:comments)/comments
         let $parent := if ($parent) then $comments//comment[@id=$parent] else $comments
         let $comment :=
             <comment id="{ util:uuid() }" granule-id="{ $id }">
@@ -52,7 +53,7 @@ declare function comments:add-comment($node as node(), $model as map(*), $id as 
  : @return a new model with comments for the granule
  :)
 declare function comments:comments($node as node(), $model as map(*), $id as xs:integer) as map(*) {
-    map { 'comments' := collection('/db/apps/oidb-data/comments')/comments/comment[@granule-id=$id] }
+    map { 'comments' := doc($comments:comments)/comments/comment[@granule-id=$id] }
 };
 
 (:~
@@ -67,7 +68,7 @@ declare
 %templates:wrap
 %templates:default("maxComments", 10)
 function comments:last-comments($node as node(), $model as map(*), $maxComments as xs:integer) as map(*) {
-    map { 'comments' := subsequence(reverse(collection('/db/apps/oidb-data/comments')//comment), 1, $maxComments) }
+    map { 'comments' := subsequence(reverse(doc($comments:comments)//comment), 1, $maxComments) }
 };
 
 (:~
