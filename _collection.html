@@ -14,7 +14,7 @@
             <span data-template="helpers:model-value" data-template-key="collection.description"/>
         </div>
     </div>
-    <div>
+    <div data-template="helpers:if-model-key" data-template-key="collection.article">
         <strong>Articles: </strong>
         <ul class="list-group">
             <li data-template="helpers:render" data-template-partial="_article.html" data-template-key="collection.article" data-template-as="article"/>
