@@ -39,9 +39,8 @@ declare function local:upload($handle as xs:long, $granule as node()) as xs:inte
 };
 
 (: get the data from the request: data in POST request or from filled-in form :)
-let $content-type := request:get-header('Content-Type')
 let $data :=
-    if (starts-with($content-type, 'multipart/form-data')) then
+    if (request:is-multipart-content()) then
         util:base64-decode(xs:string(request:get-uploaded-file-data('file')))
     else
         request:get-data()
