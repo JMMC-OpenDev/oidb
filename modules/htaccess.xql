@@ -25,6 +25,9 @@ let $query := adql:build-query((
 let $rows := tap:execute($query, true())
 let $access_urls := distinct-values($rows//td[@colname="access_url"]/text())
 
+return (
+<p># request performed on {current-dateTime()} for collection={$collection}&#10;</p>,
+<p># {count($access_urls)} url need to be released to public&#10;&#10;</p>,
 for $u at $pos in $access_urls
 let $row := $rows//tr[td[@colname="access_url"]=$u][1]
 let $access_url := $row/td[@colname="access_url"]/text()
@@ -40,3 +43,4 @@ return
 &lt;/Files&gt;
 
     </p>
+)
