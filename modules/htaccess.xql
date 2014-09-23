@@ -19,7 +19,7 @@ declare option output:omit-xml-declaration "yes";
 let $collection := request:get-parameter("obs_collection", "", true())
 let $query := adql:build-query((
     'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date',
-    'collection=~' || $collection,
+    'collection=' || $collection,
     'public=yes' ))
     
 let $rows := tap:execute($query, true())
