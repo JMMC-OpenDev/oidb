@@ -22,19 +22,18 @@ let $query := adql:build-query((
     'collection=' || $collection,
     'public=yes' ))
     
-let $rows := tap:execute($query, true())
-let $access_urls := distinct-values($rows//td[@colname="access_url"]/text())
+(: hard code indexes to improve efficiency :)
+let $rows := tap:execute($query, false())
 
 return (
 <p># request performed on {current-dateTime()} for collection={$collection}&#10;</p>,
-<p># {count($access_urls)} url need to be released to public&#10;&#10;</p>,
-for $u at $pos in $access_urls
-let $row := $rows//tr[td[@colname="access_url"]=$u][1]
-let $access_url := $row/td[@colname="access_url"]/text()
-let $obs_release_date := $row/td[@colname="obs_release_date"]/text()
-let $data_rights := $row/td[@colname="data_rights"]/text()
-order by $pos
-return
+<p># {count($rows//*:TR)} url need to be released to public&#10;&#10;</p>,
+for $row at $pos in $rows//*:TR
+    let $data := $row/*:TD
+    let $access_url := $data[1]
+    let $data_rights := $data[2]
+    let $obs_release_date := $data[3]
+    return
     <p>
 # {$pos} obs_release_date:{ $obs_release_date } data_right:= { $data_rights }
 &lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;
