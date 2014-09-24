@@ -16,6 +16,7 @@ xquery version "3.0";
 import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace util = "http://exist-db.org/xquery/util";
 
+import module namespace jmmc-eso = "http://exist.jmmc.fr/jmmc-resources/eso";
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
@@ -35,7 +36,28 @@ declare function local:upload($handle as xs:long, $granule as node()) as xs:inte
         if (exists($collection) and empty(collection("/db/apps/oidb-data/collections")/collection[@id=$collection])) then
             error(xs:QName('error'), 'Unknown collection id: ' || $collection)
         else
-             upload:upload($handle, $granule/*)
+            let $updated-granule := local:sanitize($granule)
+            return upload:upload($handle, $updated-granule/*)
+};
+(:~
+ : Sanitise the given granule.
+ : <ul>
+ :    <li>ESO case : if datapi is not present and progid is provided, retrieve PI from ESO archive and add new datapi element</li>    
+ : </ul>
+ :
+ : @param $granule a XML granule description
+ : @return the sanitysed granule copy of the given one
+ :)
+declare function local:sanitize($granule as node()) as node() {
+    let $datapi := $granule/datapi/text()
+    let $progid := $granule/progid/text()
+    (: assume that we are on a eso case with a given progid :)
+    let $pi := if(empty($datapi) and $progid) then jmmc-eso:get-pi-from-progid($progid) else ()
+    
+    return element {name($granule)} {
+        for $e in $granule/* return $e,
+        if($pi) then element {"datapi"} {$pi} else ()
+    }
 };
 
 (: get the data from the request: data in POST request or from filled-in form :)

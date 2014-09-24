@@ -52,13 +52,13 @@ declare function filters:target($params as xs:string) {
 };
 
 (:~
- : Format an ADQL condition for matching/not matching the owner of the data.
+ : Format an ADQL condition for matching/not matching the data PI.
  : 
  : @params $params the pattern for the data pi name
  : @return an ADQL condition or ()
  :)
 declare function filters:datapi($params as xs:string) {
-    filters:like-text($params, 'obs_creator_name')
+    filters:like-text($params, 'datapi')
 };
 
 (:~

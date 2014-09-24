@@ -307,7 +307,7 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
     return map:new(map:entry('instruments', $instruments))
 };
 
-declare variable $app:data-pis-query := adql:build-query(( 'col=obs_creator_name', 'distinct' ));
+declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));
 
 (:~
  : Build a list of dataPIs and put it in the model for templating.
@@ -414,8 +414,7 @@ function app:search($node as node(), $model as map(*),
         let $column-names := if($all) then
                 $data//th/@name/string()
             else
-                (: ( 'target_name', 's_ra', 's_dec', 'access_url', 'instrument_name', 'em_min', 'em_max', 'nb_channels' ) :)
-                ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'obs_creator_name' )
+                ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' )
     
         let $stats   := app:data-stats($params)
     
