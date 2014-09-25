@@ -148,7 +148,7 @@ declare function local:metadata($observation as xs:string*) as node() {
         (: all entries are L0 :)
         <calib_level>0</calib_level>,
         <target_name>{ $target-name }</target_name>,
-        <obs_creator_name>{ $data-pi }</obs_creator_name>,
+        <datapi>{ $data-pi }</datapi>,
         <obs_collection>{ $local:collection }</obs_collection>,
         <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
         <access_url> -/- </access_url>, (: FIXME no file :)
