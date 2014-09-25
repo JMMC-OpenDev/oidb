@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <meta xmlns="http://exist-db.org/xquery/repo">
     <description>OIData portal</description>
-    <author/>
+    <author>JMMC OiDB Working Group</author>
     <website/>
     <status>alpha</status>
     <license/>
