@@ -135,6 +135,7 @@ declare function local:metadata($observation as xs:string*) as node() {
     let $ra          := $star/ra
     let $dec         := $star/dec
     let $data-pi     := local:resolve-pi($trim($observation[$local:PI]))
+    let $program     := $trim($observation[$local:PROGRAM])
     let $date        := $trim($observation[$local:MJD])
     let $ins-name    := $trim($observation[$local:COMBINER])
     let $ins-mode    := $trim($observation[$local:FILTER])
@@ -167,7 +168,8 @@ declare function local:metadata($observation as xs:string*) as node() {
         <nb_channels> -1 </nb_channels>,
         <nb_vis> -1 </nb_vis>,
         <nb_vis2> -1 </nb_vis2>,
-        <nb_t3> -1 </nb_t3>
+        <nb_t3> -1 </nb_t3>,
+        <progid>{ $program }</progid>
     } </metadata>
 };
 
