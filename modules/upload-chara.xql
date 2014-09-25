@@ -24,6 +24,7 @@ import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 
 import module namespace jmmc-simbad="http://exist.jmmc.fr/jmmc-resources/simbad";
+import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
 (: column indices from source CSV file :)
 declare variable $local:UT-DATE  := 1;
@@ -47,6 +48,18 @@ declare variable $local:collection := 'chara_import';
 (: the path to the ASPRO XML configuration in the database :)
 declare variable $local:asproconf-uri := '/db/apps/oidb-data/instruments';
 
+(:  prepare a cache for target resolutions :)
+declare variable $local:cache :=
+    try {
+        doc(xmldb:store($config:data-root || '/tmp', 'upload-chara.xml', <cache/>))
+    } catch * {
+        error(xs:QName('error'), 'Failed to create cache for upload-chara.xql: ' || $err:description, $err:value)
+    };
+declare variable $local:cache-insert   := jmmc-cache:insert($local:cache, ?, ?);
+declare variable $local:cache-get      := jmmc-cache:get($local:cache, ?);
+declare variable $local:cache-contains := jmmc-cache:contains($local:cache, ?);
+declare variable $local:cache-destroy  := function() { jmmc-cache:destroy($local:cache) };
+
 (:~
  : Remove all CHARA records from a previous import.
  : 
@@ -59,13 +72,24 @@ declare function local:delete-collection($handle as xs:long) {
 (:~
  : Search for a target by name.
  : 
+ : It makes use of a temporary cache of previous name resolutions to avoid
+ : excessive requests to Simbad.
+ : 
  : @param $name a target name
  : @return a target description
  : @error unknown target
  :)
 declare function local:resolve-target($name as xs:string) {
-    let $target := jmmc-simbad:resolve-by-name($name)
-    return if ($target) then $target[1] else error(xs:QName('error'), 'Unknown target', $name)
+    let $target :=
+        (: search in cache first :)
+        if ($local:cache-contains($name)) then
+            (: hit :)
+            $local:cache-get($name)
+        else
+            (: miss, resolve by name and cache the results for next time :)
+            let $target := head(jmmc-simbad:resolve-by-name($name))
+            return ( $local:cache-insert($name, $target), $target )
+    return if($target) then $target else error(xs:QName('error'), 'Unknown target', $name)
 };
 
 (:~
@@ -232,4 +256,4 @@ let $response :=
         }
     } </response>
 
-return ( log:submit($response), $response )
+return ( $local:cache-destroy(), log:submit($response), $response )
