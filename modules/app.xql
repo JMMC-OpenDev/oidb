@@ -13,8 +13,11 @@ import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xq
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth";
+import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
+(: Store main metadata to present in the search result table, granule summary, etc... :)
+declare variable $app:main-metadata := ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' );
 
 (:~
  : Create a model for the context of the node with statistics on results.
@@ -82,10 +85,15 @@ declare function app:each-row($node as node(), $model as map(*)) as node()* {
 declare function app:row-cells($node as node(), $model as map(*)) {
     let $row     := $model('row')
     let $columns := $model('columns')
+    let $colnames := for $column in $columns return map:get($column, 'name')
     return
+        app:td-cells($row, $colnames)
+};
+
+declare function app:td-cells($row as node(), $columns as xs:string*)
+{
         (: output cells in the same order as headers :)
-        for $column in $columns
-        let $col := map:get($column, 'name')
+        for $col in $columns
         let $cell := $row/td[@colname=$col]
         return <td> {
             switch ($cell/@colname)
@@ -582,6 +590,7 @@ declare function app:serialize-query-string() as xs:string* {
  : 
  : A query with the identifier for the row is passed to the TAP service and the
  : returned VOTable is formatted as an HTML table.
+ : TODO refactor using templating
  : 
  : @param $node
  : @param $model
@@ -593,7 +602,15 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
     (: send query by TAP :)
     let $data := tap:execute($query, true())
 
-    return <table class="table table-striped table-bordered table-hover">
+    return ( 
+        <h1> Granule {$data//td[@colname='id']}</h1>
+        (: app:show-granule-summary($node,  map {'granule' := app:granules($query) }, "granule")
+        ,:)
+        ,app:show-granule-summary($node,  map {'granule' := $data }, "granule")
+        ,
+        <h2> <i class="glyphicon glyphicon-align-justify"/> Table of metadata for granule {$data//td[@colname='id']}</h2>
+        ,
+        <table class="table table-striped table-bordered table-hover">
         <!-- <caption> Details for { $id } </caption> -->
         {
             for $th at $i in $data//th[@name!='id']
@@ -618,7 +635,51 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     $td
             } </tr>
         }
+    </table>)
+};
+
+(:~
+ : Display the summary information for a given granule.
+ : 
+ : TODO finish implementation using templating (see show())
+ :      and implement logic to retrieve some external link from the fields of a given granule
+ : 
+ : @param $node
+ : @param $model
+ : @return a <table> filled with data from the raw row
+ :)
+declare function app:show-granule-summary($node as node(), $model as map(*), $key as xs:string)
+{
+    let $granule := map:get($model, $key) 
+    let $progid := string($granule//td[@colname='progid'])
+    
+    let $sec1 := <div class="col-md-5" id="summary">
+        <h2><i class="glyphicon glyphicon-zoom-in"/> Summary</h2>
+        <table class="table table-striped table-bordered table-hover">
+        {
+            let $row := $granule//tr[td]
+            let $tds := app:td-cells($row, $app:main-metadata)
+            for $td at $pos in $tds
+                let $m := $app:main-metadata[$pos]
+                return <tr><th>{$m}</th>{$td}</tr>
+        }
     </table>
+    </div>
+    let $sec2 := if($progid!='') then 
+        let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($progid)
+        return <div class="col-md-5 col-md-offset-2" id="external_resources">
+            <h2><i class="glyphicon glyphicon-new-window"/> External resources</h2>
+        <table class="table table-striped table-bordered table-hover">
+            <tr>
+                <th>
+                    <a href="{$url}">Jump to ESO archive for progid <em>{$progid}</em></a>
+                </th>
+                    
+            </tr>
+        </table>
+        </div>
+        else ()
+    return  <div class="row">{$sec1,$sec2}</div>
 };
 
 (:~
