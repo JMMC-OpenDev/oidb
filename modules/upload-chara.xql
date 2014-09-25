@@ -130,8 +130,8 @@ declare function local:metadata($observation as xs:string*) as node() {
         replace(replace($str,'\s+$',''),'^\s+','')
     }
     (: resolve star coordinates from star name :)
-    let $star := local:resolve-target($trim($observation[$local:STAR]))
-    let $target-name := $star/name/text()
+    let $target-name := $trim($observation[$local:STAR])
+    let $star        := local:resolve-target($target-name)
     let $ra          := $star/ra
     let $dec         := $star/dec
     let $data-pi     := local:resolve-pi($trim($observation[$local:PI]))
