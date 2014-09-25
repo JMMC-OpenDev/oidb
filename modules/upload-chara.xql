@@ -101,15 +101,19 @@ declare function local:resolve-pi($pi as xs:string) as xs:string {
  : @return a 'metadata' element for the observation
  :)
 declare function local:metadata($observation as xs:string*) as node() {
+    (: leading and trailing whitespaces significant in CSV (RFC4180) but annoying here :)
+    let $trim := function($str as xs:string?) as xs:string? {
+        replace(replace($str,'\s+$',''),'^\s+','')
+    }
     (: resolve star coordinates from star name :)
-    let $star := local:resolve-target($observation[$local:STAR])
+    let $star := local:resolve-target($trim($observation[$local:STAR]))
     let $target-name := $star/name/text()
     let $ra          := $star/ra
     let $dec         := $star/dec
-    let $data-pi     := local:resolve-pi($observation[$local:PI])
-    let $date        := $observation[$local:MJD]
-    let $ins-name    := $observation[$local:COMBINER]
-    let $ins-mode    := $observation[$local:FILTER]
+    let $data-pi     := local:resolve-pi($trim($observation[$local:PI]))
+    let $date        := $trim($observation[$local:MJD])
+    let $ins-name    := $trim($observation[$local:COMBINER])
+    let $ins-mode    := $trim($observation[$local:FILTER])
     (: determine wavelength limits from mode and ASPRO config :)
     let $mode := local:resolve-mode($ins-name, $ins-mode)
     let $wl-min      := $mode/waveLengthMin
@@ -144,6 +148,49 @@ declare function local:metadata($observation as xs:string*) as node() {
 };
 
 (:~
+ : Return records from CSV data.
+ : 
+ : @note It does not support multi line records.
+ : 
+ : @param $data the CSV content
+ : @return a sequence of CSV records
+ :)
+declare function local:csv-records($data as xs:string) as xs:string* {
+    tokenize($data, '\n')
+};
+
+(:~
+ : Return items of the first escaped field from a tokenized CSV record.
+ : 
+ : @param $tokens remaining items from a tokenized record
+ : @return the items of a CSV escaped field
+ :)
+declare function local:csv-escaped-field($tokens as xs:string*) as xs:string* {
+    let $head := head($tokens)
+    return (
+        $head,
+        if(empty($head) or matches($head, '[^"]"\s*$')) then () else local:csv-escaped-field(tail($tokens))
+    )
+};
+
+(:~
+ : Parse a tokenized CSV record.
+ : 
+ : @params $tokens a tokenized CSV record
+ : @return a sequence of CSV fields
+ :)
+declare function local:csv-fields($tokens as xs:string*) as xs:string* {
+    (: check for escaped field :)
+    let $escaped := matches($tokens[1], '^\s*"')
+    let $field := if ($escaped) then local:csv-escaped-field($tokens) else head($tokens)
+    let $rest  := subsequence($tokens, count($field) + 1)
+    (: reassemble and unescape field if necessary :)
+    let $field := if ($escaped) then replace(replace(string-join($field, ','), '^\s*"|"\s*$', ''), '""', '"') else $field
+
+    return ( $field, if (empty($rest)) then () else local:csv-fields($rest) )
+};
+
+(:~
  : Push observation logs in the database.
  : 
  : @param $handle a database connection handle
@@ -154,11 +201,11 @@ declare function local:upload($handle as xs:long, $observations as xs:string) as
     (: remove old data from db :)
     let $delete := local:delete-collection($handle)
 
-    (: crude parser for CSV data: one log per line, no quoted fields, assume header and skip it, trim fields... :)
+    (: crude parser for CSV data: one log per line, assume header and skip it... :)
     (: FIXME nasty, write a real parser :)
-    let $records := subsequence(tokenize($observations, '\n'), 2)
+    let $records := tail(local:csv-records($observations))
     for $record at $line in $records
-    let $fields := tokenize($record, '\s*,\s*')
+    let $fields := local:csv-fields(tokenize($record, ','))
     (: ignore empty lines :)
     where exists($fields)
     return try {
