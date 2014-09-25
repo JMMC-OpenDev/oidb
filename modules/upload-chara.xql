@@ -164,7 +164,7 @@ declare function local:upload($handle as xs:long, $observations as xs:string) as
     return try {
         <id>{ upload:upload($handle, local:metadata($fields)/node()) }</id>
     } catch error {
-        <warning>{ 'Failed to convert observation log to granule (line ' || $line || '): ' || $err:description || ': ' || $err:value }</warning>
+        <warning>{ 'Failed to convert observation log to granule (line ' || $line || '): ' || $err:description || ': ' || string-join($err:value, ', ') }</warning>
     }
 };
 
