@@ -603,19 +603,19 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
     let $data := tap:execute($query, true())
 
     return ( 
-        <h1> Granule {$data//td[@colname='id']}</h1>
+        <h1> Granule {$data//td[@colname='id']/text()}</h1>
         (: app:show-granule-summary($node,  map {'granule' := app:granules($query) }, "granule")
         ,:)
         ,app:show-granule-summary($node,  map {'granule' := $data }, "granule")
         ,
-        <h2> <i class="glyphicon glyphicon-align-justify"/> Table of metadata for granule {$data//td[@colname='id']}</h2>
+        <h2> <i class="glyphicon glyphicon-align-justify"/> Table of metadata for granule {$data//td[@colname='id']/text()}</h2>
         ,
         <table class="table table-striped table-bordered table-hover">
         <!-- <caption> Details for { $id } </caption> -->
         {
             for $th at $i in $data//th[@name!='id']
             let $td := $data//td[position()=index-of($data//th, $th)]
-            return <tr> { $th } {
+            return <tr> <th> { $th/node() } </th> {
                 if ($td[@colname='access_url']) then 
                     <td> <a href="{ $td/text() }"> { tokenize($td/text(), "/")[last()] }</a></td>
                 else if ($td[@colname='obs_collection' and starts-with($td/text(), 'J/')]) then
@@ -632,7 +632,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                         } </div>  	 	 
                     </td>
                 else
-                    $td
+                    <td> { $td/text() } </td>
             } </tr>
         }
     </table>)
@@ -661,7 +661,7 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
             let $tds := app:td-cells($row, $app:main-metadata)
             for $td at $pos in $tds
                 let $m := $app:main-metadata[$pos]
-                return <tr><th>{$m}</th>{$td}</tr>
+                return <tr><th>{$m}</th><td>{$td/text()}</td></tr>
         }
     </table>
     </div>
