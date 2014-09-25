@@ -19,9 +19,22 @@ import module namespace sql="http://exist-db.org/xquery/sql";
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
+import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
 (: the special collection name for VegaObs imports :)
 declare variable $local:collection := 'vegaobs_import';
+
+(:  prepare a cache for target resolutions :)
+declare variable $local:cache :=
+    try {
+        doc(xmldb:store($config:data-root || '/tmp', 'upload-vega.xml', <cache/>))
+    } catch * {
+        error(xs:QName('error'), 'Failed to create cache for upload-vega.xql: ' || $err:description, $err:value)
+    };
+declare variable $local:cache-insert   := jmmc-cache:insert($local:cache, ?, ?);
+declare variable $local:cache-get      := jmmc-cache:get($local:cache, ?);
+declare variable $local:cache-contains := jmmc-cache:contains($local:cache, ?);
+declare variable $local:cache-destroy  := function() { jmmc-cache:destroy($local:cache) };
 
 (:~
  : Remove all Vega records from a previous import.
@@ -40,12 +53,19 @@ declare function local:delete-collection($handle as xs:long) {
  : @error unknown target
  :)
 declare function local:resolve-target($name as xs:string) {
-    (: catch name resolution errors :)
-    try {
-        sesame:resolve($name)
-    } catch * {
-        error(xs:QName('error'), 'Unable to resolve target: ' || $err:description, $err:value)
-    }
+    (: search in cache first :)
+    if ($local:cache-contains($name)) then
+        (: hit :)
+        $local:cache-get($name)
+    else
+        (: miss, resolve by name and cache the results for next time :)
+        let $target :=
+            try {
+                sesame:resolve($name)
+            } catch * {
+                error(xs:QName('error'), 'Unable to resolve target: ' || $err:description, $err:value)
+            }
+        return ( $local:cache-insert($name, $target), $target )
 };
 
 (:~
@@ -133,4 +153,4 @@ let $response :=
         }
     } </response>
 
-return ( log:submit($response), $response )
+return ( $local:cache-destroy(), log:submit($response), $response )
