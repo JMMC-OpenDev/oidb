@@ -90,6 +90,7 @@ declare function local:metadata($observation as node()) as node() {
         xs:dateTime(translate($observation/Date, ' ', 'T')))
 (:    let $ins-mode    := vega:instrument-mode($observation):)
 (:    let $tel-conf    := vega:telescopes-configuration($observation):)
+    let $program     := $observation/ProgNumber
     
     return <metadata> {
         (: all entries are L0, even dataStatus=Published :)
@@ -117,7 +118,8 @@ declare function local:metadata($observation as node()) as node() {
         <nb_channels> -1 </nb_channels>,
         <nb_vis> -1 </nb_vis>,
         <nb_vis2> -1 </nb_vis2>,
-        <nb_t3> -1 </nb_t3>
+        <nb_t3> -1 </nb_t3>,
+        <progid>{ $program }</progid>
     } </metadata>
 };
 
