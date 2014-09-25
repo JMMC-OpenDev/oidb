@@ -4,14 +4,8 @@ xquery version "3.0";
  : This module provides a helper function to resolve star names and retrieve
  : position information and type from Sesame Name Resolver
  : (http://cds.u-strasbg.fr/cgi-bin/Sesame/).
- : 
- : It builds up a cache of previous resolutions to avoid repetitive queries
- : to Sesame.
  :)
 module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame";
-
-(: The cache of resolved stars :)
-declare variable $sesame:resolved := doc('/db/apps/oidb-data/sesame.xml');
 
 (:~
  : Return a target element with data on name, position and type as attributes.
@@ -70,10 +64,6 @@ declare function sesame:resolve-sesame($names as xs:string+) as item()* {
  : 
  : It returns the coordinates and the object type corresponding to
  : the specified names.
- : 
- : It builds a local cache of previous request. If there are unknown
- : names, the function queries the Sesame service with these names and
- : updates the cache.
  : 
  : @param $names a set of star names to resolve
  : @return a <sesame> element a <target> with data for each input name.
