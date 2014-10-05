@@ -289,7 +289,6 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
     }
 };
 
-declare variable $app:facilities-query := adql:build-query(( 'col=facility_name', 'distinct' ));
 declare variable $app:oifits-query := adql:build-query(( 'col=access_url', 'distinct' ));
 (: TODO copy/update app:instruments for facilities + TBD oifits files , granules :)
 
@@ -313,6 +312,26 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
         return tokenize($instrument-name, '[^A-Za-z0-9]')[1])
 
     return map:new(map:entry('instruments', $instruments))
+};
+
+
+declare variable $app:facilities-query := adql:build-query(( 'col=facility_name', 'distinct' ));
+
+(:~
+ : Build a list of facility names and put it in the model for templating.
+ : 
+ : It creates a 'facilities' entry in the model for the children of the node.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with facilities list
+ :)
+declare
+    %templates:wrap
+function app:facilities($node as node(), $model as map(*)) as map(*) {
+    let $data := tap:execute($app:facilities-query, false())
+    let $facilities := distinct-values($data//*:TD/text())
+    return map:new(map:entry('facilities', $facilities))
 };
 
 declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));
@@ -601,8 +620,17 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
     let $query := "SELECT * FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
     (: send query by TAP :)
     let $data := tap:execute($query, true())
+    let $nb-granules := count($data//tr[td])
 
-    return ( 
+    return if ($nb-granules=0) then
+        <div data-template="templates:if-parameter-unset" data-template-param="id">
+            <div class="alert alert-warning fade in">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                <strong>No granule found with id={$id}</strong>
+            </div>
+        </div>
+        else
+            ( 
         <h1> Granule {$data//td[@colname='id']/text()}</h1>
         (: app:show-granule-summary($node,  map {'granule' := app:granules($query) }, "granule")
         ,:)
@@ -643,6 +671,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
  : 
  : TODO finish implementation using templating (see show())
  :      and implement logic to retrieve some external link from the fields of a given granule
+ :      VLTI should not be hardcoded here!!
  : 
  : @param $node
  : @param $model
@@ -651,9 +680,10 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
 declare function app:show-granule-summary($node as node(), $model as map(*), $key as xs:string)
 {
     let $granule := map:get($model, $key) 
-    let $progid := string($granule//td[@colname='progid'])
-    
-    let $sec1 := <div class="col-md-5" id="summary">
+    let $progid := string($granule//td[@colname='progid'])    
+    let $facility-name := string($granule//td[@colname='facility_name'])
+ 
+   let $sec1 := <div class="col-md-5" id="summary">
         <h2><i class="glyphicon glyphicon-zoom-in"/> Summary</h2>
         <table class="table table-striped table-bordered table-hover">
         {
@@ -661,11 +691,12 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
             let $tds := app:td-cells($row, $app:main-metadata)
             for $td at $pos in $tds
                 let $m := $app:main-metadata[$pos]
-                return <tr><th>{$m}</th><td>{$td/text()}</td></tr>
+                return <tr><th>{$m}</th>{$td}</tr>
         }
     </table>
     </div>
-    let $sec2 := if($progid!='') then 
+    (: :)
+    let $sec2 := if($facility-name="VLTI" and $progid!='') then 
         let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($progid)
         return <div class="col-md-5 col-md-offset-2" id="external_resources">
             <h2><i class="glyphicon glyphicon-new-window"/> External resources</h2>
