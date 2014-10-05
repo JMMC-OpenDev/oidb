@@ -36,7 +36,8 @@ function query:run($node as node(), $model as map(*),
                 'ucd'     := $th/a/text(),
                 'ucd-url' := data($th/a/@href)
             }
-        (: limit rows to page - skip row of headers :)
+        (: limit rows to page - skip row of headers 
+        TODO move subsequence into tap:execute to avoid output-size-limit error with huge number of records :)
         let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
 
         return if ($rows) then
