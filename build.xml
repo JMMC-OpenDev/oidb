@@ -25,8 +25,10 @@
     <target name="xar" depends="config">
         <mkdir dir="${build.dir}"/>
         <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar">
-            <exclude name="${build.dir}/*"/>
-            <!-- do not bundle data in the deployment archive -->
+            <exclude name="${build.dir}/**"/>
+            <!-- do not bundle netbeans files in the deployment archive -->
+            <exclude name="nbproject/**"/>
+            <!-- do not bundle property files in the deployment archive -->
             <exclude name="**.properties"/>
             <!-- do not bundle data in the deployment archive -->
             <exclude name="data/**"/>
