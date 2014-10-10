@@ -115,7 +115,7 @@ declare function local:resolve-pi($pi as xs:string) as xs:string {
     (: mostly dummy, pick first name as main pi :)
     (: TODO match identifier to real names + full contact info :)
     (: TODO share names with other uploaders (VEGA) :)
-    tokenize($pi, '[^\c\s]')[1]
+    tokenize($pi, '[^\c\s&#x27;]')[1]
 };
 
 (:~
