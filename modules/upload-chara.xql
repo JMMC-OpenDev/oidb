@@ -126,19 +126,16 @@ declare function local:resolve-pi($pi as xs:string) as xs:string {
  :)
 declare function local:metadata($observation as xs:string*) as node() {
     (: leading and trailing whitespaces significant in CSV (RFC4180) but annoying here :)
-    let $trim := function($str as xs:string?) as xs:string? {
-        replace(replace($str,'\s+$',''),'^\s+','')
-    }
     (: resolve star coordinates from star name :)
-    let $target-name := $trim($observation[$local:STAR])
+    let $target-name := normalize-space($observation[$local:STAR])
     let $star        := local:resolve-target($target-name)
     let $ra          := $star/ra
     let $dec         := $star/dec
-    let $data-pi     := local:resolve-pi($trim($observation[$local:PI]))
-    let $program     := $trim($observation[$local:PROGRAM])
-    let $date        := $trim($observation[$local:MJD])
-    let $ins-name    := $trim($observation[$local:COMBINER])
-    let $ins-mode    := $trim($observation[$local:FILTER])
+    let $data-pi     := local:resolve-pi(normalize-space($observation[$local:PI]))
+    let $program     := normalize-space($observation[$local:PROGRAM])
+    let $date        := normalize-space($observation[$local:MJD])
+    let $ins-name    := normalize-space($observation[$local:COMBINER])
+    let $ins-mode    := normalize-space($observation[$local:FILTER])
     (: determine wavelength limits from mode and ASPRO config :)
     let $mode := local:resolve-mode($ins-name, $ins-mode)
     let $wl-min      := $mode/waveLengthMin
