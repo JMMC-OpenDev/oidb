@@ -116,9 +116,7 @@ declare function local:metadata($observation as node()) as node() {
 (:        <telescope_configuration>{ $tel-conf }</telescope_configuration>,:)
         (: FIXME :)
         <nb_channels> -1 </nb_channels>,
-        <nb_vis> -1 </nb_vis>,
-        <nb_vis2> -1 </nb_vis2>,
-        <nb_t3> -1 </nb_t3>,
+        (: leave nb_vis, nb_vis2 and nb_t3 empty :)
         <progid>{ $program }</progid>
     } </metadata>
 };
