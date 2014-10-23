@@ -3,11 +3,7 @@ xquery version "3.0";
 module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
-import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
-import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates";
-
-import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
 (:~
