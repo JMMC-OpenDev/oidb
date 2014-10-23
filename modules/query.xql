@@ -35,11 +35,9 @@ function query:run($node as node(), $model as map(*),
     try {
         (: Search database, use request parameter :)
         let $query := request:get-parameter('query', false())
-        let $data := if ($query) then
-            let $votable := tap:execute($query)
-            return app:transform-votable($votable, 1 + ($page - 1) * $perpage, $perpage)
-        else
-            ()
+        let $votable := if ($query) then tap:execute($query) else ()
+        let $data := if ($votable) then app:transform-votable($votable, 1 + ($page - 1) * $perpage, $perpage) else ()
+        let $overflow := if ($votable and (count($data/tr) - 1) < $perpage) then tap:overflowed($votable) else false()
 
         let $columns :=
             for $th in $data//th
@@ -52,14 +50,13 @@ function query:run($node as node(), $model as map(*),
         let $rows := $data//tr[position()!=1]
         let $nrows  := if ($query) then query:count($query) else 0
 
-        return if ($rows) then
+        return
             map {
                 'columns' :=    $columns,
                 'rows' :=       $rows,
+                'overflow' :=   if ($overflow) then true() else (),
                 'pagination' := map { 'page' := $page, 'npages' := ceiling($nrows div $perpage) }
             }
-        else
-            map {}
     } catch filters:error {
         map {
             'flash' := 'Failed to execute query: ' || $err:description

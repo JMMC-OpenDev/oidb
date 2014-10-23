@@ -27,6 +27,15 @@ declare function tap:execute($adql-statement as xs:string) as node()? {
 };
 
 (:~
+ : Return whether the VOTable contains all available results.
+ : 
+ : @return true if the result overflowed
+ :)
+declare function tap:overflowed($votable as node()) as xs:boolean {
+    exists($votable//votable:TABLE/following-sibling::votable:INFO[@name='QUERY_STATUS' and @value='OVERFLOW'])
+};
+
+(:~
  : Provide a status log on TAP service.
  : This status is called by backoffice:main-status()
  : 

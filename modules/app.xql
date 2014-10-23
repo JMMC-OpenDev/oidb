@@ -438,6 +438,7 @@ function app:search($node as node(), $model as map(*),
                 $params,
                 (: force query pagination to limit number of rows returned :)
                 'page=' || $page, 'perpage=' || $perpage)))
+        let $overflow := tap:overflowed($votable)
         let $data := app:transform-votable($votable, 1 + ($page - 1) * $perpage, $perpage)
 
         (: default columns to display :)
@@ -469,6 +470,7 @@ function app:search($node as node(), $model as map(*),
             'query-edit' := 'query.html?query=' || encode-for-uri($query),
             'columns' :=    $columns,
             'rows' :=       $rows,
+            'overflow' :=   if ($overflow) then true() else (),
             'stats' :=      $stats,
             'pagination' := map { 'page' := $page, 'npages' := ceiling(number($stats/@nobservations) div $perpage) }
         }
