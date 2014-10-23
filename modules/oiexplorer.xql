@@ -24,12 +24,13 @@ let $response :=
                         adql:clear-pagination(
                             adql:clear-select-list(
                                 adql:split-query-string())),
+                        'distinct',
                         (: select single column with file URL :)
                         'col=access_url'
                     )
                 )
                 (: run the ADQL SELECT :)
-                let $data := tap:execute($query, true())
+                let $data := tap:execute($query, false())
                 (: FIXME url for search on Web portal :)
                 let $url := substring-before(request:get-url(), '/modules/oiexplorer.xql') || '/search.html?' || request:get-query-string()
 
@@ -38,9 +39,10 @@ let $response :=
                     comment { ' ' || $url || ' ' },
                     '&#xa;    ',
                     comment { ' ' || $query || ' ' },
-                    (: FIXME may or may already not have a DISTINCT :)
                     (: FIXME may or may be public/available :)
-                    for $url in distinct-values($data//td[@colname='access_url' and starts-with(., 'http')])
+                    for $row in $data//*:TR
+                    let $url := $row/*:TD[position()=index-of(data($data//*:TABLE/*:FIELD/@name), 'access_url')]/text()
+                    where starts-with($url, 'http')
                     return <file><file> { $url } </file></file>
                 )
             } catch * {
