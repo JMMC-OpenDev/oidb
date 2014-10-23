@@ -32,7 +32,7 @@ let $response :=
                     )
                 )
                 (: run the ADQL SELECT :)
-                let $data := tap:execute($query, true())
+                let $data := tap:execute($query, false())
 
                 return string-join((
                     '# Use this file as a config file for curl to retrieve data from the OiDB portal.',
@@ -47,17 +47,25 @@ let $response :=
                     '#',
                     "# A contact is given for every private files",                    
                     '',
-                    for $url in distinct-values($data//td[@colname='access_url' and starts-with(., 'http')])
+                    let $fields := data($data//*:TABLE/*:FIELD/@name)
+                    let $access-url-idx   := index-of($fields, 'access_url')
+                    let $data-rights-idx  := index-of($fields, 'data_rights')
+                    let $obs-release-date := index-of($fields, 'obs_release_date')
+                    let $obs-creator-name := index-of($fields, 'obs_creator_name')
+
+                    for $row in $data//*:TR
+                    where starts-with($row/*:TD[$access-url-idx]/text(), 'http')
+                    group by $url := $row/*:TD[$access-url-idx]/text()
                     return (
-                        (: public status of the url :)
-                        let $row := $data//tr[td[@colname="access_url"]=$url][1]
+                        (: grouped tuples so there may be more than a single row, pick first for now:)
+                        let $row := $row[1]
                         let $public := app:public-status(
-                            $row/td[@colname="data_rights"]/text(),
-                            $row/td[@colname="obs_release_date"]/text())
+                            $row/*:TD[$data-rights-idx],
+                            $row/*:TD[$obs-release-date])
                         return if ($public) then 
                             ()
                         else
-                            '# Note: the following file is not public, contact ' || $row/td[@colname="obs_creator_name"] || ' for availability',
+                            '# Note: the following file is not public, contact ' || $row/*:TD[$obs-creator-name] || ' for availability',
                         concat('url = "', $url),
                         'remote-name'
                     )
