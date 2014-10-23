@@ -42,7 +42,8 @@ declare function local:upload($handle as xs:long, $granule as node()) as xs:inte
 (:~
  : Sanitise the given granule.
  : <ul>
- :    <li>ESO case : if datapi is not present and progid is provided, retrieve PI from ESO archive and add new datapi element</li>    
+ :    <li>ESO case : if datapi is not present and obs_id is provided, retrieve PI from ESO archive and add new datapi element</li>    
+ :    <li>TODO handle other rules if any</li>
  : </ul>
  :
  : @param $granule a XML granule description
@@ -50,7 +51,7 @@ declare function local:upload($handle as xs:long, $granule as node()) as xs:inte
  :)
 declare function local:sanitize($granule as node()) as node() {
     let $datapi := $granule/datapi/text()
-    let $progid := $granule/progid/text()
+    let $progid := $granule/obs_id/text()
     (: assume that we are on a eso case with a given progid :)
     let $pi := if(empty($datapi) and $progid) then jmmc-eso:get-pi-from-progid($progid) else ()
     

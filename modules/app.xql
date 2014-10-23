@@ -128,7 +128,7 @@ declare function app:td-cells($row as node(), $columns as xs:string*)
                 case "nb_vis"
                 case "nb_vis2"
                 case "nb_t3"
-                    return if(data($cell) = -1) then '-' else data($cell)
+                    return if($cell = "" or data($cell) = -1) then '-' else data($cell)
                 default
                     return translate(data($cell)," ","&#160;")
             } </td>
@@ -680,7 +680,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
 declare function app:show-granule-summary($node as node(), $model as map(*), $key as xs:string)
 {
     let $granule := map:get($model, $key) 
-    let $progid := string($granule//td[@colname='progid'])    
+    let $obs_id := string($granule//td[@colname='obs_id'])    
     let $facility-name := string($granule//td[@colname='facility_name'])
  
    let $sec1 := <div class="col-md-5" id="summary">
@@ -696,14 +696,14 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
     </table>
     </div>
     (: :)
-    let $sec2 := if($facility-name="VLTI" and $progid!='') then 
-        let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($progid)
+    let $sec2 := if($facility-name="VLTI" and $obs_id!='') then 
+        let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($obs_id)
         return <div class="col-md-5 col-md-offset-2" id="external_resources">
             <h2><i class="glyphicon glyphicon-new-window"/> External resources</h2>
         <table class="table table-striped table-bordered table-hover">
             <tr>
                 <th>
-                    <a href="{$url}">Jump to ESO archive for progid <em>{$progid}</em></a>
+                    <a href="{$url}">Jump to ESO archive for progid <em>{$obs_id}</em></a>
                 </th>
                     
             </tr>
