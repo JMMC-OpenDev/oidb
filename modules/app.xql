@@ -441,7 +441,7 @@ function app:search($node as node(), $model as map(*),
         let $column-names := if($all) then
                 $data//th/@name/string()
             else
-                ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' )
+                $app:main-metadata
     
         let $stats   := app:data-stats($params)
     
