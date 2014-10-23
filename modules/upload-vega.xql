@@ -88,7 +88,7 @@ declare function local:metadata($observation as node()) as node() {
     let $date        := jmmc-dateutil:ISO8601toMJD( 
         (: change the time delimiter in Date for ISO8601 :)
         xs:dateTime(translate($observation/Date, ' ', 'T')))
-(:    let $ins-mode    := vega:instrument-mode($observation):)
+    let $ins-mode    := vega:instrument-mode($observation)
 (:    let $tel-conf    := vega:telescopes-configuration($observation):)
     let $program     := $observation/ProgNumber
     
@@ -98,6 +98,7 @@ declare function local:metadata($observation as node()) as node() {
         <target_name>{ $target-name }</target_name>,
         <datapi>{ $data-pi }</datapi>,
         <obs_collection>{ $local:collection }</obs_collection>,
+        <obs_id>{ $program }</obs_id>,
         <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
         <access_url> -/- </access_url>, (: FIXME no file :)
         <s_ra>  { $ra } </s_ra>,
@@ -112,12 +113,11 @@ declare function local:metadata($observation as node()) as node() {
         <em_res_power>-1</em_res_power>, (: FIXME :)
         <facility_name>MtW.CHARA</facility_name>,
         <instrument_name>VEGA</instrument_name>,
-(:        <instrument_mode>{ $ins-mode }</instrument_mode>,:)
+        <instrument_mode>{ $ins-mode }</instrument_mode>,
 (:        <telescope_configuration>{ $tel-conf }</telescope_configuration>,:)
         (: FIXME :)
-        <nb_channels> -1 </nb_channels>,
+        <nb_channels> -1 </nb_channels>
         (: leave nb_vis, nb_vis2 and nb_t3 empty :)
-        <progid>{ $program }</progid>
     } </metadata>
 };
 
