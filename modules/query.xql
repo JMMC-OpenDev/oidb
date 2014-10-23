@@ -11,6 +11,17 @@ import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
 (:~
+ : Count the number of results found for a given query.
+ : 
+ : @param $query an ADQL query
+ : @return the number of results
+ :)
+declare %private function query:count($query as xs:string) as xs:integer {
+    let $query := 'SELECT COUNT(*) FROM ( ' || $query || ' ) AS r'
+    return tap:execute($query, false())//*:TD/text()
+};
+
+(:~
  : Display the results of the query in a paginated table.
  : 
  : @param $node
@@ -36,15 +47,15 @@ function query:run($node as node(), $model as map(*),
                 'ucd'     := $th/a/text(),
                 'ucd-url' := data($th/a/@href)
             }
-        (: limit rows to page - skip row of headers 
-        TODO move subsequence into tap:execute to avoid output-size-limit error with huge number of records :)
+        (: limit rows to page - skip row of headers :)
         let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
+        let $npages  := query:count($query)
 
         return if ($rows) then
             map {
                 'columns' :=    $columns,
                 'rows' :=       $rows,
-                'pagination' := map { 'page' := $page, 'npages' := ceiling(count($data//tr) div $perpage) }
+                'pagination' := map { 'page' := $page, 'npages' := ceiling($npages div $perpage) }
             }
         else
             map {}
