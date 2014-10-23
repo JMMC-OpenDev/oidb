@@ -30,7 +30,7 @@ let $response :=
                     )
                 )
                 (: run the ADQL SELECT :)
-                let $data := tap:execute($query, false())
+                let $data := tap:execute($query)
                 (: FIXME url for search on Web portal :)
                 let $url := substring-before(request:get-url(), '/modules/oiexplorer.xql') || '/search.html?' || request:get-query-string()
 

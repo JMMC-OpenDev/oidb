@@ -4,6 +4,7 @@ module namespace query="http://apps.jmmc.fr/exist/apps/oidb/query";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
 
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
 (:~
@@ -14,7 +15,7 @@ import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xq
  :)
 declare %private function query:count($query as xs:string) as xs:integer {
     let $query := 'SELECT COUNT(*) FROM ( ' || $query || ' ) AS r'
-    return tap:execute($query, false())//*:TD/text()
+    return tap:execute($query)//*:TD/text()
 };
 
 (:~
@@ -34,7 +35,11 @@ function query:run($node as node(), $model as map(*),
     try {
         (: Search database, use request parameter :)
         let $query := request:get-parameter('query', false())
-        let $data := if ($query) then tap:execute($query, true()) else ()
+        let $data := if ($query) then
+            let $votable := tap:execute($query)
+            return app:transform-votable($votable, 1 + ($page - 1) * $perpage, $perpage)
+        else
+            ()
 
         let $columns :=
             for $th in $data//th
@@ -44,14 +49,14 @@ function query:run($node as node(), $model as map(*),
                 'ucd-url' := data($th/a/@href)
             }
         (: limit rows to page - skip row of headers :)
-        let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
-        let $npages  := query:count($query)
+        let $rows := $data//tr[position()!=1]
+        let $nrows  := if ($query) then query:count($query) else 0
 
         return if ($rows) then
             map {
                 'columns' :=    $columns,
                 'rows' :=       $rows,
-                'pagination' := map { 'page' := $page, 'npages' := ceiling($npages div $perpage) }
+                'pagination' := map { 'page' := $page, 'npages' := ceiling($nrows div $perpage) }
             }
         else
             map {}

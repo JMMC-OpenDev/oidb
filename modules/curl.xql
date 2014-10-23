@@ -32,7 +32,7 @@ let $response :=
                     )
                 )
                 (: run the ADQL SELECT :)
-                let $data := tap:execute($query, false())
+                let $data := tap:execute($query)
 
                 return string-join((
                     '# Use this file as a config file for curl to retrieve data from the OiDB portal.',

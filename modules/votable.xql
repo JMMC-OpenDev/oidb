@@ -24,7 +24,7 @@ let $response :=
                     adql:split-query-string()))
         )
         (: run the ADQL SELECT :)
-        let $data := tap:execute($query, false())
+        let $data := tap:execute($query)
         return $data
     } catch * {
         response:set-status-code(400),

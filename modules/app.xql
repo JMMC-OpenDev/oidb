@@ -19,6 +19,9 @@ declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 (: Store main metadata to present in the search result table, granule summary, etc... :)
 declare variable $app:main-metadata := ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' );
 
+(: UCD (Unified Content Descriptor) description service :)
+declare variable $app:UCD_URL := "http://cdsws.u-strasbg.fr/axis/services/UCD?method=explain&amp;ucd=";
+
 (:~
  : Create a model for the context of the node with statistics on results.
  : 
@@ -277,7 +280,7 @@ declare variable $app:collections-query := adql:build-query(( 'col=obs_collectio
 declare
     %templates:wrap
 function app:collections-options($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:collections-query, false())
+    let $data := tap:execute($app:collections-query)
     let $ids := $data//*:TD/text()
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
@@ -306,7 +309,7 @@ declare variable $app:instruments-query := adql:build-query(( 'col=instrument_na
 declare
     %templates:wrap
 function app:instruments($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:instruments-query, false())
+    let $data := tap:execute($app:instruments-query)
     let $instruments := distinct-values(
         for $instrument-name in $data//*:TD/text()
         return tokenize($instrument-name, '[^A-Za-z0-9]')[1])
@@ -329,7 +332,7 @@ declare variable $app:facilities-query := adql:build-query(( 'col=facility_name'
 declare
     %templates:wrap
 function app:facilities($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:facilities-query, false())
+    let $data := tap:execute($app:facilities-query)
     let $facilities := distinct-values($data//*:TD/text())
     return map:new(map:entry('facilities', $facilities))
 };
@@ -348,7 +351,7 @@ declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distin
 declare
     %templates:wrap
 function app:data-pis($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:data-pis-query, false())
+    let $data := tap:execute($app:data-pis-query)
     let $datapis := $data//*:TD/text()
     return map:new(($model, map:entry('datapis', $datapis)))
 };
@@ -397,7 +400,7 @@ declare %private function app:data-stats($params as xs:string*) as node() {
             adql:clear-select-list(
                 adql:clear-order(
                     adql:clear-filter($params, 'public'))))
-    let $count := function($q) { tap:execute($q, false())//*:TD/text() }
+    let $count := function($q) { tap:execute($q)//*:TD/text() }
     (: FIXME 3 requests... nasty, nasty :)
     return <stats> {
         attribute { "nobservations" } { $count(adql:build-query(( $base-query, 'count=*' ))) },
@@ -430,12 +433,12 @@ function app:search($node as node(), $model as map(*),
         (: clean up pagination stuff, recovered later from function parameters :)
         let $params := adql:clear-pagination(adql:split-query-string())
 
-        let $data := tap:execute(
+        let $votable := tap:execute(
             adql:build-query((
                 $params,
                 (: force query pagination to limit number of rows returned :)
-                'page=' || $page, 'perpage=' || $perpage)),
-            true())
+                'page=' || $page, 'perpage=' || $perpage)))
+        let $data := app:transform-votable($votable, 1 + ($page - 1) * $perpage, $perpage)
 
         (: default columns to display :)
         let $column-names := if($all) then
@@ -455,8 +458,8 @@ function app:search($node as node(), $model as map(*),
                 'ucd-url' := data($th/a/@href)
             }
 
-        (: limit rows to page - skip row of headers :)
-        let $rows    := subsequence($data//tr[position()!=1], 1 + ($page - 1) * $perpage, $perpage)
+        (: pick rows from transformed votable - skip row of headers :)
+        let $rows    := $data//tr[position()!=1]
     
         (: the query shown to the user :)
         let $query := adql:build-query($params)
@@ -619,7 +622,8 @@ declare function app:serialize-query-string() as xs:string* {
 declare function app:show($node as node(), $model as map(*), $id as xs:integer) {
     let $query := "SELECT * FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
     (: send query by TAP :)
-    let $data := tap:execute($query, true())
+    let $votable := tap:execute($query)
+    let $data := app:transform-votable($votable)
     let $nb-granules := count($data//tr[td])
 
     return if ($nb-granules=0) then
@@ -727,7 +731,7 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
 declare function app:get-data($node as node(), $model as map(*), $id as xs:integer) as map(*) {
     let $query := "SELECT access_url FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
     (: send query by TAP :)
-    let $data := tap:execute($query, false())
+    let $data := tap:execute($query)
     let $data-url := $data//*:TD/text()
     
     let $activate-303 := if ($data-url) then
@@ -753,7 +757,7 @@ declare variable $app:latest-query := adql:build-query(( 'col=target_name', 'col
  : @return an HTML list
  :)
 declare function app:latest($node as node(), $model as map(*)) {
-    let $data := tap:execute($app:latest-query, false())
+    let $data := tap:execute($app:latest-query)
 
     let $fields := data($data//votable:FIELD/@ID)
     let $name-pos := index-of($fields, 'target_name')
@@ -779,7 +783,7 @@ declare
     %templates:wrap
 function app:homepage-header($node as node(), $model as map(*)) as map(*) {
     (: count rows and extract result from VOTable :)
-    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query($q) || ') AS e', false())//*:TD/text() }
+    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query($q) || ') AS e')//*:TD/text() }
     return map {
         'n_facilities'  := $count(( 'distinct', 'col=facility_name' )),
         'n_instruments' := $count(( 'distinct', 'col=instrument_name' )),
@@ -899,7 +903,7 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
  : @return a map with counts of OIFITS and granules
  :)
 declare %private function app:stats($query as item()*) as map(*) {
-    let $count := function($q) { number(tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, $query )) || ') AS e', false())//*:TD) }
+    let $count := function($q) { number(tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, $query )) || ') AS e')//*:TD) }
 
     return map {
         'n_oifits'   := $count(( 'distinct', 'col=access_url' )),
@@ -918,6 +922,76 @@ declare %private function app:stats($query as item()*) as map(*) {
 declare function app:collection-stats($node as node(), $model as map(*), $key as xs:string) as map(*) {
     let $id := helpers:get($model, $key)
     return app:stats(( 'collection=' || $id ))
+};
+
+(:~
+ : Transform a VOTable into an intermediate format for templating.
+ : 
+ : It turns the VOTable field descriptions into <th/> elements with name and 
+ : UCD. And it adds the respective field names as attributes to each cell.
+ : 
+ : @param $votable a VOTable
+ : @return a <votable/> element
+ :)
+declare function app:transform-votable($votable as node()) as node() {
+    app:transform-votable($votable, 1)
+};
+
+(:~
+ : Transform a VOTable into an intermediate format for templating.
+ : 
+ : It turns the VOTable field descriptions into <th/> elements with name and 
+ : UCD. And it adds the respective field names as attributes to each cell.
+ : 
+ : It transforms the rows starting at the given index and discards any 
+ : preceding rows.
+ : 
+ : @param $votable a VOTable
+ : @param $start   the starting row position
+ : @return a <votable/> element
+ :)
+declare function app:transform-votable($votable as node(), $start as xs:double) as node() {
+    app:transform-votable($votable, $start, count($votable//votable:TR))
+};
+
+(:~
+ : Transform a VOTable into an intermediate format for templating.
+ : 
+ : It turns the VOTable field descriptions into <th/> elements with name and 
+ : UCD. And it adds the respective field names as attributes to each cell.
+ : 
+ : It transforms a given number of rows starting at the given index and 
+ : discards any other row.
+ : 
+ : @param $votable a VOTable
+ : @param $start   the starting row position
+ : @param $length  the number of rows to transform
+ : @return a <votable/> element
+ :)
+declare function app:transform-votable($votable as node(), $start as xs:double, $length as xs:double) {
+    let $headers := $votable//votable:FIELD
+    let $header_names := for $header in $headers return data($header/@name)
+
+    return <votable> <tr> {
+        for $field in $votable//votable:FIELD
+        return <th>
+            { $field/@name }
+            { data($field/@name) }
+            { if($field/@ucd)  then ( <br/>, <a href="{ concat($app:UCD_URL,data($field/@ucd)) }"> { data($field/@ucd) } </a>) else () }
+            <!-- { if($field/@unit) then ( <br/>, <span> [ { data($field/@unit) } ] </span> ) else () } -->
+        </th>
+        } </tr> {
+        for $row at $i in  $votable//votable:TABLEDATA/votable:TR
+        where $i >= $start and $i < $start + $length
+        return <tr> {
+        for $node at $i in $row/votable:TD
+            return <td>
+                { $node/@*,
+                  attribute { "colname" } { $header_names[$i] },
+                  $node/node() }
+            </td>
+        } </tr>
+    } </votable>
 };
 
 (:~
@@ -943,7 +1017,7 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
  :)
 declare %private function app:granules($query as item()*) as node()* {
     (: search for granules matching query :)
-    let $votable := tap:execute(adql:build-query($query), false())
+    let $votable := tap:execute(adql:build-query($query))
 
     (: select VOTable rows for page :)
     let $rows :=
