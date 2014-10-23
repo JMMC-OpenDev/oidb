@@ -147,6 +147,7 @@ declare function local:metadata($observation as xs:string*) as node() {
         <target_name>{ $target-name }</target_name>,
         <datapi>{ $data-pi }</datapi>,
         <obs_collection>{ $local:collection }</obs_collection>,
+        <obs_id>{ $program }</obs_id>,
         <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
         <access_url> -/- </access_url>, (: FIXME no file :)
         <s_ra>  { $ra } </s_ra>,
@@ -162,9 +163,8 @@ declare function local:metadata($observation as xs:string*) as node() {
         <instrument_mode>{ $ins-mode }</instrument_mode>,
 (:        <telescope_configuration>{ $tel-conf }</telescope_configuration>,:)
         (: FIXME :)
-        <nb_channels> -1 </nb_channels>,
+        <nb_channels> -1 </nb_channels>
         (: leave nb_vis, nb_vis2 and nb_t3 empty :)
-        <progid>{ $program }</progid>
     } </metadata>
 };
 
