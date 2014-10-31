@@ -5,64 +5,18 @@
     </div>
     <div class="panel panel-default">
         <h2 class="panel-heading">From OIFits files...</h2>
-        <form action="modules/upload-urls.xql" method="post" name="oifits" class="panel-body">
-            <p>
-                Add public, remotely available OIFits files. The files are retrieved from the specified URLs and analyzed to extract the relevant metadata for the database.
-                At the moment the submitted material is considered public.
-            </p>
-            <fieldset>
-                <label for="obs_collection">Collection name</label>
-                <div class="controls">
-                    <input name="obs_collection" type="text"/>
-                </div>
-            </fieldset>
-            <fieldset>
-                <label for="title">Title</label>
-                <div class="controls">
-                    <input name="title" type="text" class="col-md-12"/>
-                </div>
-            </fieldset>
-            <fieldset>
-                <label for="description">Description</label>
-                <div class="controls">
-                    <textarea name="description" rows="8" class="col-md-12"/>
-                </div>
-            </fieldset>
-            <fieldset>
-                <label for="calib_level">Calibration level (0,1,2,3)</label>
-                <div class="controls">
-                    <input name="calib_level" type="number" min="0" max="3" step="1"/>
-                </div>
-            </fieldset>
-            <fieldset>
-                <label for="bib_reference">Bibcode</label>
-                <div class="controls">
-                    <input name="bib_reference" type="text"/>
-                </div>
-            </fieldset>
-            <fieldset>
-                <label for="keywords">Keywords</label>
-                <div class="controls">
-                    <select multiple="multiple" name="keywords"/>
-                </div>
-            </fieldset>
-            <!-- add data_rights and obs_release_data -->
-            <fieldset>
-                <label for="obs_creator_name">Creator name</label>
-                <div class="controls">
-                    <input name="obs_creator_name" type="text" data-template="app:input-user-name"/>
-                </div>
-            </fieldset>
-            <fieldset>
-                <label for="urls">File URLs</label>
-                <div class="controls">
-                    <textarea name="urls" placeholder="One URL per file to analyze, whitespace separated" rows="8" class="col-md-12"/>
-                </div>
-            </fieldset>
-            <div class="form-group">
-                <button class="btn btn-primary btn-lg" name="submit" type="submit" id="oifits">Add</button>
+        <div class="panel-body">
+            <div class="btn-group btn-group-justified">
+                <a href="upload.html?calib_level=2" class="btn active btn-primary" role="button">
+                    <span class="glyphicon glyphicon-plus"/>
+                    Calibrated OIFITS (L2)
+                </a>
+                <a href="upload.html?calib_level=3" class="btn active btn-primary" role="button">
+                    <span class="glyphicon glyphicon-plus"/>
+                    Published calibrated OIFITS (L3)
+                </a>
             </div>
-        </form>
+        </div>
     </div>
     <div class="panel panel-default">
         <h2 class="panel-heading">From a collection of OIFits files on <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>...</h2>
