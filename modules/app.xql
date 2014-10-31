@@ -1187,3 +1187,32 @@ declare function app:column-sort($node as node(), $model as map(*)) as node() {
         if ($same-key) then <span class="caret"/> else ()
     }
 };
+
+declare variable $app:base-upload := $config:data-root || '/oifits/staging';
+
+(:~
+ : Add upload data to model for templating.
+ : 
+ : @param $node
+ : @param $model
+ : @param $calib_level the calibration level of the data to be uploaded
+ : @return a new model for templating upload page
+ :)
+declare
+    %templates:wrap
+function app:upload($node as node(), $model as map(*), $staging as xs:string?, $calib_level as xs:integer) as map(*) {
+    (: TODO check 0 < calib_level < 3 or calib_level = ( 2, 3 ) :)
+    let $staging := util:uuid()
+    let $collection := xmldb:create-collection($app:base-upload, $staging)
+    (: a short textual description of the calibration level :)
+    let $calib_description :=
+        if ($calib_level = 2) then'calibrated'
+        else if ($calib_level = 3) then 'published'
+        else ''
+    return map {
+        'oifits':= (),
+        'staging' := $staging,
+        'calib_level' := $calib_level,
+        'calib_description' := $calib_description
+    }
+};
