@@ -6,6 +6,8 @@ xquery version "3.0";
 
 module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits";
 
+import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+
 import module namespace templates="http://exist-db.org/xquery/templates";
 
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers";
@@ -14,6 +16,24 @@ import module namespace jmmc-oiexplorer="http://exist.jmmc.fr/jmmc-resources/oie
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 
+declare variable $oifits:staging := $config:data-root || '/oifits/staging/';
+
+declare %private function oifits:get-data($model as map(*)) as item()* {
+    if (map:contains($model, 'url')) then
+        map:get($model, 'url')
+    (: try using request parameters instead of model :)
+    else if ('url' = request:get-parameter-names()) then
+        request:get-parameter('url', false())
+    else
+        let $staging := request:get-parameter('staging', false())
+        let $path    := request:get-parameter('path', false())
+        (: TODO check $staging and $path :)
+
+        (: TODO create a route in controller for staged files :)
+        let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || $path
+        let $data := util:binary-doc($oifits:staging || $staging || '/' || $path)
+        return ( $url, $data )
+};
 
 (:~
  : Extract granules from OIFITS file and put granule in model for templating.
@@ -27,9 +47,11 @@ import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 declare
     %templates:wrap
 function oifits:granules($node as node(), $model as map(*)) as map(*) {
-    let $url := map:get($model, 'url')
+    let $data := oifits:get-data($model)
     (: process OIFITS file with OIExplorer to extract metadata :)
-    let $oifits := jmmc-oiexplorer:to-xml("" || $url)/oifits
+    let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
+(:    let $oifits := jmmc-oiexplorer:to-xml(if (starts-with($data[last()], '/db/')) then util:binary-doc($data[last()]) else $data[last()])/oifits:)
+    let $url := $data[1]
     let $granules := 
         for $target in $oifits/metadata/target
         return element { 'granule' } { 
@@ -40,8 +62,11 @@ function oifits:granules($node as node(), $model as map(*)) as map(*) {
             <access_estsize>{ $oifits/size/text() idiv 1000 }</access_estsize> 
         }
 
-    return map {
-        'granules' := $granules
+    return map { 'oifits' :=
+        map {
+            'url'      := $url,
+            'granules' := $granules
+        }
     }
 };
 

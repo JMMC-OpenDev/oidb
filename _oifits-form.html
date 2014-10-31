@@ -2,8 +2,8 @@
 <tbody xmlns="http://www.w3.org/1999/xhtml" data-template="oifits:granules">
     <tr>
         <td colspan="4">
-            <a data-template="helpers:model-value-attribute" data-template-key="url" data-template-name="href">
-                <span data-template="oifits:basename" data-template-key="url"/>
+            <a data-template="helpers:model-value-attribute" data-template-key="oifits.url" data-template-name="href">
+                <span data-template="oifits:basename" data-template-key="oifits.url"/>
             </a>
             &#160;
             <span class="dropdown">
@@ -14,7 +14,7 @@
             </span>
         </td>
     </tr>
-    <tr class="granule" data-template="helpers:each" data-template-from="granules" data-template-to="granule">
+    <tr class="granule" data-template="helpers:each" data-template-from="oifits.granules" data-template-to="granule">
         <td>
             <div data-role="targetselector">
                 <span data-template="helpers:model-value" data-template-key="granule.target_name"/> - <span data-template="oifits:hms" data-template-key="granule.s_ra"/>&#160;<span data-template="oifits:dms" data-template-key="granule.s_dec"/>
