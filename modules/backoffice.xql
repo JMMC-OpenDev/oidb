@@ -14,6 +14,7 @@ import module namespace scheduler="http://exist-db.org/xquery/scheduler";
 
 declare variable $backoffice:update-doc := "OiDB doc updater";
 declare variable $backoffice:update-vega := "OiDB VEGA updater";
+declare variable $backoffice:update-chara := "OiDB CHARA updater";
 
 (:~
  : Start a job in the background through the scheduler.
@@ -69,6 +70,16 @@ declare %private function backoffice:update-vega() as xs:boolean {
 };
 
 (:~
+ : Start a new CHARA update job in background from an uploaded file.
+ : 
+ : @param $resource the path to the uploaded file with observations.
+ : @return false() if it failed to schedule the job or there is already another job running.
+ :)
+declare %private function backoffice:update-chara($resource as xs:string) as xs:boolean {
+    backoffice:start-job($config:app-root || '/modules/upload-chara.xql', $backoffice:update-chara, map { 'resource' := $resource })
+};
+
+(:~
  : Template helper to display the general status.
  : 
  : @param $node
@@ -120,6 +131,23 @@ declare function backoffice:doc-status($node as node(), $model as map(*)) as xs:
  :)
 declare function backoffice:vega-status($node as node(), $model as map(*)) as xs:string {
     let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-vega]
+    return if ($job) then
+        (: currently executing :)
+        'Running...'
+    else
+        (: TODO :)
+        '-'
+};
+
+(:~
+ : Template helper to display the status of the CHARA update.
+ : 
+ : @param $node
+ : @param $model
+ : @return
+ :)
+declare function backoffice:chara-status($node as node(), $model as map(*)) as xs:string {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-chara]
     return if ($job) then
         (: currently executing :)
         'Running...'
@@ -195,6 +223,21 @@ function backoffice:action($node as node(), $model as map(*), $do as xs:string*)
                 <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
                 <strong>Action failed ! </strong>
                 VEGA observation logs is already running or failed to be properly updated. See log for details.
+            </div>
+    else if($action = "chara-update") then
+        let $resource := '/db/apps/oidb-data/tmp/upload-chara.dat'
+        let $status := backoffice:update-chara($resource)
+        return if ($status) then
+            <div class="alert alert-success fade in">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                <strong>Action started ! </strong>
+                CHARA observation logs are being updated from file.
+            </div>
+        else
+            <div class="alert alert-danger fade in">
+                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                <strong>Action failed ! </strong>
+                CHARA observation logs is already running or failed to be properly updated. See log for details.
             </div>
     else
         <div class="alert alert-danger fade in">

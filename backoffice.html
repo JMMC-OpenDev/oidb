@@ -66,7 +66,13 @@
                         <i class="glyphicon glyphicon-upload"/>&#160;Chara</h3>
                 </div>
                 <div class="panel-body">
-                    TBD
+                    <form class="form-inline" role="form">
+                        <input type="file" name="file" placeholder="CSV file with CHARA observation logs"/>
+                        <button type="submit" class="btn btn-default">Update CHARA</button>
+                        <div class="form-group">
+                            <b>Last update</b>: <span data-template="backoffice:chara-status"/>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -149,4 +155,5 @@
             </div>
         </div>
     </div>
+    <script type="text/javascript" src="resources/scripts/backoffice.js"/>
 </div>
