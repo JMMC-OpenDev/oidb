@@ -42,6 +42,8 @@ declare variable $local:B3       := 12;
 declare variable $local:T0_OBS   := 13;
 declare variable $local:T0_500nm := 14;
 
+declare variable $local:resource external;
+
 (: the special collection name for CHARA imports :)
 declare variable $local:collection := 'chara_import';
 
@@ -236,9 +238,15 @@ declare function local:upload($handle as xs:long, $observations as xs:string) as
     }
 };
 
-(: get the data from the request: data in POST request or from filled-in form :)
+
+(: get the data from a resource in the database, the data in POST request or from filled-in form :)
 let $data :=
-    if (request:is-multipart-content()) then
+    (: check $local:resource is defined :)
+    if (try { $local:resource } catch err:XPDY0002 { false() }) then
+        (: called from scheduler, use resource :)
+        util:base64-decode(xs:string(util:binary-doc($local:resource)))
+        (: discard document? :)
+    else if (request:is-multipart-content()) then
         util:base64-decode(xs:string(request:get-uploaded-file-data('file')))
     else
         request:get-data()
