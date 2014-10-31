@@ -87,8 +87,6 @@ $(function () {
     }
 
     $('form').submit(function (e) {
-        var s = new XMLSerializer();
-
         var $buttons = $('.btn', this);
         // disable form buttons while the data is uploaded
         $buttons
