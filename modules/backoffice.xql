@@ -23,15 +23,31 @@ declare variable $backoffice:update-vega := "OiDB VEGA updater";
  : @return flag indicating successful scheduling
  :)
 declare %private function backoffice:start-job($resource as xs:string, $name as xs:string) as xs:boolean {
+    backoffice:start-job($resource, $name, map {})
+};
+
+(:~
+ : Start a job in the background through the scheduler with parameters.
+ : 
+ : @param $resource path to the resource for the job
+ : @param $name     name of the job
+ : @param $params   the parameters to pass to the job
+ : @return flag indicating successful scheduling
+ :)
+declare %private function backoffice:start-job($resource as xs:string, $name as xs:string, $params as map(*)) as xs:boolean {
     let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$resource]
     return if ($job) then
         (: already running? stalled? :)
         (: FIXME check job state :)
         false()
     else
+        let $params := <parameters> {
+            for $key in map:keys($params)
+            return <param name="{ $key }" value="{ map:get($params, $key) }"/>
+        } </parameters>
         (: FIXME login in as dba: nasty! :)
         let $login := xmldb:login("", "oidb", "")
-        return scheduler:schedule-xquery-periodic-job($resource, 0, $name, <parameters/>, 0, 0)
+        return scheduler:schedule-xquery-periodic-job($resource, 0, $name, $params, 0, 0)
 };
 
 (:~
