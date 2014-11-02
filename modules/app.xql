@@ -465,6 +465,8 @@ function app:search($node as node(), $model as map(*),
         (: the query shown to the user :)
         let $query := adql:build-query($params)
 
+        (: add log request :)
+        let $log := log:search(<success/>)
         return map {
             'query' :=      $query,
             'query-edit' := 'query.html?query=' || encode-for-uri($query),
@@ -475,6 +477,9 @@ function app:search($node as node(), $model as map(*),
             'pagination' := map { 'page' := $page, 'npages' := ceiling(number($stats/@nobservations) div $perpage) }
         }
     } catch filters:error {
+        (: add log request with error :)
+        let $log := log:search(<error code="{$err:code}">{$err:description}</error>)
+        return 
         map {
             'flash' := 'Unable to build a query from search form data: ' || $err:description
         }
