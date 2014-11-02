@@ -13,6 +13,8 @@ declare variable $exist:controller external;
 declare variable $exist:prefix external;
 declare variable $exist:root external;
 
+let $store-res-name := request:set-attribute("exist:path", $exist:path)
+return 
 if($exist:path eq '') then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="{concat(request:get-uri(), '/')}"/>
@@ -44,6 +46,7 @@ else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $
         <error-handler>
 			<forward url="{$exist:controller}/error-page.html" method="get"/>
 			<forward url="{$exist:controller}/modules/view.xql"/>
+			<set-attribute name="oidb-failed" value="yes"/> (: stamp error for log:visit() :)
 		</error-handler>
     </dispatch>
 else if (starts-with($exist:path, '/modules/upload-')) then (
@@ -85,6 +88,7 @@ else if (ends-with($exist:resource, ".html")) then
 		<error-handler>
 			<forward url="{$exist:controller}/error-page.html" method="get"/>
 			<forward url="{$exist:controller}/modules/view.xql"/>
+			<set-attribute name="oidb-failed" value="yes"/> (: stamp error for log:visit() :)
 		</error-handler>
     </dispatch>
 (: Resource paths starting with $shared are loaded from the shared-resources app :)
