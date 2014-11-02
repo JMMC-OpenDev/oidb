@@ -8,9 +8,12 @@ import module namespace xmldb = "http://exist-db.org/xquery/xmldb";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at 'config.xqm';
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql" ;
 
-declare variable $log:submits := $config:data-root || '/log/submits.xml';
 declare variable $log:downloads := $config:data-root || '/log/downloads.xml';
-declare variable $log:files := ( $log:submits, $log:downloads );
+declare variable $log:searches := $config:data-root || '/log/searches.xml';
+declare variable $log:submits := $config:data-root || '/log/submits.xml';
+declare variable $log:visits := $config:data-root || '/log/visits.xml'; (: This may be disabled in the futur if nb of records is too much :)
+
+declare variable $log:files := ( $log:downloads, $log:searches, $log:submits, $log:visits );
 
 (: Notes : Records should have success or error to help quick stat computation,  user IP :)
 
@@ -45,7 +48,7 @@ declare function log:check-files() {
  : 
  : @param $log     the log URI
  : @param $message the message to save as an element
- : @return emtpy
+ : @return empty value
  :)
 declare %private function log:log($log as xs:string, $message as element()) {
     (: automatically add missing bits to the log message :)
@@ -54,8 +57,10 @@ declare %private function log:log($log as xs:string, $message as element()) {
         if (request:exists()) then
             (: HTTP interaction, extract data from request object if missing from message :)
             (
+                if ($message/@session)   then () else attribute { 'session' }   { session:get-id() },
                 if ($message/@user)   then () else attribute { 'user' }   { request:get-attribute('user') },
-                if ($message/@remote) then () else attribute { 'remote' } { request:get-remote-host() }
+                (: prefer XFF because ProxyPass makes request:get-remote-host() always returns localhost :)
+                if ($message/@remote) then () else attribute { 'remote' } { ( request:get-header("X-Forwarded-For"), request:get-remote-host())[1] }
             )
         else
             (),
@@ -83,7 +88,7 @@ declare %private function log:serialize-request() as element() {
  : 
  : @param $granuleid
  : @param $url
- : @return ignore
+ : @return empty value
  :)
 declare function log:get-data($granuleid as xs:integer, $url as xs:string?) {
     let $message := <download>
@@ -91,6 +96,34 @@ declare function log:get-data($granuleid as xs:integer, $url as xs:string?) {
         { if ($url) then (element {"url"} {$url},<success/>) else <error>no-data</error> }
     </download>
     return log:log($log:downloads, $message)
+};
+(:~
+ : Add an element to the search log detailing the request parameters of searches
+ : @param $info optional information fragments to store into the record
+ : @return empty value
+ :)
+declare function log:search($info as node()*) {
+    let $message := <search>
+                        { log:serialize-request() }
+                        { $info }
+                    </search>
+    return log:log($log:searches, $message)
+};
+
+(:~
+ : Add an element to the search log detailing a visit to a given path.
+ : Called by the controller.xql
+ : @param path point to the page resource requested
+ : @param $info optional information fragments to store into the record
+ : @return empty value
+ :)
+declare function log:visit($node as node(), $model as map(*)) {
+    let $message := <visit>
+                        (: FIXME this attribute is not present even if an error occurs :)
+                        {if (request:get-attribute("oidb-failed")) then <error/> else <success/>}
+                        <path>{request:get-attribute("exist:path")}</path>
+                    </visit>
+    return log:log($log:visits, $message)
 };
 
 (:~
@@ -194,5 +227,34 @@ declare function log:report-downloads($max as xs:integer)as node(){
         <h4>{$max} last downloads</h4> {$last-by-date}
         <h4>{$max} last most requested granules</h4>
         <dl class="dl-horizontal">{$last-by-count}</dl>
+    </div>
+};
+(:~
+ : Generate a report with statistics on searches
+ : 
+ : @param $max define the max number of record to report (10 by default)
+ : @return ignore
+ :)
+declare function log:report-searches($max as xs:integer)as node(){
+    let $searches := doc($log:searches)//search
+    let $items := subsequence(reverse($searches),1,$max)
+    return
+    <div>
+        {count($searches)} Requests ({count($searches//error)} failed ).  More details to come in the futur...
+    </div>
+};
+
+(:~
+ : Generate a report with statistics on visits
+ : 
+ : @param $max define the max number of record to report (10 by default)
+ : @return ignore
+ :)
+declare function log:report-visits($max as xs:integer)as node(){
+    let $visits := doc($log:visits)//visit
+    let $items := subsequence(reverse($visits),1,$max)
+    return
+    <div>
+        {count($visits)} Requests ({count($visits//error)} failed ).  More details to come in the futur...
     </div>
 };
