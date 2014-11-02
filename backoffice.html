@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <div class="col-md-offset-1 col-md-10" data-template="backoffice:action"/>
+    <div class=" col-md-12" data-template="backoffice:action"/>
     <div class="row">
-        <div class="col-md-offset-1 col-md-2">
+        <div class=" col-md-2">
             <div class="panel panel-default">
                 <div class="panel-heading">                    
                 <!-- improve TOC presentation ? -->
@@ -21,6 +21,12 @@
                     <a href="#submits">
                         <i class="glyphicon glyphicon-upload"/>Submits</a>
                     <br/>
+                    <a href="#visits">
+                        <i class="glyphicon glyphicon-download"/>Visits</a>
+                    <br/>
+                    <a href="#searches">
+                        <i class="glyphicon glyphicon-download"/>Searches</a>
+                    <br/>
                     <a href="#downloads">
                         <i class="glyphicon glyphicon-download"/>Downloads</a>
                     <br/>
@@ -30,7 +36,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="panel panel-default" id="main">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -41,7 +47,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="panel panel-default" id="doc">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -59,7 +65,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-5 col-md-offset-1" id="chara">
+        <div class="col-md-6" id="chara">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -76,7 +82,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-6">
             <div class="panel panel-default" id="vega">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -94,7 +100,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-offset-1 col-md-10" id="submits">
+        <div class="col-md-12" id="submits">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -107,7 +113,33 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-offset-1 col-md-10" id="downloads">
+        <div class=" col-md-12" id="visits">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-download"/>&#160;Visit dashboard</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="backoffice:visit-status"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class=" col-md-12" id="searchs">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-download"/>&#160;Search dashboard</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="backoffice:search-status"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class=" col-md-12" id="downloads">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
@@ -120,7 +152,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-offset-1 col-md-10" id="comments">
+        <div class=" col-md-12" id="comments">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h3 class="panel-title">
