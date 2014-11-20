@@ -1,8 +1,7 @@
 xquery version "3.0";
 
 import module namespace request="http://exist-db.org/xquery/request";
-
-import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "modules/login.xqm";
+import module namespace login="http://exist-db.org/xquery/login" at "resource:org/exist/xquery/modules/persistentlogin/login.xql";
 
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "modules/app.xql";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "modules/adql.xql";
@@ -12,6 +11,16 @@ declare variable $exist:resource external;
 declare variable $exist:controller external;
 declare variable $exist:prefix external;
 declare variable $exist:root external;
+
+declare variable $domain := "fr.jmmc.oidb.login";
+declare variable $login := function () { login:set-user($domain, (), false()) };
+
+declare function local:user-allowed() as xs:boolean {
+    (
+        request:get-attribute($domain || '.user') and
+        request:get-attribute($domain || '.user') != "guest"
+    )
+};
 
 let $store-res-name := request:set-attribute("exist:path", $exist:path)
 return 
@@ -28,8 +37,8 @@ else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $
     (: require authentification for submitting new data :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         { 
-            login:set-user(),
-            if (request:get-attribute("user")) then
+            $login(),
+            if (local:user-allowed()) then
                 (: user logged in, can proceeed to submit page :)
                 ()
             else
@@ -51,8 +60,8 @@ else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $
     </dispatch>
 else if (starts-with($exist:path, '/modules/upload-')) then (
     (: also protect the submit endpoints to prevent anonymous submit :)
-    login:set-user(),
-    if (request:get-attribute("user")) then
+    $login(),
+    if (local:user-allowed()) then
         <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
             <cache-control cache="no"/>
         </dispatch>
@@ -76,7 +85,7 @@ else if (ends-with($exist:resource, ".html")) then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         {
             (: user may have signed out :)
-            login:set-user()
+            $login()
         }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
