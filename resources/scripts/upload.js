@@ -65,7 +65,7 @@ $(function () {
                 maxTags: 6,
                 typeahead: {
                     source: function(query) {
-                        return $.get('/exist/restxq/oidb/keyword', { 'q': query }, 'json');
+                        return $.get('restxq/oidb/keyword', { 'q': query }, 'json');
                     },
                     items: 'all'
                 }
@@ -337,7 +337,7 @@ $(function () {
     // Upload a collection XML to the REST endpoint of OiDB
     function saveCollection(collection, id) {
         // save the collection, return the Deferred object of the operation
-        return $.ajax('/exist/restxq/oidb/collection/' + encodeURIComponent(id), { data: collection, contentType: 'application/xml', type: 'PUT' });
+        return $.ajax('restxq/oidb/collection/' + encodeURIComponent(id), { data: collection, contentType: 'application/xml', type: 'PUT' });
     }
 
     // Turn granule fields of the form into XML granules and attach each one

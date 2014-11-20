@@ -3,6 +3,8 @@ xquery version "3.0";
 import module namespace request="http://exist-db.org/xquery/request";
 import module namespace login="http://exist-db.org/xquery/login" at "resource:org/exist/xquery/modules/persistentlogin/login.xql";
 
+import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "modules/config.xqm";
+import module namespace restxq="http://exist-db.org/xquery/restxq" at "modules/restxq.xql";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "modules/app.xql";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "modules/adql.xql";
 
@@ -80,6 +82,24 @@ else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
         response:set-status-code(303),
         response:set-header('Location', $location)
     )
+
+else if (starts-with($exist:path, '/restxq/oidb')) then
+    let $login := $login()
+    let $path := substring-after($exist:path, '/restxq')
+    let $prefix := tokenize($exist:path, '[^a-zA-Z]')[4]
+    let $module-uri := 'http://apps.jmmc.fr/exist/apps/oidb/restxq/' || $prefix
+    let $location := 'modules/rest/' || $prefix || '.xqm'
+    return if (util:binary-doc-available($config:app-root || '/' || $location)) then
+        (
+            util:import-module($module-uri, $prefix, $location),
+            restxq:process($path, util:list-functions($module-uri))
+        )
+    else
+        (
+            response:set-status-code(400), (: Bad Request :)
+            <response>Unknown RESTXQ path</response>
+        )
+
 else if (ends-with($exist:resource, ".html")) then
     (: the html page is run through view.xql to expand templates :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">

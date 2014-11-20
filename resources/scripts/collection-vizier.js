@@ -26,7 +26,7 @@ $(function () {
 
         var id = $('fieldset:first input[name="name"]').val();
         // save the collection, return the Deferred object of the operation
-        return $.ajax('/exist/restxq/oidb/collection/' + encodeURIComponent(id), { data: s.serializeToString(collection), contentType: 'application/xml', type: 'PUT' });
+        return $.ajax('restxq/oidb/collection/' + encodeURIComponent(id), { data: s.serializeToString(collection), contentType: 'application/xml', type: 'PUT' });
     }
 
     // Turn granule fields of the form into granule and attach them to the

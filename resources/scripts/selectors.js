@@ -219,7 +219,7 @@
             var value = this.val();
             // caching results of the query
             this.instrumentCache[text] = $
-                .get('/exist/restxq/oidb/instrument', this.val())
+                .get('restxq/oidb/instrument', this.val())
                 .pipe(function (data) {
                     return $('instrument', data).map(transformInstrument).toArray();
                 });
@@ -279,7 +279,7 @@
         if (!(insname in this.modeCache)) {
             // caching results of the query
             this.modeCache[insname] = $
-                .get('/exist/restxq/oidb/instrument/' + encodeURIComponent(insname) + '/mode', {})
+                .get('restxq/oidb/instrument/' + encodeURIComponent(insname) + '/mode', {})
                 .pipe(function (data) {
                     return $.map(data, function (m) {
                         return {
