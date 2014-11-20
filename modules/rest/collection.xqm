@@ -99,12 +99,16 @@ function coll:store-collection($id as xs:string, $collection-doc as document-nod
                 ),
             $collection-doc/collection/*
         } </collection>
-    let $path := xmldb:store($coll:collection-uri, $filename, $collection)
     return <rest:response>
         <http:response> { attribute { "status" } {
-            if ($filename and $path) then 204 (: No Content :)
-            else if ($path)          then 201 (: Created :)
-            else                          400 (: Bad Request :)
+            try {
+                if ($filename and xmldb:store($coll:collection-uri, $filename, $collection)) then
+                    204 (: No Content :)
+                else
+                    201 (: Created :)
+            } catch * {
+                401 (: Unauthorized :)
+            }
         } } </http:response>
     </rest:response>
 };
