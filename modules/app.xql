@@ -1207,8 +1207,7 @@ declare
     %templates:wrap
 function app:upload($node as node(), $model as map(*), $staging as xs:string?, $calib_level as xs:integer) as map(*) {
     (: TODO check 0 < calib_level < 3 or calib_level = ( 2, 3 ) :)
-    let $staging := util:uuid()
-    let $collection := xmldb:create-collection($app:base-upload, $staging)
+    let $staging := if ($staging) then $staging else util:uuid()
     (: a short textual description of the calibration level :)
     let $calib_description :=
         if ($calib_level = 2) then'calibrated'
