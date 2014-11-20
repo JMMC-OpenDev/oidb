@@ -357,9 +357,9 @@ $(function () {
             if ($article.size() !== 0) {
                 // may have more than one article attached
                 $article = $article.first();
-                data.obs_creator_name = $('author', $article).val();
-                data.bib_reference    = $('bibcode', $article).val();
-                data.obs_release_date = $('pubdate', $article).val();
+                data.obs_creator_name = $('author', $article).text();
+                data.bib_reference    = $('bibcode', $article).text();
+                data.obs_release_date = $('pubdate', $article).text();
             }
         }
 
