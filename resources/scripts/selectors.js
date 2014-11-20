@@ -186,8 +186,19 @@
             });
             
             // try to autoselect valid facility/instrument pair
+            var val = self.val(); // the initial value
+            // canonicalize the current facility and instrument names
+            var facility_name = val.facility_name.match(/[A-Z]*/i).shift();
+            var instrument_name = val.instrument_name.match(/[A-Z]*/i).shift();
             // (skip over option from file, pick suggested instead)
-            $('option:contains("' + self.text() + '"):eq(1)', self.$select).prop('selected', true).change();
+            $('option:gt(0)', self.$select)
+                .filter(function () {
+                    var data = $(this).data();
+                    return data.instrument_name == instrument_name &&
+                        data.facility_name == facility_name;
+                })
+                .prop('selected', true)
+                .change();
         });
     }
     InstrumentSelector.prototype = new Selector();
