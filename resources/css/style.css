@@ -15,3 +15,8 @@ input {
 .pointer {
   cursor: pointer;
  }
+
+/* popover with OIFitsViewer checkReport */
+#oifits .popover {
+    max-width: none;
+}

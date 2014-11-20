@@ -166,6 +166,8 @@ $(function () {
             $(this).modeselector($insname);
         });
 
+        $('[data-toggle="checkreport"]').checkreport();
+
         $('tr .dropdown', $oifits).sampify(
             'table.load.fits',
             // prepare parameters for the 'table.load.fits'

@@ -61,11 +61,13 @@ function oifits:granules($node as node(), $model as map(*)) as map(*) {
             (: convert file size B to kB :)
             <access_estsize>{ $oifits/size/text() idiv 1000 }</access_estsize> 
         }
+    let $report := $oifits/checkReport/text()
 
     return map { 'oifits' :=
         map {
             'url'      := $url,
-            'granules' := $granules
+            'granules' := $granules,
+            'report'   := $report
         }
     }
 };

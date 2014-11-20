@@ -113,6 +113,8 @@ $(function () {
         e.preventDefault();
     });
 
+    $('[data-toggle="checkreport"]').checkreport();
+
     $('tr .dropdown').sampify(
         'table.load.fits',
         // prepare parameters for the 'table.load.fits'
