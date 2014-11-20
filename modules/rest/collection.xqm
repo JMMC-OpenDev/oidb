@@ -83,10 +83,20 @@ function coll:store-collection($id as xs:string, $collection-doc as document-nod
         else
             (: new collection :)
             ()
+    (: prepare a new collection document :)
     let $collection :=
-        <collection id="{$id}"> {
-            if ($collection) then ( $collection/@created, attribute { "updated" } { current-dateTime() } )
-            else attribute { "created" } { current-dateTime() },
+        <collection> {
+            if ($collection) then
+                (
+                    (: update (!) the 'updated' attribute with current time :)
+                    $collection/@*[name()!=( 'updated' )],
+                    attribute { "updated" } { current-dateTime() }
+                )
+            else
+                (
+                    attribute { "id" } { $id },
+                    attribute { "created" } { current-dateTime() }
+                ),
             $collection-doc/collection/*
         } </collection>
     let $path := xmldb:store($coll:collection-uri, $filename, $collection)
