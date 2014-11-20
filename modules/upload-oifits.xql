@@ -72,6 +72,7 @@ declare function local:basename($name as xs:string) as xs:string {
  :)
 declare function local:save($path as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
     let $collection := xmldb:create-collection($collection, local:dirname($path))
+    let $path := encode-for-uri($path)
     
     (: TODO better test? compare checksums? search scope: staging or all? :)
     return if (not(util:binary-doc-available(resolve-uri($path, $collection || '/')))) then

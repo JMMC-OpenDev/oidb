@@ -30,7 +30,7 @@ declare %private function oifits:get-data($model as map(*)) as item()* {
         (: TODO check $staging and $path :)
 
         (: TODO create a route in controller for staged files :)
-        let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || $path
+        let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || encode-for-uri($path)
         let $data := util:binary-doc($oifits:staging || $staging || '/' || $path)
         return ( $url, $data )
 };
@@ -135,5 +135,5 @@ declare function oifits:dms($node as node(), $model as map(*), $key as xs:string
  : @return a string with the basename of the path
  :)
 declare function oifits:basename($node as node(), $model as map(*), $key as xs:string) as xs:string {
-    tokenize(helpers:get($model, $key), '/')[last()]
+    xmldb:decode(tokenize(helpers:get($model, $key), '/')[last()])
 };
