@@ -52,6 +52,7 @@ declare variable $restxq:TOO_MANY_ARGS := QName($restxq:NAMESPACE, "too-many-arg
 declare variable $restxq:TYPE_ERROR := QName($restxq:NAMESPACE, "type-error");
 declare variable $restxq:AMBIGUOUS := QName($restxq:NAMESPACE, "ambiguous");
 declare variable $restxq:UNKNOWN := QName($restxq:NAMESPACE, "unknown-annotation");
+declare variable $restxq:RESPONSE := QName($restxq:NAMESPACE, "response-error");
 
 declare variable $restxq:OUTPUT_MEDIA_TYPE := QName($restxq:OUTPUT_NAMESPACE, "media-type");
 declare variable $restxq:OUTPUT_METHOD := QName($restxq:OUTPUT_NAMESPACE, "method");
@@ -85,7 +86,7 @@ declare function restxq:process($path-info as xs:string?, $functions as function
             return (
                 restxq:set-serialization($meta),
                 util:log("DEBUG", "Calling function " || function-name($function)),
-                restxq:call-with-args($function, $arguments)
+                restxq:build-response(restxq:call-with-args($function, $arguments))
             )
         })
 };
@@ -415,4 +416,47 @@ declare %private function restxq:set-serialization($meta as element(function)) {
             util:declare-option("exist:serialize", string-join($serializeStr, " "))
         else
             ()
+};
+
+(:~
+ : Set the response from a rest:response element.
+ : 
+ : The purpose of this function is to support the custom response mechanism
+ : of RESTXQ from the resource function in this XQuery implementation.
+ : 
+ : @author Patrick Bernaud <patrick.bernaud@obs.ujf-grenoble.fr>
+ :)
+declare %private function restxq:build-response($content as item()*) {
+    let $action := $content[1]
+    return if ($action instance of element() and namespace-uri($action) = 'http://exquery.org/ns/restxq') then
+        let $body :=
+            if (count($content/*) > 1) then
+                $content[position()!=1]
+            else
+                (: the XQueryURLRewrite require that the controller return a node :)
+                (: an empty element + forced serialization to text => empty body :)
+                ( util:declare-option("exist:serialize", "method=text"), <empty/> )
+        return switch (local-name($action))
+            case "forward"
+                (: TODO how to make a forward? :)
+                return error($restxq:RESPONSE, 'unsupported response type: rest:forward')
+            case "redirect"
+                return ( response:redirect-to($action/text()), $body )
+            case "response"
+                return
+                    let $http-response := $action/http:response
+                    return (
+                        response:set-status-code($http-response/@status),
+                        for $header in $http-response/http:header
+                        return response:set-header($header/@name, $header/@value),
+                        (: TODO support for multipart :)
+                        if ($http-response/http:body) then
+                            $http-response/http:body/text()
+                        else
+                            $body
+                    )
+            default
+                return error($restxq:RESPONSE, 'unknown response type: ' || local-name($action))
+    else
+        $content
 };
