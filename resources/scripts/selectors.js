@@ -254,7 +254,8 @@
             // replace with mode for current instrument
             self.fetchModes().done(function (modes) {
                 $.each(modes, function () {
-                    self.addOption(this.instrument_mode, this); 
+                    var text = this.instrument_mode + ' (' + this.wlmin.toFixed(2) + '-' + this.wlmax.toFixed(2) + 'µm)';
+                    self.addOption(text, this);
                 });
             });
         });
@@ -263,18 +264,19 @@
     ModeSelector.prototype.constructor = ModeSelector;
     ModeSelector.prototype.modeCache = {};
     ModeSelector.prototype.fetchModes = function () {
-        // translate single XML mode element into JavaScript object
-        function transformMode(idx, mode) {
-            return { instrument_mode: $(mode).text() };
-        }
-        
         var insname = this.$source.val();
         if (!(insname in this.modeCache)) {
             // caching results of the query
             this.modeCache[insname] = $
                 .get('/exist/restxq/oidb/instrument/' + encodeURIComponent(insname) + '/mode', {})
                 .pipe(function (data) {
-                    return $('mode', data).map(transformMode).toArray();
+                    return $.map(data, function (m) {
+                        return {
+                            'instrument_mode': m.name,
+                            'wlmin':           parseFloat(m.waveLengthMin),
+                            'wlmax':           parseFloat(m.waveLengthMax)
+                        };
+                    });
                 });
         }
         return this.modeCache[insname];

@@ -9,8 +9,10 @@ module namespace instrument="http://apps.jmmc.fr/exist/apps/oidb/restxq/instrume
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "../config.xqm";
 
 declare namespace rest="http://exquery.org/ns/restxq";
+declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 
 declare namespace a="http://www.jmmc.fr/aspro-oi/0.1";
+declare namespace json="http://www.json.org";
 
 (:~
  : The path to the ASPRO XML configuration in the database.
@@ -73,6 +75,8 @@ function instrument:list($facname as xs:string*, $insname as xs:string*) as elem
 declare
     %rest:GET
     %rest:path("/oidb/instrument/{$name}/mode")
+    %output:media-type("application/json")
+    %output:method("json")
 function instrument:modes($name as xs:string) as element(modes) {
     <modes> {
         (: find instrument by name or canonical name (no _xT suffix) :)
@@ -80,6 +84,9 @@ function instrument:modes($name as xs:string) as element(modes) {
         let $modes := $instrument/mode
         (: for same instrument at 2 facilities, return only one set of modes :)
         for $m in distinct-values($modes/name/text())
-        return element { 'mode' } { $m }
+        let $mode := $modes[name=$m][1]
+        return <json:value json:array="true"> {
+            $mode/*[name()=( 'name', 'waveLengthMin', 'waveLengthMax' )]
+        } </json:value>
     } </modes>
 };
