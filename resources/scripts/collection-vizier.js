@@ -101,7 +101,7 @@ $(function () {
                     .children('img').remove().end()
                     .removeAttr('disabled')
                     .text('Done')
-                    .click(function () { document.location = "submit.html"; });
+                    .click(function (e) { e.preventDefault(); document.location = "submit.html"; });
             })
             .fail(function (x) {
                 // had some failures, let user have another chance
