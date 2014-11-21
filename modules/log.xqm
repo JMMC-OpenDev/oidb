@@ -58,7 +58,7 @@ declare %private function log:log($log as xs:string, $message as element()) {
             (: HTTP interaction, extract data from request object if missing from message :)
             (
                 if ($message/@session)   then () else attribute { 'session' }   { session:get-id() },
-                if ($message/@user)   then () else attribute { 'user' }   { request:get-attribute('user') },
+                if ($message/@user)   then () else attribute { 'user' }   { request:get-attribute('fr.jmmc.oidb.login.user') },
                 (: prefer XFF because ProxyPass makes request:get-remote-host() always returns localhost :)
                 if ($message/@remote) then () else attribute { 'remote' } { ( request:get-header("X-Forwarded-For"), request:get-remote-host())[1] }
             )
