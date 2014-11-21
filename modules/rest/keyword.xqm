@@ -26,6 +26,7 @@ declare
     %rest:GET
     %rest:path("/oidb/keyword")
     %rest:query-param("q", "{$q}")
+    %output:media-type("application/json")
     %output:method("json")
 function kw:list($q as xs:string*) {
     let $all := collection($kw:keywords-uri)//keyword
