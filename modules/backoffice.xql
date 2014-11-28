@@ -113,7 +113,7 @@ declare function backoffice:doc-status($node as node(), $model as map(*)) as nod
     let $twiki-link := <a href="{$config:maindoc-twiki-url}" title="visit twiki source page"><i class="glyphicon glyphicon-new-window"/></a>
     return if ($job) then
         (: currently executing :)
-        'Running...'
+        <span>Running...</span>
     else if (doc-available($config:data-root || "/" || $config:maindoc-filename)) then
         (: no logging of operation at the moment :)
         (:instead show last modified date of resource :)
