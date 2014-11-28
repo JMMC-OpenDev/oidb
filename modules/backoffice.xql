@@ -46,8 +46,6 @@ declare %private function backoffice:start-job($resource as xs:string, $name as 
             for $key in map:keys($params)
             return <param name="{ $key }" value="{ map:get($params, $key) }"/>
         } </parameters>
-        (: FIXME login in as dba: nasty! :)
-        let $login := xmldb:login("", "oidb", "")
         return scheduler:schedule-xquery-periodic-job($resource, 0, $name, $params, 0, 0)
 };
 
