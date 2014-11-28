@@ -42,6 +42,7 @@ declare variable $local:B3       := 12;
 declare variable $local:T0_OBS   := 13;
 declare variable $local:T0_500nm := 14;
 
+(: path to the CSV file in database when running from scheduler (job parameter) :)
 declare variable $local:resource external;
 
 (: the special collection name for CHARA imports :)
