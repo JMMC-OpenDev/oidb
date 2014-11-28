@@ -11,7 +11,11 @@ import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" ;
  : @return account data for the current user
  :)
 declare %private function login:user-info() as node()? {
+    (: FIXME does not work with HTTP Basic Auth :)
     let $user := request:get-attribute("fr.jmmc.oidb.login.user")
+    (: See bug 388: sm:id() in module throws error :)
+    (: https://github.com/eXist-db/exist/issues/388 :)
+    (: let $user := sm:id()//sm:real/sm:username/text() :)
     return jmmc-auth:get-info($user)
 };
 
