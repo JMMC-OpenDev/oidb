@@ -44,7 +44,7 @@ $(function () {
                 $spinner.remove();
                 $(':input', $form).prop('disabled', false);
             })
-            .done(function (data) {
+            .pipe(function (data) {
                 return $.ajax('/exist/rest/db/apps/oidb-data/tmp/upload-chara.dat', {
                     type: 'PUT',
                     contentType: 'text/csv',
