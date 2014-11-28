@@ -283,7 +283,7 @@ $(function () {
             .done(function (data) {
                 var $collection = $(data);
                 setupCollectionFieldset($collection);
-                $collection.hide().insertBefore($btn.parent()).slideDown('slow');
+                $collection.hide().replaceAll($btn.closest('.row')).slideDown('slow');
                 $btn.button('reset').remove();
             });
         e.preventDefault();
