@@ -32,7 +32,7 @@ $(function () {
 
         deferred
             .pipe(function (data) {
-                return $.ajax('modules/upload-granules.xql', {
+                return $.ajax('restxq/oidb/granule', {
                     type: 'POST',
                     data: data,
                     contentType: 'application/xml',

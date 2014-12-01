@@ -60,7 +60,7 @@ $(function () {
 
             $(':input', this).prop('disabled', true).serializeXML(granule, granule.documentElement);
 
-            return $.ajax('modules/upload-granules.xql', { data: s.serializeToString(granule), contentType: 'application/xml', type: 'POST' })
+            return $.ajax('restxq/oidb/granule', { data: s.serializeToString(granule), contentType: 'application/xml', type: 'POST' })
                 .done(function (data) {
                     // will not be selected for upload next time
                     $granule.removeClass('granule');

@@ -395,7 +395,7 @@ $(function () {
     // Upload a set of XML granules to the REST endpoint of OiDB
     function saveGranules(granules) {
         // save the collection, return the Deferred object of the operation
-        return $.ajax('modules/upload-granules.xql', { data: granules, contentType: 'application/xml', type: 'POST' });
+        return $.ajax('restxq/oidb/granule', { data: granules, contentType: 'application/xml', type: 'POST' });
     }
 
     $('form').submit(function (e) {
