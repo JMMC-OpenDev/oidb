@@ -101,7 +101,7 @@ $(function () {
             return deferred
                 // start uploading when file is read
                 .pipe(function (data) {
-                    return $.ajax('modules/upload-oifits.xql?staging=' + staging + '&filename=' + encodeURIComponent(file.name), {
+                    return $.ajax('restxq/oidb/oifits?staging=' + staging + '&filename=' + encodeURIComponent(file.name), {
                         type: 'POST',
                         data: data,
                         contentType: 'application/octet-stream',

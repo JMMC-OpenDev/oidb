@@ -1,27 +1,24 @@
 xquery version "3.0";
 
 (:~
- : Create a new collection in a staging area and save the files attached to the
- : current request.
- : 
- : Each file is checked with OIExplorer so that only OIFits files are saved to
- : the collection.
- : 
- : The script returns a response element with the status of any file submitted
- : by the user.
+ : This module provides a REST API to upload OIFITS to a staging area.
  :)
+module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/restxq/oifits";
 
-import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "../config.xqm";
 
 import module namespace jmmc-oiexplorer="http://exist.jmmc.fr/jmmc-resources/oiexplorer";
 
 import module namespace compression="http://exist-db.org/xquery/compression";
 
+
+declare namespace rest="http://exquery.org/ns/restxq";
+
 (: staging area where to put every upload collections :)
-declare variable $base-staging := $config:data-root || '/oifits/staging/';
+declare variable $oifits:base-staging := $config:data-root || '/oifits/staging/';
 
 (: the MIME type for OIFits data :)
-declare variable $mime-type := 'application/oifits';
+declare variable $oifits:mime-type := 'application/oifits';
 
 (:~
  : Strip last component from filename
@@ -29,7 +26,7 @@ declare variable $mime-type := 'application/oifits';
  : @param $name the filename
  : @return the filename with the text following the last '/' (included) removed
  :)
-declare function local:dirname($name as xs:string) as xs:string {
+declare %private function oifits:dirname($name as xs:string) as xs:string {
     string-join(tokenize($name, '/')[position()!=last()], '/')
 };
 
@@ -40,7 +37,7 @@ declare function local:dirname($name as xs:string) as xs:string {
  : @param $suffix the trailing suffix to remove
  : @return the filename with no directory and no suffix
  :)
-declare function local:basename($name as xs:string, $suffix as xs:string?) as xs:string {
+declare %private function oifits:basename($name as xs:string, $suffix as xs:string?) as xs:string {
     let $name := tokenize($name, '/')[last()]
     return
         if ($suffix and substring($name, string-length($name) - string-length($suffix) + 1) = $suffix) then
@@ -54,8 +51,8 @@ declare function local:basename($name as xs:string, $suffix as xs:string?) as xs
  : @param $name the filename
  : @return the filename with no directory
  :)
-declare function local:basename($name as xs:string) as xs:string {
-    local:basename($name, ())
+declare %private function oifits:basename($name as xs:string) as xs:string {
+    oifits:basename($name, ())
 };
 
 (:~
@@ -70,8 +67,8 @@ declare function local:basename($name as xs:string) as xs:string {
  : @param $collection the destination collection for the file
  : @return en element with status for the operation
  :)
-declare function local:save($path as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
-    let $collection := xmldb:create-collection($collection, local:dirname($path))
+declare %private function oifits:save($path as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
+    let $collection := xmldb:create-collection($collection, oifits:dirname($path))
     let $path := encode-for-uri($path)
     
     (: TODO better test? compare checksums? search scope: staging or all? :)
@@ -81,7 +78,7 @@ declare function local:save($path as xs:string, $data as xs:base64Binary, $colle
             So it saves everything in DB and then check the document.
             If the document is invalid, it is then deleted.
         :)
-        let $doc := xmldb:store($collection, local:basename($path), $data, $mime-type) 
+        let $doc := xmldb:store($collection, oifits:basename($path), $data, $oifits:mime-type) 
 
         return if ($doc) then
             try {
@@ -89,7 +86,7 @@ declare function local:save($path as xs:string, $data as xs:base64Binary, $colle
                 <file name="{ $path }"/>
             } catch * {
                 (: not an OIFits :)
-                xmldb:remove($collection, local:basename($path)),
+                xmldb:remove($collection, oifits:basename($path)),
                 <warning name="{ $path }">{ $err:description }</warning>
             }
         else
@@ -113,7 +110,7 @@ declare function local:save($path as xs:string, $data as xs:base64Binary, $colle
  : @param $base the path to the collection where to save the files
  : @return a <zip> element
  :)
-declare function local:unzip($name as xs:string, $data as xs:base64Binary, $base as xs:string) as node() {
+declare %private function oifits:unzip($name as xs:string, $data as xs:base64Binary, $base as xs:string) as node() {
     let $collection := xmldb:create-collection($base, $name)
 
     let $entry-filter := function($path as xs:string, $data-type as xs:string, $param as item()*) as xs:boolean {
@@ -123,7 +120,7 @@ declare function local:unzip($name as xs:string, $data as xs:base64Binary, $base
     let $entry-data := function($path as xs:string, $data-type as xs:string, $data as item()?, $param as item()*) {
         (: process only binary files, others can not be OIFits :)
         if ($data instance of xs:base64Binary) then
-            local:save($path, $data, $collection)
+            oifits:save($path, $data, $collection)
         else
             ()
     }
@@ -141,25 +138,59 @@ declare function local:unzip($name as xs:string, $data as xs:base64Binary, $base
  : @param $collection the path to the staging area
  : @return an element with the status of the operation
  :)
-declare function local:upload($name as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
+declare %private function oifits:upload($name as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
     (: FIXME rough detection of zip archive :)
     if (ends-with($name, '.zip')) then
         (: open new collection :)
-        local:unzip($name, $data, $collection)
+        oifits:unzip($name, $data, $collection)
     else
-        local:save($name, $data, $collection)
+        oifits:save($name, $data, $collection)
 };
 
-(: TODO check all params :)
+(:~
+ : Create a new collection in a staging area and save the attached file.
+ : 
+ : Each file is checked with OIExplorer so that only OIFits files are saved to 
+ : the collection. If the file is a ZIP archive, its content is extracted and 
+ : the OIFits files are saved.
+ : 
+ : It returns a response element with the status of any file submitted by the 
+ : user. If it failed, it reports the problem through the HTTP status code of
+ : the response.
 
-(: an identifier for a repository in the database :)
-let $staging := request:get-parameter('staging', '')
-let $collection := xmldb:create-collection($base-staging, $staging)
-
-let $filename := request:get-parameter('filename', '')
-
-(: TODO check size of file, add size limit :)
-let $data := request:get-data()
-
-(: put files in staging area :)
-return <response>{ local:upload($filename, $data, $collection) }</response>
+ : @param $staging  the id of the staging area where to put the file
+ : @param $filename the name of the uploaded file
+ : @return a <response/> document with status for uploaded file.
+ : @error see HTTP status code
+ : 
+ : @note Because of eXist-db (2.2) bug dealing with binary data, using
+ : annotation for the content of the request is not possible. Rely on
+ : request:get-data() within the resource function instead.
+ :)
+declare
+(:    %rest:POST("{$data}"):)
+    %rest:POST
+    %rest:path("/oidb/oifits")
+    %rest:query-param("staging",  "{$staging}")
+    %rest:query-param("filename", "{$filename}")
+    %rest:consumes("application/octet-stream", "application/oifits", "application/zip")
+(:function oifits:stage-oifits($data as xs:base64Binary, $staging as xs:string, $filename as xs:string) {:)
+function oifits:stage-oifits($staging as xs:string, $filename as xs:string) {
+    try {
+        <response> {
+            let $data := request:get-data()
+            let $collection := xmldb:create-collection($oifits:base-staging, $staging)
+            (: put files in staging area :)
+            return oifits:upload($filename, $data, $collection)
+        } </response>
+    } catch java:org.xmldb.api.base.XMLDBException {
+        (: failed to save to staging :)
+        <rest:response>
+            <http:response status="401"/> <!-- Unauthorized -->
+        </rest:response>
+    } catch * {
+        <rest:response>
+            <http:response status="500"/> <!-- Internal Server Error -->
+        </rest:response>
+    }
+};
