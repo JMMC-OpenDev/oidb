@@ -60,19 +60,6 @@ else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $
 			<set-attribute name="oidb-failed" value="yes"/> (: stamp error for log:visit() :)
 		</error-handler>
     </dispatch>
-else if (starts-with($exist:path, '/modules/upload-')) then (
-    (: also protect the submit endpoints to prevent anonymous submit :)
-    $login(),
-    if (local:user-allowed()) then
-        <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-            <cache-control cache="no"/>
-        </dispatch>
-    else
-        (: unauthenticated direct access to endpoint :)
-        <response>
-            <error>Authentication required</error>
-        </response>
-    )
 else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
     (: interception of POST requests from search page :)
     (: serialize from form elements and redirect (303 See Other) :)
