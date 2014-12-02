@@ -57,7 +57,6 @@ else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $
         <error-handler>
 			<forward url="{$exist:controller}/error-page.html" method="get"/>
 			<forward url="{$exist:controller}/modules/view.xql"/>
-			<set-attribute name="oidb-failed" value="yes"/> (: stamp error for log:visit() :)
 		</error-handler>
     </dispatch>
 else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
@@ -104,7 +103,6 @@ else if (ends-with($exist:resource, ".html")) then
 		<error-handler>
 			<forward url="{$exist:controller}/error-page.html" method="get"/>
 			<forward url="{$exist:controller}/modules/view.xql"/>
-			<set-attribute name="oidb-failed" value="yes"/> (: stamp error for log:visit() :)
 		</error-handler>
     </dispatch>
 (: Resource paths starting with $shared are loaded from the shared-resources app :)

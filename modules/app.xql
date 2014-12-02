@@ -1220,3 +1220,14 @@ function app:upload($node as node(), $model as map(*), $staging as xs:string?, $
         'calib_description' := $calib_description
     }
 };
+
+(:~
+ : Make an entry in the log of visits for the current page.
+ : 
+ : @param $node
+ : @param $model
+ : @return empty
+ :)
+declare function app:log($node as node(), $model as map(*)) as empty() {
+    log:visit()
+};

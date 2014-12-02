@@ -112,18 +112,21 @@ declare function log:search($info as node()*) {
 };
 
 (:~
- : Add an element to the search log detailing a visit to a given path.
- : Called by the controller.xql
- : @param path point to the page resource requested
- : @param $info optional information fragments to store into the record
- : @return empty value
+ : Add an event to the visit log.
+ : 
+ : The payload is built from the request and the possible error message.
+ : 
+ : @return empty
  :)
-declare function log:visit($node as node(), $model as map(*)) {
-    let $message := <visit>
-                        (: FIXME this attribute is not present even if an error occurs :)
-                        {if (request:get-attribute("oidb-failed")) then <error/> else <success/>}
-                        <path>{request:get-attribute("exist:path")}</path>
-                    </visit>
+declare function log:visit() as empty() {
+    let $message := <visit path="{ request:get-attribute("exist:path") }"> {
+            log:serialize-request(),
+            let $error := request:get-attribute("org.exist.forward.error")
+            return if ($error) then
+                <error>{ try { util:parse($error)//message/string() } catch * { $error } } </error>
+            else
+                <success/>
+        } </visit>
     return log:log($log:visits, $message)
 };
 
