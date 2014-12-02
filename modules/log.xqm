@@ -78,7 +78,8 @@ declare %private function log:log($log as xs:string, $message as element()) {
 declare %private function log:serialize-request() as element() {
     <request> {
         for $n in request:get-parameter-names()
-        return element { $n } { request:get-parameter($n, '') }
+        let $v := if ($n = 'password') then 'XX' else request:get-parameter($n, '')
+        return element { $n } { $v }
     } </request>
 };
 
