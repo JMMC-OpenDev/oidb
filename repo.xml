@@ -9,6 +9,7 @@
     <type>application</type>
     <target>oidb</target>
     <prepare>pre-install.xql</prepare>
+    <finish>post-install.xql</finish>
     <finish/>
     <note>Pay attention to change modules/config.xqm 
     with sql configuration variables: config:sql-driver, config:sql-url, config:sql-username, config:sql-password and config:sql-table 
