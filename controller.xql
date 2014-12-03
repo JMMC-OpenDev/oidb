@@ -87,7 +87,14 @@ else if (ends-with($exist:resource, ".html")) then
                     ()
             else
                 (: no authentication required :)
-                ()
+                if (request:get-parameter('logout', false())) then
+                    (: user requested logout :)
+                    (
+                        session:create(), (: session was invalidated by logout :)
+                        session:set-attribute('flash', <info>You have successfully logged out.</info>)
+                    )
+                else
+                    ()
         }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
