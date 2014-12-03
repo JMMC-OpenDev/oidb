@@ -8,6 +8,8 @@ import module namespace restxq="http://exist-db.org/xquery/restxq" at "modules/r
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "modules/app.xql";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "modules/adql.xql";
 
+import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth";
+
 declare variable $exist:path external;
 declare variable $exist:resource external;
 declare variable $exist:controller external;
@@ -18,10 +20,14 @@ declare variable $domain := "fr.jmmc.oidb.login";
 declare variable $login := function () { login:set-user($domain, (), false()) };
 
 declare function local:user-allowed() as xs:boolean {
-    (
-        request:get-attribute($domain || '.user') and
-        request:get-attribute($domain || '.user') != "guest"
-    )
+    let $user := request:get-attribute($domain || '.user')
+    return $user and $user != "guest"
+};
+
+declare function local:user-admin() as xs:boolean {
+    let $user := request:get-attribute($domain || '.user')
+    (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
+    return jmmc-auth:check-credential($user, 'oidb')
 };
 
 let $store-res-name := request:set-attribute("exist:path", $exist:path)
@@ -70,6 +76,12 @@ else if (ends-with($exist:resource, ".html")) then
                 if (not(local:user-allowed())) then
                     (: unknown user, log in first :)
                     <forward url="{$exist:controller}/login.html"/>
+                else if ($exist:path = '/backoffice.html' and not(local:user-admin())) then
+                    (
+                        (: no credentials for the page :)
+                        session:set-attribute('flash', <error><strong>Access denied!</strong> You are not authorized to access the requested page.</error>),
+                        <redirect url="index.html"/>
+                    )
                 else
                     (: user logged in, can proceeed to page :)
                     ()
