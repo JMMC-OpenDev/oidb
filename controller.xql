@@ -35,30 +35,6 @@ else if ($exist:path eq "/") then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="index.html"/>
     </dispatch>
-else if ($exist:path eq "/submit.html" or $exist:path eq "/backoffice.html" or $exist:path eq "/collection-vizier.html") then
-    (: require authentification for submitting new data :)
-    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
-        { 
-            $login(),
-            if (local:user-allowed()) then
-                (: user logged in, can proceeed to submit page :)
-                ()
-            else
-                (: unknown user, log in first :)
-                <forward url="{$exist:controller}/login.html"/>
-        }
-        <view>
-            <forward url="{$exist:controller}/modules/view.xql">
-                <set-header name="Cache-Control" value="no-cache, no-store, must-revalidate"/>
-                <set-header name="Pragma" value="no-cache"/>
-                <set-header name="Expires" value="0"/>
-            </forward>
-        </view>
-        <error-handler>
-			<forward url="{$exist:controller}/error-page.html" method="get"/>
-			<forward url="{$exist:controller}/modules/view.xql"/>
-		</error-handler>
-    </dispatch>
 else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
     (: interception of POST requests from search page :)
     (: serialize from form elements and redirect (303 See Other) :)
@@ -87,11 +63,19 @@ else if (starts-with($exist:path, '/restxq/oidb')) then
         )
 
 else if (ends-with($exist:resource, ".html")) then
-    (: the html page is run through view.xql to expand templates :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         {
-            (: user may have signed out :)
-            $login()
+            $login(),
+            if ($exist:path = ( '/submit.html', '/collection-vizier.html', '/backoffice.html' )) then
+                if (not(local:user-allowed())) then
+                    (: unknown user, log in first :)
+                    <forward url="{$exist:controller}/login.html"/>
+                else
+                    (: user logged in, can proceeed to page :)
+                    ()
+            else
+                (: no authentication required :)
+                ()
         }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
