@@ -68,6 +68,16 @@ else if (starts-with($exist:path, '/restxq/oidb')) then
             <response>Unknown RESTXQ path</response>
         )
 
+(:  login of user via AJAX :)
+else if ($exist:resource eq 'login') then
+    let $login := $login()
+    return <status> {
+        if (local:user-allowed()) then
+            'success'
+        else
+            ( response:set-status-code(401), 'fail' )
+    } </status>
+
 else if (ends-with($exist:resource, ".html")) then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         {
