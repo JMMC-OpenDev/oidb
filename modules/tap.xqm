@@ -29,6 +29,7 @@ declare function tap:execute($adql-statement as xs:string) as node()? {
 (:~
  : Return whether the VOTable contains all available results.
  : 
+ : @param $votable the VOTable to check
  : @return true if the result overflowed
  :)
 declare function tap:overflowed($votable as node()) as xs:boolean {
