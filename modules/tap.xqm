@@ -13,6 +13,7 @@ declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
  : 
  : @param $adql-statement the ADQL statement
  : @return a VOTABLE node as returned by the TAP service.
+ : @error bad response or problem reported by TAP server
  :)
 declare function tap:execute($adql-statement as xs:string) as node()? {
     (: make the request to database :)
@@ -23,7 +24,13 @@ declare function tap:execute($adql-statement as xs:string) as node()? {
         'QUERY=' || encode-for-uri($adql-statement)), '&amp;')
     let $data    := httpclient:get($uri, false(), <headers/> )//httpclient:body
 
-    return $data//votable:VOTABLE
+    return if (empty($data) or empty($data/votable:VOTABLE)) then
+        error(xs:QName('tap:error'), 'Bad response from the TAP server')
+    else if ($data//votable:INFO[@name='QUERY_STATUS'][@value='ERROR']) then
+        let $error := $data//votable:INFO[@name='QUERY_STATUS']/text()
+        return error(xs:QName('tap:error'), 'The TAP server reported an error', $error)
+    else
+        $data/votable:VOTABLE
 };
 
 (:~
