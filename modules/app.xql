@@ -23,19 +23,6 @@ declare variable $app:main-metadata := ( 'target_name', 'access_url', 't_min', '
 declare variable $app:UCD_URL := "http://cdsws.u-strasbg.fr/axis/services/UCD?method=explain&amp;ucd=";
 
 (:~
- : Create a model for the context of the node with statistics on results.
- : 
- : @param $node  the node starting the context
- : @param $model the current model
- : @return a new model with statistics
- :)
-declare
-    %templates:wrap
-function app:stats($node as node(), $model as map(*)) as map(*) {
-    map:new(for $x in $model('stats')/@* return map:entry(name($x), string($x)))    
-};
-
-(:~
  : Return a selection of items from the data row as HTML5 data attributes.
  : 
  : If an expected column is found in the row, it creates a 'data-' prefixed
