@@ -94,7 +94,17 @@ declare function backoffice:main-status($node as node(), $model as map(*)) as no
             <dt>Log files</dt>
             <dd>{log:check-files()}</dd>
             <dt>TAP service</dt>
-            <dd>{tap:check-status()}</dd>
+            <dd><div>
+                {
+                    (: TODO templatize :)
+                    let $status := tap:status()
+                    let $icon := if ($status) then 'glyphicon-remove' else 'glyphicon-ok'
+                    let $message := if ($status) then $status else 'OK'
+                    return <span><i class="glyphicon { $icon }"/>&#160;{ $message }</span>
+                }
+                <br/>
+                <em>TODO add link to services</em>
+            </div></dd>
         </dl>
     </div>
 };

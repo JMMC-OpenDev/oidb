@@ -44,29 +44,17 @@ declare function tap:overflowed($votable as node()) as xs:boolean {
 };
 
 (:~
- : Provide a status log on TAP service.
- : This status is called by backoffice:main-status()
+ : Return the status of the TAP service.
  : 
- : @return the status information.
+ : @return empty if service OK, a diagnostic of the issue as a string otherwise.
  :)
-declare function tap:check-status()
+declare function tap:status() as xs:string?
 {
-    let $tap-table-list-status := try{
-            let $doc := doc($config:TAP_TABLES)
-            let $root-name := name ($doc/*)
-            return if ($root-name="tableset") then 
-                <span><i class="glyphicon glyphicon-ok"/> tap service responds properly </span>
-            else if (empty($doc)) then
-                <span><i class="glyphicon glyphicon-remove"/> tap service fails </span>
-            else
-                <span><i class="glyphicon glyphicon-remove"/> tap service does not respond properly : root name is {$root-name}</span>
-        }catch * { 
-                <span><i class="glyphicon glyphicon-remove"/> tap service failed : {$err:description} </span>
-        }
-        
-    return
-        <div>
-            { $tap-table-list-status }<br/>
-            <em>TODO add link to services</em>
-        </div>
+    let $tables := doc($config:TAP_TABLES)
+    return if (empty($tables)) then
+        'service error (no /tables resource)'
+    else if (name($tables/*) != 'tableset') then
+        'bad response (no table metadata)'
+    else
+        ()
 };
