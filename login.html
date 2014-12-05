@@ -1,44 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <div id="login">
-        <form action="" method="post" name="login" class="login col-md-2">
-            <!-- <div class="alert-error/alert-success/alert-info"></div> -->
-            <fieldset id="body">
-                <fieldset>
-                    <label for="email">Username</label>
-                    <div class="controls">
-                        <div class="input-group">
-                            <span class="input-group-addon glyphicon glyphicon-user"/>
-                            <input placeholder="Email" type="text" name="user" id="user" class="form-control"/>
-                        </div>
-                    </div>
-                </fieldset>
-                <fieldset>
-                    <label for="password">Password</label>
-                    <div class="controls">
-                        <div class="input-group">
-                            <span class="input-group-addon glyphicon glyphicon-lock"/>
-                            <input placeholder="Password" type="password" name="password" id="password" class="form-control"/>
-                        </div>
-                    </div>
-                </fieldset>
-            </fieldset>
-            <div>
-                <a href="https://apps.jmmc.fr/account/#getPW">Forgot your password?</a>
-            </div>
-            <div class="form-group">
-                <button class="btn btn-primary btn-lg btn-block" name="commit" type="submit" id="login">Log in</button>
-                <a href="https://apps.jmmc.fr/account/#register" class="btn btn-default btn-lg active btn-block" role="button">Register</a>
-                    <!--
-                    <div class="span3" style="padding-top:10px">
-                        <label class="checkbox" for="user_remember_me">
-                            <input name="user[remember_me]" type="hidden" value="0"/>
-                            <input id="user_remember_me" name="user[remember_me]" type="checkbox" value="1"/>
-                            Remember me on this computer
-                        </label>
-                    </div>
-                    -->
-            </div>
-        </form>
+    <div id="login" class="col-md-2">
+        <form data-template="templates:include" data-template-path="_login-form.html"/>
     </div>
 </div>
