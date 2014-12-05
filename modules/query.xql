@@ -57,9 +57,10 @@ function query:run($node as node(), $model as map(*),
                 'overflow' :=   if ($overflow) then true() else (),
                 'pagination' := map { 'page' := $page, 'npages' := ceiling($nrows div $perpage) }
             }
-    } catch filters:error {
-        map {
-            'flash' := 'Failed to execute query: ' || $err:description
+    } catch tap:error {
+        let $message := if ($err:value) then ' (' || $err:value || ')' else ''
+        return map {
+            'flash' := $err:description || $message
         }
     }
 };

@@ -470,6 +470,11 @@ function app:search($node as node(), $model as map(*),
         map {
             'flash' := 'Unable to build a query from search form data: ' || $err:description
         }
+    } catch tap:error {
+        let $message := if ($err:value) then ' (' || $err:value || ')' else ''
+        return map {
+            'flash' := $err:description || $message
+        }
     }
 };
 
