@@ -430,7 +430,7 @@ declare %private function restxq:build-response($content as item()*) {
     let $action := $content[1]
     return if ($action instance of element() and namespace-uri($action) = 'http://exquery.org/ns/restxq') then
         let $body :=
-            if (count($content/*) > 1) then
+            if (count($content) > 1) then
                 $content[position()!=1]
             else
                 (: the XQueryURLRewrite require that the controller return a node :)
@@ -451,7 +451,7 @@ declare %private function restxq:build-response($content as item()*) {
                         return response:set-header($header/@name, $header/@value),
                         (: TODO support for multipart :)
                         if ($http-response/http:body) then
-                            $http-response/http:body/text()
+                            $http-response/http:body/*
                         else
                             $body
                     )
