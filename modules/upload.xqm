@@ -12,7 +12,6 @@ import module namespace sql="http://exist-db.org/xquery/sql";
 (: Import SQL config :)
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
-import module namespace jmmc-oiexplorer="http://exist.jmmc.fr/jmmc-resources/oiexplorer";
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
 
@@ -79,48 +78,6 @@ declare function upload:upload($db_handle as xs:long, $metadata as node()*) as x
         else
             (: return the id of the inserted row :)
             $result//sql:field[@name='id'][1]
-};
-
-(:~
- : Save metadata from file at URL into database.
- : 
- : The file at the URL is processed with OIFitsViewer to extract metadata.
- : If an error occurs when saving a row, the process is stopped and an 
- : error is generated.
- : 
- : TODO: check errors if viewer fails
- : TODO: wrap in transaction, rollback if error
- : 
- : @param $db_handle database handle
- : @param $url the URL where to retrieve the file
- : @param $more additionnal metadata not in the file
- : @error failed to upload (SQL exception) (from upload:upload)
- : @return the check report from the OIFits file parser
- :)
-declare function upload:upload-uri($db_handle as xs:long, $url as xs:anyURI, $more as node()*) {
-    (: TODO test output of oi:viewer!! :)
-    let $data := jmmc-oiexplorer:to-xml($url)
-    let $more := (
-        $more,
-        (: add missing access information: url, size, MIME type :)
-        <access_url>{ $url }</access_url>,
-        <access_estsize>{ $data/oifits/size/text() idiv 1000 }</access_estsize>,
-        <access_format>application/fits</access_format>
-    )
-    (: validation report for file by OIFitsViewer :)
-    let $report := $data//checkReport/node()
-    (: TODO check report for major problems before going further :)
-    return (
-        let $ids :=
-            for $target in $data//metadata/target
-            return try {
-                upload:upload($db_handle, ($target/*, $more))
-            } catch * {
-                (: add report to exception value :)
-                error($err:code , $err:description, ($err:value, $report))
-            }
-        return $report
-    )
 };
 
 (:~
