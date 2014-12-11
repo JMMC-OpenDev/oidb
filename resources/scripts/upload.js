@@ -24,7 +24,7 @@ $(function () {
         var $modal = $('#articleModal');
         // connect to the validate button of the dialog
         $('.modal-footer button:last', $modal).click(function (e) {
-            $(this).button('loading');
+            var $btn = $(this).button('loading');
 
             var $bibcode = $('input[name="bibcode"]', $modal);
             var bibcode = $.trim($bibcode.val());
