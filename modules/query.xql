@@ -35,7 +35,7 @@ function query:run($node as node(), $model as map(*),
     try {
         (: Search database, use request parameter :)
         let $query := request:get-parameter('query', false())
-        let $votable := if ($query) then tap:execute($query) else ()
+        let $votable := if ($query) then tap:execute($query, $page * $perpage) else ()
         let $data := if ($votable) then app:transform-votable($votable, 1 + ($page - 1) * $perpage, $perpage) else ()
         let $overflow := if ($votable and (count($data/tr) - 1) < $perpage) then tap:overflowed($votable) else false()
 
