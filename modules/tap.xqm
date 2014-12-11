@@ -16,11 +16,24 @@ declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
  : @error bad response or problem reported by TAP server
  :)
 declare function tap:execute($adql-statement as xs:string) as node()? {
+    tap:execute($adql-statement, ())
+};
+
+(:~
+ : Executes an ADQL statement against the database with TAP and limit number of rows.
+ : 
+ : @param $adql-statement the ADQL statement
+ : @param $maxrec         the maximum number of table records to return
+ : @return a VOTABLE node as returned by the TAP service.
+ : @error bad response or problem reported by TAP server
+ :)
+declare function tap:execute($adql-statement as xs:string, $maxrec as xs:integer?) as node()? {
     (: make the request to database :)
     let $uri     := $config:TAP_SYNC || '?' || string-join((
         'REQUEST=doQuery',
         'LANG=ADQL',
         'FORMAT=votable',
+        if ($maxrec) then 'MAXREC=' || $maxrec else (),
         'QUERY=' || encode-for-uri($adql-statement)), '&amp;')
     let $data    := httpclient:get($uri, false(), <headers/> )//httpclient:body
 
