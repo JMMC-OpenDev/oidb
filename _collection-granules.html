@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="app:collection-granules">
+    <div data-template="templates:surround" data-template-with="templates/paginated.html" data-template-at="paginated">
+        <table class="table table-bordered table-condensed">
+            <thead>
+                <th>Target</th>
+                <th>Instrument</th>
+                <th>Instrument mode</th>
+                <th>Night</th>
+            </thead>
+            <tbody data-template="helpers:render" data-template-partial="_oifits.html" data-template-key="granules" data-template-as="oifits"/>
+        </table>
+    </div>
+</div>
