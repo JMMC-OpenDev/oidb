@@ -399,6 +399,12 @@ $(function () {
     }
 
     $('form').submit(function (e) {
+        e.preventDefault();
+
+        if ($('#oifits tr.granule').size() == 0) {
+            return;
+        }
+
         var $buttons = $('.btn', this);
         // disable form buttons while the data is uploaded
         $buttons
@@ -479,7 +485,5 @@ $(function () {
                 // re-enable inputs of granules
                 $('#collection :input').prop('disabled', false);
             });
-
-        e.preventDefault();
     });
 });
