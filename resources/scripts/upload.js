@@ -408,6 +408,7 @@ $(function () {
         var $collection_fs = $('#collection');
         // freeze the collection form
         $(':input', $collection_fs).prop('disabled', true);
+        $('.tag span[data-role="remove"]', $collection_fs).remove();
 
         var collection;
         if ($('#collection').size() !== 0) {
