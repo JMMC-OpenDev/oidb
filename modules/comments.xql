@@ -16,35 +16,6 @@ declare variable $comments:comments := $config:data-root || '/comments/comments.
 
 
 (:~
- : Insert a new comment for a granule.
- :
- : Only comments from authenticated users are accepted. The comment is
- : otherwise discarded.
- :
- : @param $node    the current node
- : @param $model   the current model
- : @param $id      the id of the granule the comment is for
- : @param $parent  the id of the comment this new comment is a reply of
- : @param $message the text message
- :)
-declare function comments:add-comment($node as node(), $model as map(*), $id as xs:integer, $parent as xs:string?, $message as xs:string) as node()? {
-    (: FIXME do not use email for user id :)
-    let $user := login:user-email()
-    return if ($user and request:get-method() = 'POST') then
-        let $comments := doc($comments:comments)/comments
-        let $parent := if ($parent) then $comments//comment[@id=$parent] else $comments
-        let $comment :=
-            <comment id="{ util:uuid() }" granule-id="{ $id }">
-                <author>{ $user }</author>
-                <date>{ current-dateTime() }</date>
-                <text>{ $message }</text>
-            </comment>
-        return update insert $comment into $parent
-    else
-        ()
-};
-
-(:~
  : Add the comments attached to a granule to the model for templating.
  :
  : @param $node  the current node
@@ -69,6 +40,36 @@ declare
 %templates:default("maxComments", 10)
 function comments:last-comments($node as node(), $model as map(*), $maxComments as xs:integer) as map(*) {
     map { 'comments' := subsequence(reverse(doc($comments:comments)//comment), 1, $maxComments) }
+};
+
+(:~
+ : Find and add a comment to the current model for templating.
+ : 
+ : The comment is taken from the current model if available. Otherwise it is
+ : searched by id from a request parameter named 'id'.
+ : 
+ : It adds a bookmark to the current node as an 'id' attribute with the
+ : comment id as value.
+ : 
+ : @param $node  the template for rendering a comment
+ : @param $model the current model
+ : @return templatized node with comment data
+ :)
+declare function comments:comment($node as node(), $model as map(*)) as node() {
+    let $comment :=
+        if (map:contains($model, 'comment')) then
+            map:get($model, 'comment')
+        else if ('id' = request:get-parameter-names()) then
+            let $id := request:get-parameter('id', false())
+            return doc($comments:comments)//comment[@id=$id]
+        else
+            ()
+    return
+        element { node-name($node) } {
+            $node/@* except $node/@id,
+            attribute { 'id' } { $comment/@id },
+            templates:process($node/node(), map:new(( $model , map:entry('comment', $comment) )))
+        }
 };
 
 (:~

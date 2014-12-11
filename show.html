@@ -5,12 +5,9 @@
         <div data-template="app:show"/>
         
         <h1>Comments</h1>
-        <div class="col-md-offset-1 col-md-10">
-            <div data-template="templates:if-parameter-set" data-template-param="message">
-                <div data-template="comments:add-comment"/>
-            </div>
-                <div data-template="comments:comments">
-                    <ul class="media-list" id="comments">
+        <div class="col-md-offset-1 col-md-10" id="comments">
+            <div data-template="comments:comments">
+                <ul class="media-list">
                     <li data-template="helpers:render" data-template-partial="_comment.html" data-template-key="comments"/>
                 </ul>
                 <div data-template="templates:if-attribute-set" data-template-attribute="fr.jmmc.oidb.login.user">
