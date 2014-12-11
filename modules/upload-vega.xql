@@ -27,14 +27,14 @@ declare variable $local:collection := 'vegaobs_import';
 (:  prepare a cache for target resolutions :)
 declare variable $local:cache :=
     try {
-        doc(xmldb:store($config:data-root || '/tmp', 'upload-vega.xml', <cache/>))
+        doc(xmldb:store($config:data-root || '/tmp', 'upload-vega.xml', <cache/>))/cache
     } catch * {
         error(xs:QName('error'), 'Failed to create cache for upload-vega.xql: ' || $err:description, $err:value)
     };
 declare variable $local:cache-insert   := jmmc-cache:insert($local:cache, ?, ?);
 declare variable $local:cache-get      := jmmc-cache:get($local:cache, ?);
 declare variable $local:cache-contains := jmmc-cache:contains($local:cache, ?);
-declare variable $local:cache-destroy  := function() { jmmc-cache:destroy($local:cache) };
+declare variable $local:cache-destroy  := function() { xmldb:remove($config:data-root || '/tmp', 'upload-vega.xml') };
 
 (:~
  : Remove all Vega records from a previous import.

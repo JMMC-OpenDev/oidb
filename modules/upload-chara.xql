@@ -54,14 +54,14 @@ declare variable $local:asproconf-uri := '/db/apps/oidb-data/instruments';
 (:  prepare a cache for target resolutions :)
 declare variable $local:cache :=
     try {
-        doc(xmldb:store($config:data-root || '/tmp', 'upload-chara.xml', <cache/>))
+        doc(xmldb:store($config:data-root || '/tmp', 'upload-chara.xml', <cache/>))/cache
     } catch * {
         error(xs:QName('error'), 'Failed to create cache for upload-chara.xql: ' || $err:description, $err:value)
     };
 declare variable $local:cache-insert   := jmmc-cache:insert($local:cache, ?, ?);
 declare variable $local:cache-get      := jmmc-cache:get($local:cache, ?);
 declare variable $local:cache-contains := jmmc-cache:contains($local:cache, ?);
-declare variable $local:cache-destroy  := function() { jmmc-cache:destroy($local:cache) };
+declare variable $local:cache-destroy  := function() { xmldb:remove($config:data-root || '/tmp', 'upload-chara.xml') };
 
 (:~
  : Remove all CHARA records from a previous import.
