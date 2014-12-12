@@ -245,7 +245,7 @@ declare function helpers:select-options($node as node(), $model as map(*), $key 
  : Process input and select form controls, setting their value/selection to
  : values found in the model - if present.
  :
- : @node
+ : @note
  : 'templates' has a similar function (templates:form-control) that:
  :  - search for values in the request parameters.
  :  - does not template process the children of the node
