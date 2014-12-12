@@ -317,3 +317,24 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
                 $children
             }
 };
+
+(:~
+ : Templatize a node if a request attribute is not set.
+ :
+ : @note
+ : This function is the mirror of templates:if-attribute-set().
+ :
+ : @param $node
+ : @param $model
+ : @param $attribute the request attribute to check
+ : @return the processed node if the attribute is not set or value is a falsy
+ :)
+declare function helpers:unless-attribute-set($node as node(), $model as map(*), $attribute as xs:string) {
+    let $isSet :=
+        (exists($attribute) and request:get-attribute($attribute))
+    return
+        if ($isSet) then
+            ()
+        else
+            templates:process($node/node(), $model)
+};
