@@ -17,7 +17,12 @@ declare variable $exist:prefix external;
 declare variable $exist:root external;
 
 declare variable $domain := "fr.jmmc.oidb.login";
-declare variable $login := function () { login:set-user($domain, (), false()) };
+declare variable $login := function () {
+    login:set-user($domain, (), false()),
+    (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
+    let $user := request:get-attribute($domain || '.user')
+    return request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
+};
 
 declare function local:user-allowed() as xs:boolean {
     let $user := request:get-attribute($domain || '.user')
@@ -25,9 +30,7 @@ declare function local:user-allowed() as xs:boolean {
 };
 
 declare function local:user-admin() as xs:boolean {
-    let $user := request:get-attribute($domain || '.user')
-    (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
-    return jmmc-auth:check-credential($user, 'oidb')
+    request:get-attribute($domain || '.superuser')
 };
 
 let $store-res-name := request:set-attribute("exist:path", $exist:path)
