@@ -34,7 +34,7 @@ $(function () {
 
     $( document ).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
         // only interested in authentication errors
-        if (jqXHR.status != 401) {
+        if (jqXHR.status != 401 || settings.suppressErrors) {
             return;
         }
 
@@ -46,5 +46,30 @@ $(function () {
 
         // display the login dialog
         $.when(login).then(function () { $('#loginModal').modal('show'); });
+    });
+
+    // connect to navigation bar sign in entry
+    $('#login a').click(function (e) {
+        e.preventDefault();
+
+        // setup the dialog: load from partial
+        var login = $('#loginModal');
+        if (login.size() === 0) {
+            login = $.ajax('_login-modal.html').done(setupLoginModal);
+        }
+
+        // display the login dialog
+        $.when(login).done(function () {
+            $('#loginModal')
+                .modal('show')
+                // check status on dialog close
+                .one('hidden.bs.modal', function (e) {
+                    $.get('login', { suppressErrors: true })
+                        .done(function (data) {
+                            // successfully logged in: update navigation header
+                            $('nav').load('templates/page.html nav > *');
+                        });
+                });
+        });
     });
 });

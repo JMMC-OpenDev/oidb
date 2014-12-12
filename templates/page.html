@@ -12,6 +12,7 @@
         <script type="text/javascript" src="resources/scripts/bootstrap.min.js"/>
         <script type="text/javascript" src="resources/scripts/sampjs/samp.js"/>
         <script type="text/javascript" src="resources/scripts/samp.js"/>
+        <script type="text/javascript" src="resources/scripts/login.js"/>
     </head>
     <body id="body">
         <nav class="navbar navbar-default" role="navigation">
@@ -126,6 +127,12 @@
                                             <i class="glyphicon glyphicon-edit"/> Manage account</a>
                                     </li>
                                 </ul>
+                            </li>
+                        </div>
+                        <div data-template="helpers:unless-attribute-set" data-template-attribute="fr.jmmc.oidb.login.user">
+                            <li class="dropdown" id="login">
+                                <a href="#">
+                                    <span class="glyphicon glyphicon-log-in"/> Sign in</a>
                             </li>
                         </div>
                     </ul>
