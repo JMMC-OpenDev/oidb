@@ -1262,3 +1262,34 @@ declare function app:flash($node as node(), $model as map(*)) as node()* {
         $flash/node()
     }
 };
+
+(:~
+ : Add a categorized random image as background to the node.
+ : 
+ : @param $node     the current node to templatize
+ : @param $model    the current model
+ : @param $category the category from which to pick the vignette
+ : @return a templatized node with vignette as background
+ :)
+declare function app:random-vignette($node as node(), $model as map(*), $category as xs:string) as node() {
+    let $path := 'resources/images/vignettes/' || $category || '/'
+
+    (: build sequence of vignettes for this category :)
+    let $filenames :=
+        for $filename in xmldb:get-child-resources($config:app-root || '/' || $path)
+        let $extension := lower-case(tokenize($filename, "\.")[last()])
+        where $extension = ( 'png', 'jpg', 'tiff', 'gif' )
+        return $filename
+    (: pick one at random :)
+    let $idx := 1+util:random(count($filenames))
+    let $filename := $filenames[position()=$idx]
+
+    (: prepare a CSS property with the image as background :)
+    let $background := "background: url('" || $path || $filename || "') no-repeat center center; "
+    
+    return element { node-name($node) } {
+        $node/@* except $node/@style,
+        attribute { 'style' } { $background || data($node/@style) },
+        templates:process($node/node(), $model)
+    }
+};
