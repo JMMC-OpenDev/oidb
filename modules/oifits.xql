@@ -30,7 +30,9 @@ declare %private function oifits:get-data($model as map(*)) as item()* {
         (: TODO check $staging and $path :)
 
         (: TODO create a route in controller for staged files :)
-        let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || encode-for-uri($path)
+        let $path := string-join(tokenize($path, '/') ! encode-for-uri(.), '/')
+        (: FIXME strange that it is necessary to encode AGAIN the path for the url, upstream bug? :)
+        let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || string-join(tokenize($path, '/') ! encode-for-uri(.), '/')
         let $data := util:binary-doc($oifits:staging || $staging || '/' || $path)
         return ( $url, $data )
 };
