@@ -68,17 +68,19 @@ declare %private function oifits:basename($name as xs:string) as xs:string {
  : @return en element with status for the operation
  :)
 declare %private function oifits:save($path as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
-    let $collection := xmldb:create-collection($collection, oifits:dirname($path))
-    let $path := encode-for-uri($path)
+    let $new-collection := string-join(tokenize($path, '/')[position()!=last()] ! encode-for-uri(.), '/')
+    let $resource := encode-for-uri(oifits:basename($path))
     
+    let $collection := xmldb:create-collection($collection, $new-collection)
+
     (: TODO better test? compare checksums? search scope: staging or all? :)
-    return if (not(util:binary-doc-available(resolve-uri($path, $collection || '/')))) then
+    return if (not(util:binary-doc-available(resolve-uri($new-collection || '/' || $resource, $collection || '/')))) then
         (:
             FIXME at the moment it seems it is not possible to reuse binary data
             So it saves everything in DB and then check the document.
             If the document is invalid, it is then deleted.
         :)
-        let $doc := xmldb:store($collection, oifits:basename($path), $data, $oifits:mime-type) 
+        let $doc := xmldb:store($collection, $resource, $data, $oifits:mime-type)
 
         return if ($doc) then
             try {
