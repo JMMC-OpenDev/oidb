@@ -2,7 +2,6 @@ xquery version "3.0";
 
 (:~
  : This module handle backoffice operations.
- : TODO restrict access to authenticated/granted users.
  :)
 module namespace backoffice="http://apps.jmmc.fr/exist/apps/oidb/backoffice";
 
