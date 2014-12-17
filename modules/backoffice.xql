@@ -30,23 +30,26 @@ declare %private function backoffice:start-job($resource as xs:string, $name as 
 (:~
  : Start a job in the background through the scheduler with parameters.
  : 
+ : @note
+ : It evaluates a script that creates the background job if not already running.
+ : This script is setuid to elevate privileges to dba role (required for 
+ : starting scheduler jobs).
+ : 
  : @param $resource path to the resource for the job
  : @param $name     name of the job
  : @param $params   the parameters to pass to the job
  : @return flag indicating successful scheduling
  :)
 declare %private function backoffice:start-job($resource as xs:string, $name as xs:string, $params as map(*)) as xs:boolean {
-    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$resource]
-    return if ($job) then
-        (: already running? stalled? :)
-        (: FIXME check job state :)
-        false()
-    else
-        let $params := <parameters> {
-            for $key in map:keys($params)
-            return <param name="{ $key }" value="{ map:get($params, $key) }"/>
-        } </parameters>
-        return scheduler:schedule-xquery-periodic-job($resource, 0, $name, $params, 0, 0)
+    let $params := <parameters> {
+        for $key in map:keys($params)
+        return <param name="{ $key }" value="{ map:get($params, $key) }"/>
+    } </parameters>
+    let $status := util:eval(xs:anyURI('schedule-job.xql'), false(), (
+        xs:QName('resource'), $resource,
+        xs:QName('name'),     $name,
+        xs:QName('params'),   $params))
+    return name($status) = 'success'
 };
 
 (:~
