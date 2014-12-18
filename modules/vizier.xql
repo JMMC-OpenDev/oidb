@@ -61,21 +61,3 @@ function vizier:catalog-files($node as node(), $model as map(*)) as map(*) {
         'oifits' := jmmc-vizier:catalog-fits($id)
     }
 };
-
-(:~
- : Iterate over each OIFITS URL.
- : 
- : It expects a model entry named 'oifits' containing a sequence of OIFITS URL. 
- : Each time it sets an 'url' entry in the model for the URL of the current
- : OIFITS file.
- : 
- : @param $node  the current node with children to templatize.
- : @param $model the current model.
- : @return a sequence of template processed nodes, one for each OIFITS URL.
- :)
-declare
-function vizier:each-oifits($node as node(), $model as map(*)) as node()* {
-    for $url in $model('oifits')
-    (: Add the OIFITS URL to the current model and process nodes :)
-    return templates:process($node/node(), map:new(($model, map:entry('url', $url))))
-};
