@@ -22,8 +22,8 @@ import module namespace util = "http://exist-db.org/xquery/util";
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
+import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 
-import module namespace jmmc-simbad="http://exist.jmmc.fr/jmmc-resources/simbad";
 import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
 (: column indices from source CSV file :)
@@ -76,7 +76,7 @@ declare function local:delete-collection($handle as xs:long) {
  : Search for a target by name.
  : 
  : It makes use of a temporary cache of previous name resolutions to avoid
- : excessive requests to Simbad.
+ : excessive requests to Sesame.
  : 
  : @param $name a target name
  : @return a target description
@@ -90,7 +90,7 @@ declare function local:resolve-target($name as xs:string) {
             $local:cache-get($name)
         else
             (: miss, resolve by name and cache the results for next time :)
-            let $target := head(jmmc-simbad:resolve-by-name($name))
+            let $target := try { sesame:resolve($name)/target } catch sesame:resolve { () }
             return ( $local:cache-insert($name, $target), $target )
     return if($target) then $target else error(xs:QName('error'), 'Unknown target', $name)
 };
@@ -132,8 +132,8 @@ declare function local:metadata($observation as xs:string*) as node() {
     (: resolve star coordinates from star name :)
     let $target-name := normalize-space($observation[$local:STAR])
     let $star        := local:resolve-target($target-name)
-    let $ra          := $star/ra
-    let $dec         := $star/dec
+    let $ra          := number($star/@ra)
+    let $dec         := number($star/@dec)
     let $data-pi     := local:resolve-pi(normalize-space($observation[$local:PI]))
     let $program     := normalize-space($observation[$local:PROGRAM])
     let $date        := normalize-space($observation[$local:MJD])
