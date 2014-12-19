@@ -786,7 +786,7 @@ function app:homepage-header($node as node(), $model as map(*)) as map(*) {
     return map {
         'n_facilities'  := $count(( 'distinct', 'col=facility_name' )),
         'n_instruments' := $count(( 'distinct', 'col=instrument_name' )),
-        'n_data_pis'    := $count(( 'distinct', 'col=obs_creator_name' )),
+        'n_data_pis'    := $count(( 'distinct', 'col=datapi' )),
         'n_collections' := $count(( 'distinct', 'col=obs_collection' )),
         'n_oifits'      := $count(( 'distinct', 'col=access_url' )) - 1,
         'n_granules'    := $count(( 'caliblevel=1,2,3' )),
