@@ -1,18 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-at="content" data-template-with="templates/page.html">
     <div class="row">
         <div class="col-md-6">
             <h2 id="changelog">ChangeLog</h2>
             <div data-template="jmmc-about:changelog">
-                Current version: <span data-template="jmmc-about:version"/>
+                Current version: <span data-template="jmmc-about:version"></span>
+                <br></br>
+                Deployed on: <span data-template="jmmc-about:deployed"></span>
                 <div data-template="helpers:each" data-template-from="changes" data-template-to="change">
                     <div>
-                        <hr/>
+                        <hr></hr>
                         <div>
-                            <b>Version <span data-template="jmmc-about:change-version"/>
+                            <b>Version <span data-template="jmmc-about:change-version"></span>
                             </b>
                         </div>
-                        <div data-template="jmmc-about:change"/>
+                        <div data-template="jmmc-about:change"></div>
                     </div>
                 </div>
             </div>
@@ -40,7 +41,7 @@
                             <a href="http://archive.eso.org">ESO ARCHIVE</a> portal</li>
                     </ul>
                 </li>
-                <li>JMMC: oitools, <a href="http://www.jmmc.fr/oifitsexplorer">OIFitsViewer</a></li>
+                <li>JMMC: oitools, <a href="http://www.jmmc.fr/oifitsexplorer">OIFitsViewer</a>
                 </li>
                 <li>Datasources:
                     <ul>
@@ -58,7 +59,7 @@
                         </li>
                     </ul>
                 </li>
-                <li>This web portal is powered by <a href="http://exist-db.org/">eXist-db</a> behind apache web server on a linux server</li>
+                <li>This web portal is powered by <a href="http://exist-db.org/">eXist-db</a> behind an apache web server on a linux server.
                     <ul> We use on top of Bootstrap and thanks to web developers:
                         <li>Bootstrap <a href="https://github.com/eternicode/bootstrap-datepicker">Datepicker</a>
                         </li>
@@ -73,14 +74,13 @@
                 <li>
                     <a href="http://www.jmmc.fr/jmmc_groups.htm#oidbgroup">OiDB working group</a>
                 </li>
-                <li>Fundings:
-                <ul>
+                <li>Fundings:<ul>
                         <li>
                             <a href="http://www.insu.cnrs.fr">CNRS / INSU</a>
                         </li>
-                    	<li>Supported by the European Commission's FP7 Capacities programme ( Grant Agreement Number 312430 )</li>
+                        <li>Supported by the European Commission's FP7 Capacities programme ( Grant Agreement Number 312430 )</li>
                     <!-- -->
-                </ul>
+                    </ul>
                 </li>
             </ul>
         </div>
