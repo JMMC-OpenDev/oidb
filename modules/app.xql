@@ -375,6 +375,33 @@ declare function app:input-each-band($node as node(), $model as map(*)) as node(
 };
 
 (:~
+ : Build a list of bands and put it in the model for templating.
+ : 
+ : It creates a 'bands' entry in the model for the children of the node.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with band names
+ :)
+declare function app:bands($node as node(), $model as map(*)) as map(*) {
+    map:new(($model, map:entry('bands', jmmc-astro:band-names())))
+};
+
+(:~
+ : Build a list of wavelength divisions and put it in the model for templating.
+ : 
+ : It creates a 'wavelength-ranges' entry in the model for the children of the node.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with band names
+ :)
+declare function app:wavelength-divisions($node as node(), $model as map(*)) as map(*) {
+    map:new(($model, map:entry('wavelength-divisions', jmmc-astro:wavelength-division-names())))
+};
+
+
+(:~
  : Return an element with counts of the number of observations, all OIFits 
  : files and private OIFits files in the database.
  : 
@@ -474,6 +501,13 @@ function app:search($node as node(), $model as map(*),
         let $message := if ($err:value) then ' (' || $err:value || ')' else ''
         return map {
             'flash' := $err:description || $message
+        }
+    } catch * {
+        (: add log request with error :)
+        let $log := log:search(<error code="{$err:code}">{$err:description}</error>)
+        return 
+        map {
+            'flash' := 'fatal error: (' || $err:code || ')' || $err:description
         }
     }
 };
@@ -691,9 +725,10 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
         <table class="table table-striped table-bordered table-hover">
         {
             let $row := $granule//tr[td]
-            let $tds := app:td-cells($row, $app:main-metadata)
+            let $columns := ($app:main-metadata, "obs_creator_name")
+            let $tds := app:td-cells($row, $columns )
             for $td at $pos in $tds
-                let $m := $app:main-metadata[$pos]
+                let $m := $columns[$pos]
                 return <tr><th>{$m}</th>{$td}</tr>
         }
     </table>
