@@ -7,6 +7,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace restxq="http://exist-db.org/xquery/restxq" at "modules/restxq.xql";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "modules/app.xql";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "modules/adql.xql";
+import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "modules/flash.xqm";
 
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth";
 
@@ -92,7 +93,7 @@ else if (ends-with($exist:resource, ".html")) then
                 else if ($exist:path = '/backoffice.html' and not(local:user-admin())) then
                     (
                         (: no credentials for the page :)
-                        session:set-attribute('flash', <error><strong>Access denied!</strong> You are not authorized to access the requested page.</error>),
+                        flash:error(<span xmlns="http://www.w3.org/1999/xhtml"><strong>Access denied!</strong> You are not authorized to access the requested page.</span>),
                         <redirect url="index.html"/>
                     )
                 else
@@ -104,7 +105,7 @@ else if (ends-with($exist:resource, ".html")) then
                     (: user requested logout :)
                     (
                         session:create(), (: session was invalidated by logout :)
-                        session:set-attribute('flash', <info>You have successfully logged out.</info>)
+                        flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>)
                     )
                 else
                     ()
