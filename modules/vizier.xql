@@ -7,6 +7,7 @@ module namespace vizier="http://apps.jmmc.fr/exist/apps/oidb/vizier";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
 
 import module namespace jmmc-vizier="http://exist.jmmc.fr/jmmc-resources/vizier";
 
@@ -26,12 +27,16 @@ declare
     %templates:wrap
 function vizier:catalog-description($node as node(), $model as map(*)) as map(*) {
     let $id := request:get-parameter('catalog', '')
-    (: TODO check id :)
     let $readme := try {
             jmmc-vizier:catalog($id)
         } catch * {
+            flash:error(
+                let $msg := if ($err:code = 'jmmc-vizier:error') then
+                    $err:description
+                else
+                    'Failed to retrieve description for catalog ' || $id || '. See log for details.'
+                return <span xmlns="http://www.w3.org/1999/xhtml"><strong>Error!</strong>&#160;{ $msg }</span>),
             (: back to submit start page :)
-            (: TODO display status message :)
             response:redirect-to(xs:anyURI('submit.html')), ''
         }
     return map {
