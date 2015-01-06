@@ -236,6 +236,9 @@ declare function log:report-downloads($max as xs:integer)as node(){
 (:~
  : Generate a report with statistics on searches
  : 
+ : @todo 
+ :   remove duplicated logs ( searches.xml now duplicates visit.xml )
+ : 
  : @param $max define the max number of record to report (10 by default)
  : @return ignore
  :)
@@ -245,6 +248,16 @@ declare function log:report-searches($max as xs:integer)as node(){
     return
     <div>
         {count($searches)} Requests ({count($searches//error)} failed ).  More details to come in the futur...
+        <!--
+            <search time="2014-12-21T19:32:07.498+01:00" session="r376gqfgfizvriglp435r81k" user="" remote="127.0.0.1">
+            <request>
+                <order>instrument_name</order>
+                <wavelengthband>mid-ir,B</wavelengthband>
+                <perpage>25</perpage>
+            </request>
+            <success/>
+            </search>   
+            -->
     </div>
 };
 
@@ -254,11 +267,79 @@ declare function log:report-searches($max as xs:integer)as node(){
  : @param $max define the max number of record to report (10 by default)
  : @return ignore
  :)
-declare function log:report-visits($max as xs:integer)as node(){
+declare function log:report-visits($max as xs:integer)
+as node()
+{
     let $visits := doc($log:visits)//visit
+    let $total-hits := count($visits)
     let $items := subsequence(reverse($visits),1,$max)
+    let $sessions := <sessions>
+                    { 
+                        for $visit in $visits group by $session:=$visit/@session/string() return 
+                            <session>
+                                <visit>{count($visit)}</visit>
+                                <duration>{
+                                if(count($visit)>1)  then  minutes-from-duration(xs:dateTime($visit[last()]/@time) - xs:dateTime($visit[1]/@time ))
+                                else 0
+                                }</duration>
+                            </session>
+                    }
+                </sessions>
     return
     <div>
-        {count($visits)} Requests ({count($visits//error)} failed ).  More details to come in the futur...
+        { $total-hits } Hits ({ count($visits//error) } failed ), {count($sessions/session)} visits.  More details to come in the futur ...<br/>
+        <div class="row">
+        <div class="col-md-4">
+            <table class="table table-hover table-bordered table-condensed"><tr><th class="col-xs-4"></th><th>paths</th><th>count</th><th>error</th></tr>
+            {
+                for $visit in $visits group by $path := $visit/@path/string()
+                    return
+                        let $count := count($visit)
+                        let $count-error := count($visit[.//error])
+                        let $percent := xs:integer(100 * $count div $total-hits)
+                        let $percent-error := xs:integer(100 * $count-error div $total-hits)
+                        return 
+                            <tr>
+                                <td>
+                                    <div class="progress" style="margin-bottom:0px;">
+                                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{$percent}" aria-valuemin="0" aria-valuemax="100"  style="width: {$percent}%;"></div>
+                                        
+                                        {
+                                            if($count-error > 0) then <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="{$percent}" aria-valuemin="0" aria-valuemax="100"  style="width: {$percent-error}%;"></div>
+                                       else ()
+                                        }
+                                    </div>
+                                </td>
+                                <td>{$path}</td>                
+                                <td>{$count}</td>
+                                <td>{$count-error}</td>
+                            </tr>
+            }</table>
+        </div>
+        <div class="col-md-4">
+            <table class="table table-hover table-bordered table-condensed"><tr><th>Nb hit per visit</th><th>#count</th></tr>
+            {
+                let $ranges := map {"1":(0,2), "2":(1,3), "3":(2,4), "4":(3,5),"5-9":(4,10),"10+":(9,100000)}
+                return 
+                    for $e in map:keys($ranges)
+                        let $r:=$ranges($e)
+                        order by $r[1]
+                        return 
+                            <tr><th>{$e}</th><td>{count($sessions//session[$r[1] < visit and visit < $r[2]])}</td></tr>
+            }</table>
+        </div>
+        <div class="col-md-4">
+            <table class="table table-hover table-bordered table-condensed"><tr><th>Duration of visit</th><th>#count</th></tr>
+            {
+                let $ranges := map {"< 1 min":(-1,1), "1-2 min":(0,3), "2-5 min":(1,6), "5-30 min":(3,5),"+30 min":(4,10)}
+                return 
+                    for $e in map:keys($ranges)
+                        let $r:=$ranges($e)
+                        order by $r[1]
+                        return 
+                            <tr><th>{$e}</th><td>{count($sessions//session[ $r[1] < duration and duration < $r[2]])}</td></tr>
+            }</table>
+        </div>
+        </div>
     </div>
 };
