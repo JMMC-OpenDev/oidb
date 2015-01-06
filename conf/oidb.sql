@@ -1,6 +1,7 @@
 --
 -- Table structure for table `oidb`
 --
+SET client_encoding = 'UTF8';
 
 CREATE SEQUENCE oidb_id_seq
     START WITH 1
@@ -12,6 +13,7 @@ CREATE SEQUENCE oidb_id_seq
 -- See http://www.sqlines.com/postgresql/how-to/create_user_defined_type
 CREATE DOMAIN rights VARCHAR(12) CHECK (VALUE IN ('public', 'secure', 'proprietary'));
 
+-- oidb table = ObsCore + extensions
 CREATE TABLE oidb (
     -- ObsCore model: observation information
     dataproduct_type  text,
@@ -47,14 +49,14 @@ CREATE TABLE oidb (
     em_min            real,
     em_max            real,
     em_res_power      real,
-    -- ObsCore model: observable axis
+    -- ObsCore model: observable axis (left NULL as OIFits contains several observable quantities VIS, VIS2, T3)
     o_ucd             text,
     -- ObsCore model: polarisation axis
     pol_states        text,
     -- ObsCore model: provenance
     facility_name     text,
     instrument_name   text,
-    -- OIFits metadata
+    -- OiDB Extension (OIFits metadata)
     instrument_mode   text,
 
     nb_channels       integer NOT NULL,
@@ -69,3 +71,7 @@ CREATE TABLE oidb (
     progid            text,
     datapi            text
 );
+
+--
+-- END
+--
