@@ -139,7 +139,7 @@ declare %private function filters:parse-conesearch($coords as xs:string) as item
             else 
                 ()
         let $coords := 
-            if(empty($coords)) then
+            if( empty($coords ) and (count($tokens) gt 3)) then
                 (: then maybe ra and dec in sexagesimal ? :)
                 try {
                     let $a := string-join(subsequence($tokens, 1, 3), ' ')
