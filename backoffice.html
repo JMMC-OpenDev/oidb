@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <div class=" col-md-12" data-template="backoffice:action"/>
+    <div class=" col-md-12"/>
     <div class="row">
         <div class=" col-md-2">
             <div class="panel panel-default">
@@ -54,7 +54,7 @@
                         <i class="glyphicon glyphicon-book"/>&#160;Documentation</h3>
                 </div>
                 <div class="panel-body">
-                    <form method="post" class="form-inline" role="form">
+                    <form action="modules/backoffice-job.xql" method="post" class="form-inline" role="form">
                         <button type="submit" name="do" value="doc-update" class="btn btn-default">Update doc</button>
                         <div class="form-group">
                             <b>Last update</b>: <span data-template="backoffice:doc-status"/>
@@ -72,9 +72,9 @@
                         <i class="glyphicon glyphicon-upload"/>&#160;Chara</h3>
                 </div>
                 <div class="panel-body">
-                    <form class="form-inline" role="form">
+                    <form action="modules/backoffice-job.xql" enctype="multipart/form-data" method="post" class="form-inline" role="form">
                         <input type="file" name="file" placeholder="CSV file with CHARA observation logs"/>
-                        <button type="submit" class="btn btn-default">Update CHARA</button>
+                        <button type="submit" name="do" value="chara-update" class="btn btn-default">Update CHARA</button>
                         <div class="form-group">
                             <b>Last update</b>: <span data-template="backoffice:chara-status"/>
                         </div>
@@ -89,7 +89,7 @@
                         <i class="glyphicon glyphicon-upload"/>&#160;Vega L0 upload</h3>
                 </div>
                 <div class="panel-body">
-                    <form method="post" class="form-inline" role="form">
+                    <form action="modules/backoffice-job.xql" method="post" class="form-inline" role="form">
                         <button type="submit" name="do" value="vega-update" class="btn btn-default">Update vega logs</button>
                         <div class="form-group">
                             <b>Last update</b>: <span data-template="backoffice:vega-status"/>
@@ -187,5 +187,4 @@
             </div>
         </div>
     </div>
-    <script type="text/javascript" src="resources/scripts/backoffice.js"/>
 </div>
