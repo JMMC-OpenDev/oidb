@@ -32,7 +32,7 @@ function vizier:catalog-description($node as node(), $model as map(*)) as map(*)
         } catch * {
             (: back to submit start page :)
             (: TODO display status message :)
-            response:redirect-to(resolve-uri('submit.html')), ''
+            response:redirect-to(xs:anyURI('submit.html')), ''
         }
     return map {
         'source'        := 'http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=' || encode-for-uri($id),
