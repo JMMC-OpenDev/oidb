@@ -1,5 +1,8 @@
 --
 -- TAP_SCHEMA structure
+-- 
+-- Note: use the oidb user to execute this script (Owner = oidb):
+--   psql -U oidb oidb < tap_schema.sql
 --
 
 SET client_encoding = 'UTF8';
