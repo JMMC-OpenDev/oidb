@@ -360,6 +360,7 @@ $(function () {
                 // may have more than one article attached
                 $article = $article.first();
                 data.obs_creator_name = $('author', $article).text();
+                data.datapi           = $('author', $article).text();
                 data.bib_reference    = $('bibcode', $article).text();
                 data.obs_release_date = $('pubdate', $article).text();
             }
@@ -368,6 +369,8 @@ $(function () {
         // granule calibration level
         data.calib_level = $('input[name="calib_level"]').val();
         // TODO curation info if L < 3
+        //
+        // TODO handle case with empty datapi (on server side using authenticated user ?)
 
         var granules = (new DOMParser()).parseFromString('<granules/>', 'text/xml');
         $granules.each(function (index, element) {

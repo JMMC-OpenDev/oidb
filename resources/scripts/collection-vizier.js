@@ -53,6 +53,7 @@ $(function () {
                 granule.documentElement.appendChild(e);
             }
             add('obs_creator_name', creator);
+            add('datapi',           creator);
             add('obs_release_date', pubdate);
             add('calib_level',      '3');
             add('obs_collection',   collection_id);
