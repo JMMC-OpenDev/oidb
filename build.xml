@@ -27,8 +27,13 @@
     <!-- Build a .XAR with custom config -->
     <target name="xar" depends="config">
         <mkdir dir="${build.dir}"/>
+        <delete dir="${build.dir}" includes="*.xar"/>
+
         <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar">
             <exclude name="${build.dir}/**"/>
+            <exclude name="build.xml"/>
+            <exclude name="pom.xml"/>
+            <exclude name="target/**"/>
             <!-- do not bundle netbeans files in the deployment archive -->
             <exclude name="nbproject/**"/>
             <!-- do not bundle property files in the deployment archive -->
