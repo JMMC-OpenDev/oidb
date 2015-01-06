@@ -227,18 +227,22 @@ declare function helpers:pagination($node as node(), $model as map(*)) as node()
  : @param $node
  : @param $model
  : @param $key the identifier in the model for the contents of the options
+ : @param $sorted optional parameter to define order-by rule : (no, descending), default is ascending 
  : @return a sequence of <option> elements
  :)
-declare function helpers:select-options($node as node(), $model as map(*), $key as xs:string) as node()* {
+declare 
+%templates:default("sorted", "ascending")
+function helpers:select-options($node as node(), $model as map(*), $key as xs:string, $sorted as xs:string?) as node()* {
     let $options := $model($key)
-    return if ($options instance of map(*)) then
-        for $key in map:keys($options)
-        order by $key
+    let $ret := if ($options instance of map(*)) then
+        for $key at $pos in map:keys($options)
+        order by if ($sorted="no") then $pos else $key ascending
         return <option value="{ $key }">{ map:get($options, $key) }</option>
     else
-        for $value in $options
-        order by $value
+        for $value at $pos in $options
+        order by if ($sorted="no") then $pos else $value ascending
         return <option value="{ $value }">{ $value }</option>
+    return if($sorted="descending") then reverse($ret) else $ret
 };
 
 (:~
@@ -249,6 +253,9 @@ declare function helpers:select-options($node as node(), $model as map(*), $key 
  : 'templates' has a similar function (templates:form-control) that:
  :  - search for values in the request parameters.
  :  - does not template process the children of the node
+ : 
+ : @todo
+ :    handle optgroup children of select
  :
  : @param $node
  : @param $model
@@ -256,7 +263,7 @@ declare function helpers:select-options($node as node(), $model as map(*), $key 
  :)
 declare function helpers:form-control($node as node(), $model as map(*)) as node()* {
     (: template process the children :)
-    let $children := templates:process($node/node(), $model)
+    let $children := templates:process($node/node()[not(name()="optgroup")], $model)
 
     let $control := local-name($node)
     return

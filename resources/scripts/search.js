@@ -35,4 +35,12 @@ $(function () {
     if (page && page[1] != 1) {
         $filters.collapse('hide');
     }
+
+    // polish multiselect elements
+    $('.multiple').multiselect({
+            includeSelectAllOption: true,
+            nonSelectedText: "any value",
+            allSelectedText: "any value"
+            
+        }).attr("size","3");
 });
