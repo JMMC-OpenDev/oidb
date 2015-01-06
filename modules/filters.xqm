@@ -256,17 +256,10 @@ declare function filters:wavelengthband($params as xs:string) {
     (: all band limits :)
     let $limits :=
         for $b in $p 
-        return switch ($b)
-        (: wavelength ranges :)
-        case "visible" return ( 0.3, 1 )
-        case "near-ir" return ( 1,   5 )
-        case "mid-ir"  return ( 5,   18.6 )
-        (: individual band names :)
-        default return 
-            try {
+        return try {
                 jmmc-astro:wavelength-range($b)
             } catch * {
-                error(xs:QName('filters:error'), "Unknown band id " || $b)
+                error(xs:QName('filters:error'), "Unknown band id " || $b,$b)
             }
     (: upper and lower wavelengths, convert to meter :)
     let $minlambda := min($limits) * 1e-6
