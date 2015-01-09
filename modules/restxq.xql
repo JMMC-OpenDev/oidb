@@ -429,19 +429,13 @@ declare %private function restxq:set-serialization($meta as element(function)) {
 declare %private function restxq:build-response($content as item()*) {
     let $action := $content[1]
     return if ($action instance of element() and namespace-uri($action) = 'http://exquery.org/ns/restxq') then
-        let $body :=
-            if (count($content) > 1) then
-                $content[position()!=1]
-            else
-                (: the XQueryURLRewrite require that the controller return a node :)
-                (: an empty element + forced serialization to text => empty body :)
-                ( util:declare-option("exist:serialize", "method=text"), <empty/> )
+        let $body := $content[position()!=1]
         return switch (local-name($action))
             case "forward"
                 (: TODO how to make a forward? :)
                 return error($restxq:RESPONSE, 'unsupported response type: rest:forward')
             case "redirect"
-                return ( response:redirect-to($action/text()), $body )
+                return ( response:redirect-to($action/text()), if (empty($body)) then ( util:declare-option("exist:serialize", "method=text"), <empty/> ) else $body )
             case "response"
                 return
                     let $http-response := $action/http:response
@@ -452,6 +446,10 @@ declare %private function restxq:build-response($content as item()*) {
                         (: TODO support for multipart :)
                         if ($http-response/http:body) then
                             $http-response/http:body/*
+                        else if (empty($body)) then
+                            (: the XQueryURLRewrite require that the controller return a node :)
+                            (: an empty element + forced serialization to text => empty body :)
+                            ( util:declare-option("exist:serialize", "method=text"), <empty/> )
                         else
                             $body
                     )
