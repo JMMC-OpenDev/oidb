@@ -5,13 +5,9 @@ xquery version "3.0";
  :)
 module namespace coll="http://apps.jmmc.fr/exist/apps/oidb/restxq/collection";
 
-import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "../config.xqm";
-
-import module namespace xmldb="http://exist-db.org/xquery/xmldb";
+import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "../collection.xqm";
 
 declare namespace rest="http://exquery.org/ns/restxq";
-
-declare variable $coll:collection-uri := $config:data-root || '/collections';
 
 (:~
  : Return a list of all existing collections.
@@ -27,20 +23,10 @@ declare
 function coll:list() as element(collections) {
     <collections>
     {
-        for $c in collection($coll:collection-uri)/collection
+        for $c in collection:list()
         return <collection id="{$c/@id}" created="{$c/@created}"/>
     }
     </collections>
-};
-
-(:~
- : Return a collection given its ID.
- : 
- : @param $id the id of the collection to find
- : @return the <collection> element with the given ID or empty if not found
- :)
-declare %private function coll:find($id as xs:string) as element(collection)? {
-    collection($coll:collection-uri)/collection[@id eq $id]
 };
 
 (:~
@@ -53,9 +39,9 @@ declare
     %rest:GET
     %rest:path("/oidb/collection/{$id}")
 function coll:retrieve-collection($id as xs:string) {
-    let $collection := coll:find(xmldb:decode($id))
+    let $collection := collection:retrieve(xmldb:decode($id))
     return 
-        if ($collection) then <collection> { $collection/@*, $collection/* } </collection>
+        if ($collection) then $collection
         else <rest:response><http:response status="404"/></rest:response>
 };
 
@@ -74,45 +60,25 @@ declare
     %rest:PUT("{$collection-doc}")
     %rest:path("/oidb/collection/{$id}")
 function coll:store-collection($id as xs:string, $collection-doc as document-node()) {
-    let $id := xmldb:decode($id)
-    let $collection := coll:find($id)
-    let $filename :=
-        if ($collection) then
-            (: update collection :)
-            document-uri(root($collection))
-        else
-            (: new collection :)
-            ()
-    (: prepare a new collection document :)
-    let $collection :=
-        <collection> {
-            if ($collection) then
-                (
-                    (: update (!) the 'updated' attribute with current time :)
-                    $collection/@*[name()!=( 'updated' )],
-                    attribute { "updated" } { current-dateTime() }
-                )
-            else
-                (
-                    attribute { "id" } { $id },
-                    attribute { "created" } { current-dateTime() }
-                ),
-            $collection-doc/collection/*
-        } </collection>
-    return <rest:response>
-        <http:response> { attribute { "status" } {
-            try {
-                let $path := xmldb:store($coll:collection-uri, $filename, $collection)
-                return if ($filename and $path) then
-                    204 (: No Content :)
-                else if ($path) then
-                    201 (: Created :)
+    let $collection := collection:retrieve(xmldb:decode($id))
+    let $status :=
+        try {
+            let $path :=
+                if ($collection) then
+                    (: update collection :)
+                    collection:update($id, $collection-doc/collection)
                 else
-                    (: somehow failed to save the document :)
-                    500 (: Internal Server Error :)
-            } catch * {
-                401 (: Unauthorized :)
-            }
-        } } </http:response>
-    </rest:response>
+                    (: new collection :)
+                    collection:create($id, $collection-doc/collection)
+            return if ($collection and $path) then
+                204 (: No Content :)
+            else if ($path) then
+                201 (: Created :)
+            else
+                (: somehow failed to save the document :)
+                500 (: Internal Server Error :)
+        } catch * {
+            401 (: Unauthorized :)
+        }
+    return <rest:response><http:response status="{ $status }"/></rest:response>
 };
