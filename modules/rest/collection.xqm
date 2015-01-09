@@ -82,3 +82,25 @@ function coll:store-collection($id as xs:string, $collection-doc as document-nod
         }
     return <rest:response><http:response status="{ $status }"/></rest:response>
 };
+
+(:~
+ : Delete a collection with the given ID in the database.
+ : 
+ : @param $id the id of the collection to delete
+ : @return ignore, see HTTP status code
+ :)
+declare
+    %rest:DELETE
+    %rest:path("/oidb/collection/{$id}")
+function coll:delete-collection($id as xs:string) {
+    let $status := try {
+            collection:delete($id), 204 (: No Content :)
+        } catch collection:error {
+            404 (: Not Found :)
+        } catch collection:unauthorized {
+            401 (: Unauthorized :)
+        } catch * {
+            500 (: Internal Server Error :)
+        }
+    return <rest:response><http:response status="{ $status }"/></rest:response>
+};

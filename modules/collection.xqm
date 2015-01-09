@@ -72,6 +72,26 @@ declare function collection:update($id as xs:string, $collection as node()) {
 };
 
 (:~
+ : Remove a collection given its ID.
+ : 
+ : The XML resource for the collection is deleted.
+ : 
+ : @param $id the id of the collection to delete
+ : @return empty
+ : @error collection not found, not authorized
+ :)
+declare function collection:delete($id as xs:string) {
+    let $collection := collection:retrieve($id)
+    return if (empty($collection)) then
+        error(xs:QName('collection:error'), 'No such collection.')
+    else if (not(sm:has-access(document-uri(root($collection)), 'w'))) then
+        error(xs:QName('collection:unauthorized'), 'Permission denied.')
+    else
+        (: TODO also remove the granules :)
+        xmldb:remove(util:collection-name($collection), util:document-name($collection))
+};
+
+(:~
  : Return all collections.
  : 
  : @return a sequence of <collection> elements.
