@@ -84,6 +84,38 @@ function coll:store-collection($id as xs:string, $collection-doc as document-nod
 };
 
 (:~
+ : Create a new collection and return its id.
+ : 
+ : It saves a new collection under a new id from a generated UUID.
+ : 
+ : @param $collection-doc the data for the collection
+ : @return the new id in response body if success, also see HTTP status code
+ :)
+declare
+    %rest:POST("{$collection-doc}")
+    %rest:path("/oidb/collection")
+function coll:post-collection($collection-doc as document-node()) {
+    let $response :=
+        try {
+            let $collection := collection:create((), $collection-doc)
+            return if ($collection) then
+                let $id := data(doc($collection)/collection/@id)
+                (: FIXME relative location? :)
+                let $location := $id
+                return <http:response status="201">
+                    <http:header name="Location" value="{ $location }"/>
+                    <http:body><response><id>{ $id }</id></response></http:body>
+                </http:response>
+            else
+                <http:response status="500"/> (: Internal Server Error :)
+        } catch * {
+            <http:response status="401"/> (: Unauthorized :)
+        }
+
+    return <rest:response>{ $response }</rest:response>
+};
+
+(:~
  : Delete a collection with the given ID in the database.
  : 
  : @param $id the id of the collection to delete
