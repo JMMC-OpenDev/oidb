@@ -1046,6 +1046,9 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
 (:~
  : Return for templating the granules matching a query grouped by source.
  : 
+ : If the TAP service reports an overflow (number of results to query exceeds 
+ : row limit) the returned sequence is terminated by an overflow element.
+ : 
  : @param $query the description of the ADQL query
  : @return a sequence of granule grouped by source
  :)
@@ -1067,7 +1070,7 @@ declare %private function app:granules($query as item()*) as node()* {
     (: transform the VOTable :)
     let $fields := data($votable//votable:FIELD/@ID)
     let $url-pos := index-of($fields, 'access_url')
-    return
+    return (
         (: group by source file (access_url) :)
         for $url in distinct-values($rows/votable:TD[position()=$url-pos])
         return <file> {
@@ -1075,7 +1078,10 @@ declare %private function app:granules($query as item()*) as node()* {
             for $tr in $rows
             where $tr/votable:TD[position()=$url-pos]/text() = $url
             return app:votable-row-to-granule($fields, $tr)
-        } </file>
+        } </file>,
+        (: potentially report result overflow :)
+        if (tap:overflowed($votable)) then <overflow/> else ()
+    )
 };
 
 (:~
@@ -1099,9 +1105,12 @@ declare
 function app:collection-granules($node as node(), $model as map(*), $id as xs:string, $page as xs:integer, $perpage as xs:integer) as map(*) {
     let $query := ( 'collection=' || $id, 'order=^access_url' )
     let $stats := app:stats($query)
+    let $granules := app:granules(( $query, 'page=' || $page, 'perpage=' || $perpage ))
 
     return map {
-        'granules' := app:granules(( $query, 'page=' || $page, 'perpage=' || $perpage )),
+        'granules' := $granules[name()='file'],
+        (: check if too many results for query :)
+        'overflow' := $granules[name()='overflow'],
         'pagination' := map { 'page' := $page, 'npages' := ceiling($stats('n_granules') div $perpage) }
     }
 };

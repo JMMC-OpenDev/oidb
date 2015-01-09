@@ -9,6 +9,13 @@
                 <th>Night</th>
             </thead>
             <tbody data-template="helpers:render" data-template-partial="_oifits.html" data-template-key="granules" data-template-as="oifits"/>
+            <tbody data-template="helpers:if-model-key" data-template-key="overflow">
+                <tr>
+                    <td colspan="4">
+                        <strong>Overflow</strong>
+                    </td>
+                </tr>
+            </tbody>
         </table>
     </div>
 </div>
