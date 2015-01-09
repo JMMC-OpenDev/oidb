@@ -20,6 +20,7 @@ import module namespace vizier="http://apps.jmmc.fr/exist/apps/oidb/vizier" at "
 import module namespace ads="http://apps.jmmc.fr/exist/apps/oidb/ads" at "ads.xql";
 import module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits" at "oifits.xql";
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
+import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
 
 import module namespace jmmc-about="http://exist.jmmc.fr/jmmc-resources/about";
 import module namespace jmmc-web="http://exist.jmmc.fr/jmmc-resources/web";
