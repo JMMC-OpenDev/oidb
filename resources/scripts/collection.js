@@ -15,9 +15,22 @@ $(function () {
 
     setupPage();
 
-    // make the rows clickable to open granule details page
-    $('table .granule')
-        .click(function (e) {
+    $("#granules")
+        // AJAX pagination of granules
+        .on( "click", ".pager a", function(e) {
+            e.preventDefault();
+
+            var query = $(this).attr('href').split('?')[1];
+            
+            $('#granules .pager li').addClass('disabled');
+
+            // replace results
+            $('#granules')
+                .find('> div').fadeTo('fast', 0.5).end()
+                .load('_collection-granules.html' + '?' + query, setupPage);
+        })
+        // make granule rows clickable to open details page
+        .on('click', 'table .granule', function(e) {
             if (e.target instanceof HTMLInputElement ||
                 e.target instanceof HTMLAnchorElement) {
                 return;
@@ -25,18 +38,4 @@ $(function () {
             var id = $(e.target).parents('tr').data('id');
             if (id) window.open('show.html?id=' + id);
         });
-
-    // AJAX pagination of granules
-    $("#granules" ).on( "click", ".pager a", function(e) {
-        e.preventDefault();
-
-        var query = $(this).attr('href').split('?')[1];
-        
-        $('#granules .pager li').addClass('disabled');
-
-        // replace results
-        $('#granules')
-            .find('> div').fadeTo('fast', 0.5).end()
-            .load('_collection-granules.html' + '?' + query, setupPage);
-    });
 });
