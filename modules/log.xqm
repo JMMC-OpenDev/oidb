@@ -295,6 +295,7 @@ as node()
                 for $visit in $visits
                 where not(starts-with($visit/@path, '/_'))
                 group by $path := $visit/@path/string()
+                order by count($visit) descending
                     return
                         let $count := count($visit)
                         let $count-error := count($visit[.//error])
