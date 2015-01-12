@@ -292,7 +292,9 @@ as node()
         <div class="col-md-4">
             <table class="table table-hover table-bordered table-condensed"><tr><th class="col-xs-4"></th><th>paths</th><th>count</th><th>error</th></tr>
             {
-                for $visit in $visits group by $path := $visit/@path/string()
+                for $visit in $visits
+                where not(starts-with($visit/@path, '/_'))
+                group by $path := $visit/@path/string()
                     return
                         let $count := count($visit)
                         let $count-error := count($visit[.//error])
