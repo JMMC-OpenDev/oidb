@@ -12,16 +12,21 @@ SET client_encoding = 'UTF8';
 -- Drop Schema first --
 --
 
-ALTER TABLE ONLY "TAP_SCHEMA"."tables" DROP CONSTRAINT "tables_pkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."schemas" DROP CONSTRAINT "schemas_pkey";
+ALTER TABLE ONLY "TAP_SCHEMA"."key_columns" DROP CONSTRAINT "key_columns_fkey";
 ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_pkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."key_columns" DROP CONSTRAINT "key_columns_pkey";
+ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_fkey_from";
+ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_fkey_target";
 ALTER TABLE ONLY "TAP_SCHEMA"."columns" DROP CONSTRAINT "columns_pkey";
+ALTER TABLE ONLY "TAP_SCHEMA"."columns" DROP CONSTRAINT "columns_fkey";
+ALTER TABLE ONLY "TAP_SCHEMA"."tables" DROP CONSTRAINT "tables_pkey";
+ALTER TABLE ONLY "TAP_SCHEMA"."tables" DROP CONSTRAINT "tables_fkey";
+ALTER TABLE ONLY "TAP_SCHEMA"."schemas" DROP CONSTRAINT "schemas_pkey";
+
+DROP TABLE "TAP_SCHEMA"."key_columns";
+DROP TABLE "TAP_SCHEMA"."keys";
+DROP TABLE "TAP_SCHEMA"."columns";
 DROP TABLE "TAP_SCHEMA"."tables";
 DROP TABLE "TAP_SCHEMA"."schemas";
-DROP TABLE "TAP_SCHEMA"."keys";
-DROP TABLE "TAP_SCHEMA"."key_columns";
-DROP TABLE "TAP_SCHEMA"."columns";
 DROP SCHEMA "TAP_SCHEMA";
 
 
@@ -31,11 +36,16 @@ DROP SCHEMA "TAP_SCHEMA";
 
 CREATE SCHEMA "TAP_SCHEMA";
 
+
 CREATE TABLE "TAP_SCHEMA"."schemas" (
     "schema_name" character varying NOT NULL,
     "description" character varying,
     "utype" character varying
 );
+
+ALTER TABLE ONLY "TAP_SCHEMA"."schemas"
+    ADD CONSTRAINT "schemas_pkey" PRIMARY KEY ("schema_name");
+
 
 CREATE TABLE "TAP_SCHEMA"."tables" (
     "schema_name" character varying NOT NULL,
@@ -45,19 +55,12 @@ CREATE TABLE "TAP_SCHEMA"."tables" (
     "utype" character varying
 );
 
-CREATE TABLE "TAP_SCHEMA"."keys" (
-    "key_id" character varying NOT NULL,
-    "from_table" character varying,
-    "target_table" character varying,
-    "description" character varying,
-    "utype" character varying
-);
+-- PK should be created on (schema_name, table_name) but columns do not have the schema_name column !!
+ALTER TABLE ONLY "TAP_SCHEMA"."tables"
+    ADD CONSTRAINT "tables_pkey" PRIMARY KEY ("table_name");
+ALTER TABLE ONLY "TAP_SCHEMA"."tables"
+    ADD CONSTRAINT "tables_fkey" FOREIGN KEY ("schema_name") REFERENCES "TAP_SCHEMA"."schemas" ("schema_name");
 
-CREATE TABLE "TAP_SCHEMA"."key_columns" (
-    "key_id" character varying NOT NULL,
-    "from_column" character varying,
-    "target_column" character varying
-);
 
 CREATE TABLE "TAP_SCHEMA"."columns" (
     "table_name" character varying NOT NULL,
@@ -73,6 +76,36 @@ CREATE TABLE "TAP_SCHEMA"."columns" (
     "std" integer
 );
 
+ALTER TABLE ONLY "TAP_SCHEMA"."columns"
+    ADD CONSTRAINT "columns_pkey" PRIMARY KEY ("table_name","column_name");
+ALTER TABLE ONLY "TAP_SCHEMA"."columns"
+    ADD CONSTRAINT "columns_fkey" FOREIGN KEY ("table_name") REFERENCES "TAP_SCHEMA"."tables" ("table_name");
+
+
+CREATE TABLE "TAP_SCHEMA"."keys" (
+    "key_id" character varying NOT NULL,
+    "from_table" character varying,
+    "target_table" character varying,
+    "description" character varying,
+    "utype" character varying
+);
+
+ALTER TABLE ONLY "TAP_SCHEMA"."keys"
+    ADD CONSTRAINT "keys_pkey" PRIMARY KEY ("key_id");
+ALTER TABLE ONLY "TAP_SCHEMA"."keys"
+    ADD CONSTRAINT "keys_fkey_from" FOREIGN KEY ("from_table") REFERENCES "TAP_SCHEMA"."tables" ("table_name");
+ALTER TABLE ONLY "TAP_SCHEMA"."keys"
+    ADD CONSTRAINT "keys_fkey_target" FOREIGN KEY ("target_table") REFERENCES "TAP_SCHEMA"."tables" ("table_name");
+
+
+CREATE TABLE "TAP_SCHEMA"."key_columns" (
+    "key_id" character varying NOT NULL,
+    "from_column" character varying,
+    "target_column" character varying
+);
+
+ALTER TABLE ONLY "TAP_SCHEMA"."key_columns"
+    ADD CONSTRAINT "key_columns_fkey" FOREIGN KEY ("key_id") REFERENCES "TAP_SCHEMA"."keys" ("key_id");
 
 --
 -- Data
@@ -127,27 +160,6 @@ INSERT INTO "TAP_SCHEMA"."columns" VALUES
 ('columns', 'principal', 'a principal column; 1 means true, 0 means false', NULL, NULL, NULL, 'INTEGER', -1, 0, 0, 1),
 ('columns', 'indexed', 'an indexed column; 1 means true, 0 means false', NULL, NULL, NULL, 'INTEGER', -1, 0, 0, 1),
 ('columns', 'std', 'a standard column; 1 means true, 0 means false', NULL, NULL, NULL, 'INTEGER', -1, 0, 0, 1);
-
-
---
--- Constraints
---
-
-ALTER TABLE ONLY "TAP_SCHEMA"."columns"
-    ADD CONSTRAINT "columns_pkey" PRIMARY KEY ("table_name", "column_name");
-
-ALTER TABLE ONLY "TAP_SCHEMA"."key_columns"
-    ADD CONSTRAINT "key_columns_pkey" PRIMARY KEY ("key_id");
-
-ALTER TABLE ONLY "TAP_SCHEMA"."keys"
-    ADD CONSTRAINT "keys_pkey" PRIMARY KEY ("key_id");
-
-ALTER TABLE ONLY "TAP_SCHEMA"."schemas"
-    ADD CONSTRAINT "schemas_pkey" PRIMARY KEY ("schema_name");
-
-ALTER TABLE ONLY "TAP_SCHEMA"."tables"
-    ADD CONSTRAINT "tables_pkey" PRIMARY KEY ("schema_name", "table_name");
-
 
 --
 -- END
