@@ -7,6 +7,8 @@
 // suggested to use it conjunction with the provided examples,
 // currently visible at http://astrojs.github.com/sampjs/
 // (gh-pages branch of github sources).
+//
+// PATCHED by GM so it does not break our script over HTTPS
 
 var samp = (function() {
 
@@ -362,7 +364,7 @@ var samp = (function() {
     // If absent, the default SAMP Web Profile server is used.
     var XmlRpcClient = function(endpoint) {
         this.endpoint = endpoint ||
-                        "http://localhost:" + WEBSAMP_PORT + WEBSAMP_PATH;
+                        "//localhost:" + WEBSAMP_PORT + WEBSAMP_PATH;
     };
 
     // Creates an XHR facade - an object that presents an interface
