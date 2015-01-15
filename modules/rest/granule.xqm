@@ -5,7 +5,6 @@ xquery version "3.0";
  :)
 module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/restxq/granule";
 
-import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "../config.xqm";
 import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "../sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log.xqm";
 import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";
@@ -14,6 +13,44 @@ import module namespace jmmc-eso = "http://exist.jmmc.fr/jmmc-resources/eso";
 
 declare namespace rest="http://exquery.org/ns/restxq";
 
+
+(:~
+ : Return a granule given its granule ID.
+ : 
+ : @param $id the id of the granule to find
+ : @return a <granule> element or a 404 status if not found
+ :)
+declare
+    %rest:GET
+    %rest:path("/oidb/granule/{$id}")
+function granule:get-granule($id as xs:integer) {
+    try {
+        gran:retrieve($id)
+    } catch * {
+        <rest:response><http:response status="404"/></rest:response>
+    }
+};
+
+(:~
+ : Update the granule with the given id.
+ : 
+ : @param $id the id of the granule to update
+ : @param $granule-doc the new data for the granule
+ : @return ignore, see HTTP status code
+ :)
+declare
+    %rest:PUT("{$granule-doc}")
+    %rest:path("/oidb/granule/{$id}")
+function granule:put-granule($id as xs:integer, $granule-doc as document-node()) {
+    let $status := try {
+            gran:update($id, $granule-doc/granule), 204 (: No Content :)
+        } catch * {
+            (: FIXME :)
+            500 (: Internal Server Error :)
+        }
+
+    return <rest:response><http:response status="{ $status }"/></rest:response>
+};
 
 (:~
  : Push a granule in the database.
@@ -99,4 +136,23 @@ function granule:save-granules($granules as document-node()) {
             }
         } </response>
     return ( log:submit($response), $response )
+};
+
+(:~
+ : Delete the granule with the given ID from the database.
+ : 
+ : @param $id the id of the granule to delete
+ : @return ignore, see HTTP status code
+ :)
+declare
+    %rest:DELETE
+    %rest:path("/oidb/granule/{$id}")
+function granule:delete-granule($id as xs:string) {
+    let $status := try {
+            gran:delete($id), 204 (: No Content :)
+        } catch * {
+            (: FIXME :)
+            500 (: Internal Server Error :)
+        }
+    return <rest:response><http:response status="{ $status }"/></rest:response>
 };
