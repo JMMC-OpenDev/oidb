@@ -305,13 +305,6 @@ $(function () {
         });
     };
 
-    function generateUUID() {
-        var S4 = function() {
-           return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-        };
-        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-    }
-
     // Turn fields from the form into a collection XML document
     function serializeCollection($collection) {
         var s = new XMLSerializer();
@@ -321,10 +314,7 @@ $(function () {
         $(':input', $collection)
             .filter('[name="id"]').each(function (index, element) {
                 var id = $(element).val();
-                if (id == '') { id = generateUUID(); }
                 collection.documentElement.setAttribute("id", id); 
-                // FIXME
-                $(element).val(id);
             }).end()
             .not('#articles :input, [name="id"]').serializeXML(collection, collection.documentElement);
         $('#articles > li', $collection).each(function () {
@@ -339,7 +329,18 @@ $(function () {
     // Upload a collection XML to the REST endpoint of OiDB
     function saveCollection(collection, id) {
         // save the collection, return the Deferred object of the operation
-        return $.ajax('restxq/oidb/collection/' + encodeURIComponent(id), { data: collection, contentType: 'application/xml', type: 'PUT' });
+        if (id === undefined || id === '') {
+            // let service create the id for the collection
+            return $.ajax('restxq/oidb/collection', { data: collection, contentType: 'application/xml', type: 'POST' })
+                .then(function (data, textStatus, xhr) {
+                    // pick the collection id from the Location header returned above
+                    var id = xhr.getResponseHeader('Location');
+                    // ... and update collection form input
+                    $('#collection :input[name="id"]').val(id);
+                });
+        } else {
+            return $.ajax('restxq/oidb/collection/' + encodeURIComponent(id), { data: collection, contentType: 'application/xml', type: 'PUT' });
+        }
     }
 
     // Turn granule fields of the form into XML granules and attach each one
@@ -433,7 +434,11 @@ $(function () {
         } else {
             var id = $('#collection :input[name="id"]').val();
             // chain saving the collection and saving the granules
-            save = saveCollection(collection, id).pipe(function () { return saveGranules(granules) });
+            save = saveCollection(collection, id).pipe(function () {
+                // FIXME avoid serializing collection again
+                var granules = serializeGranules($granules, serializeCollection($collection_fs));
+                return saveGranules(granules);
+            });
         }
         save
             // update the status of the granule fields
