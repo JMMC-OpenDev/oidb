@@ -75,7 +75,6 @@ declare
     %rest:POST("{$granules}")
     %rest:path("/oidb/granule")
 function granule:save-granules($granules as document-node()) {
-    let $x := util:log('warn', 'save-granules')
     let $response :=
         <response> {
             try {
