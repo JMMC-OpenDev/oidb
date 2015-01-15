@@ -78,8 +78,10 @@ function coll:store-collection($id as xs:string, $collection-doc as document-nod
             else
                 (: somehow failed to save the document :)
                 500 (: Internal Server Error :)
-        } catch * {
+        } catch collection:unauthorized {
             401 (: Unauthorized :)
+        } catch * {
+            500 (: Internal Server Error :)
         }
     return <rest:response><http:response status="{ $status }"/></rest:response>
 };
@@ -98,7 +100,7 @@ declare
 function coll:post-collection($collection-doc as document-node()) {
     let $response :=
         try {
-            let $collection := collection:create((), $collection-doc)
+            let $collection := collection:create((), $collection-doc/collection)
             return if ($collection) then
                 let $id := data(doc($collection)/collection/@id)
                 (: FIXME relative location? :)
@@ -109,8 +111,12 @@ function coll:post-collection($collection-doc as document-node()) {
                 </http:response>
             else
                 <http:response status="500"/> (: Internal Server Error :)
-        } catch * {
+        } catch collection:error {
+            <http:response status="409"/> (: Conflict :)
+        } catch collection:unauthorized {
             <http:response status="401"/> (: Unauthorized :)
+        } catch * {
+            <http:response status="500"/> (: Internal Server Error :)
         }
 
     return <rest:response>{ $response }</rest:response>
