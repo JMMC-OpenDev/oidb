@@ -1,10 +1,13 @@
 xquery version "3.0";
 
-module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload";
+(:~
+ : This module provides a set of utility function on top of eXist-db module
+ : for performing SQL queries against databases.
+ :)
+module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils";
 
 import module namespace sql="http://exist-db.org/xquery/sql";
 
-(: Import SQL config :)
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
 (:~
@@ -13,7 +16,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
  : @param $str the string to escape
  : @return the escaped string
  :)
-declare function upload:escape($str as xs:string) as xs:string {
+declare function utils:escape($str as xs:string) as xs:string {
     (: FIXME more escapes? same as adql:escape()? :)
     replace($str, "'", "''")
 };
@@ -32,7 +35,7 @@ declare function upload:escape($str as xs:string) as xs:string {
  : @return the value returned by the function
  : @error any error thrown by tbe function
  :)
-declare function upload:within-transaction($db_handle as xs:long, $func as function(xs:long) as item()*) as item()* {
+declare function utils:within-transaction($db_handle as xs:long, $func as function(xs:long) as item()*) as item()* {
     try {
         let $begin := sql:execute($db_handle, "START TRANSACTION", false())
         let $ret   := $func($db_handle)
@@ -56,6 +59,6 @@ declare function upload:within-transaction($db_handle as xs:long, $func as funct
  : @return the value returned by the function
  : @error any error thrown by the function
  :)
-declare function upload:within-transaction($func as function(xs:long) as item()*) as item()* {
-    upload:within-transaction(config:get-db-connection(), $func)
+declare function utils:within-transaction($func as function(xs:long) as item()*) as item()* {
+    utils:within-transaction(config:get-db-connection(), $func)
 };

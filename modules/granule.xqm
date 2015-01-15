@@ -7,7 +7,7 @@ xquery version "3.0";
 module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace upload="http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
+import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
@@ -35,7 +35,7 @@ declare %private function granule:insert-statement($data as node()*) {
     (: filter out the empty fields: keep default value for them :)
     let $nodes := ( $data[./node()], $obs_release_date )
     let $columns := for $x in $nodes return name($x)
-    let $values  := for $x in $nodes return "'" || upload:escape($x) || "'"
+    let $values  := for $x in $nodes return "'" || utils:escape($x) || "'"
     return
         concat(
             "INSERT INTO ",
@@ -144,7 +144,7 @@ declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node
  :)
 declare %private function granule:update-statement($id as xs:integer, $data as node()*) as xs:string {
     let $columns := for $x in $data return name($x)
-    let $values  := for $x in $data return if ($x/node()) then "'" || upload:escape($x) || "'" else "NULL"
+    let $values  := for $x in $data return if ($x/node()) then "'" || utils:escape($x) || "'" else "NULL"
     return string-join((
         "UPDATE", $config:sql-table,
         "SET", string-join(map-pairs(function ($c, $v) { $c || '=' || $v }, $columns, $values), ', '),

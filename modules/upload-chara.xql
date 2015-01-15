@@ -20,7 +20,7 @@ import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace util = "http://exist-db.org/xquery/util";
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
+import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
@@ -256,7 +256,7 @@ let $data :=
 let $response :=
     <response> {
         try {
-            let $ids := upload:within-transaction(local:upload(?, $data))
+            let $ids := utils:within-transaction(local:upload(?, $data))
             return $ids
         } catch * {
             <error> { $err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" } </error>

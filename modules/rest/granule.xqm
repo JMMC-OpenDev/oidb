@@ -6,7 +6,7 @@ xquery version "3.0";
 module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/restxq/granule";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "../config.xqm";
-import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "../upload.xqm";
+import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "../sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log.xqm";
 import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";
 
@@ -80,7 +80,7 @@ function granule:save-granules($granules as document-node()) {
         <response> {
             try {
                 (: abort on error and roll back :)
-                upload:within-transaction(
+                utils:within-transaction(
                     function($handle as xs:long) as element(id)* {
                         for $granule in $granules//granule
                         let $id := granule:upload($handle, $granule)
