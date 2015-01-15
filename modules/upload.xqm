@@ -34,7 +34,8 @@ declare %private function upload:insert-statement($metadata as node()*) {
                                     </obs_release_date>
                                 else
                                     () (: TODO check that this empty case is normal :)
-    let $nodes := ($metadata, $obs_release_date)
+    (: filter out the empty fields: keep default value for them :)
+    let $nodes := ( $metadata[./node()], $obs_release_date )
     let $columns := for $x in $nodes return name($x)
     let $values  := for $x in $nodes return "'" || upload:escape($x) || "'"
     return 
