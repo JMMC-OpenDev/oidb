@@ -60,7 +60,8 @@ declare
     %rest:PUT("{$collection-doc}")
     %rest:path("/oidb/collection/{$id}")
 function coll:store-collection($id as xs:string, $collection-doc as document-node()) {
-    let $collection := collection:retrieve(xmldb:decode($id))
+    let $id := xmldb:decode($id)
+    let $collection := collection:retrieve($id)
     let $status :=
         try {
             let $path :=
@@ -101,7 +102,7 @@ function coll:post-collection($collection-doc as document-node()) {
             return if ($collection) then
                 let $id := data(doc($collection)/collection/@id)
                 (: FIXME relative location? :)
-                let $location := $id
+                let $location := xmldb:encode($id)
                 return <http:response status="201">
                     <http:header name="Location" value="{ $location }"/>
                     <http:body><response><id>{ $id }</id></response></http:body>
@@ -126,7 +127,7 @@ declare
     %rest:path("/oidb/collection/{$id}")
 function coll:delete-collection($id as xs:string) {
     let $status := try {
-            collection:delete($id), 204 (: No Content :)
+            collection:delete(xmldb:decode($id)), 204 (: No Content :)
         } catch collection:error {
             404 (: Not Found :)
         } catch collection:unauthorized {
