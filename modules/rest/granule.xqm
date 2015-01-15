@@ -44,31 +44,17 @@ declare
 function granule:put-granule($id as xs:integer, $granule-doc as document-node()) {
     let $status := try {
             gran:update($id, $granule-doc/granule), 204 (: No Content :)
+        } catch granule:unknown {
+            404 (: Not Found :)
+        } catch granule:error {
+            400 (: Bad Request :)
+        } catch granule:unauthorized {
+            401 (: Unauthorized :)
         } catch * {
-            (: FIXME :)
             500 (: Internal Server Error :)
         }
 
     return <rest:response><http:response status="{ $status }"/></rest:response>
-};
-
-(:~
- : Push a granule in the database.
- : 
- : @param $handle  a database connection handle
- : @param $granule a XML granule description
- : @return the id of the new granule or error
- : @error unknown collection, failed to upload granule
- :)
-declare %private function granule:upload($handle as xs:long, $granule as node()) as xs:integer {
-    let $collection := $granule/obs_collection/text()
-    return
-        (: check that parent collection of granule exists :)
-        if (exists($collection) and empty(collection("/db/apps/oidb-data/collections")/collection[@id=$collection])) then
-            error(xs:QName('error'), 'Unknown collection id: ' || $collection)
-        else
-            let $updated-granule := granule:sanitize($granule)
-            return gran:create($updated-granule, $handle)
 };
 
 (:~
@@ -120,19 +106,23 @@ function granule:save-granules($granules as document-node()) {
                 utils:within-transaction(
                     function($handle as xs:long) as element(id)* {
                         for $granule in $granules//granule
-                        let $id := granule:upload($handle, $granule)
+                        let $id := gran:create(granule:sanitize($granule), $handle)
                         return <id>{ $id }</id>
                     }),
                     <success>Successfully uploaded granule(s)</success>
-            } catch * {
+            } catch granule:error {
                 response:set-status-code(400), (: Bad Request :)
-                <error> {
-                    if ($err:code = 'exerr:EXXQDY0002') then
-                        (: data is not a valid XML document :)
-                        "Failed to parse granule file: " || $err:description || " " || $err:value
-                    else
-                        "Failed to upload one granule: " || $err:description || " " || $err:value
-                } </error>
+                <error>{ $err:description } { $err:value }</error>
+            } catch granule:unauthorized {
+                response:set-status-code(401), (: Unauthorized :)
+                <error>Permission denied</error>
+            } catch exerr:EXXQDY0002 {
+                (: data is not a valid XML document :)
+                response:set-status-code(400), (: Bad Request :)
+                <error>Failed to parse granule file: { $err:description } { $err:value }.</error>
+            } catch * {
+                response:set-status-code(500), (: Internal Server Error :)
+                <error>{ $err:description } { $err:value }</error>
             }
         } </response>
     return ( log:submit($response), $response )
@@ -150,8 +140,13 @@ declare
 function granule:delete-granule($id as xs:string) {
     let $status := try {
             gran:delete($id), 204 (: No Content :)
+        } catch granule:unknown {
+            404 (: Not Found :)
+        } catch granule:error {
+            400 (: Bad Request :)
+        } catch granule:unauthorized {
+            401 (: Unauthorized :)
         } catch * {
-            (: FIXME :)
             500 (: Internal Server Error :)
         }
     return <rest:response><http:response status="{ $status }"/></rest:response>
