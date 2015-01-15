@@ -8,6 +8,7 @@ module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
@@ -52,6 +53,7 @@ declare %private function granule:insert-statement($data as node()*) {
  : 
  : @param $granule the granule contents
  : @return the id of the new granule
+ : @error failed to save, unauthorized
  :)
 declare function granule:create($granule as node()) as xs:integer {
     granule:create($granule, config:get-db-connection())
@@ -63,17 +65,27 @@ declare function granule:create($granule as node()) as xs:integer {
  : @param $granule the granule contents
  : @param $handle  the SQL database handle
  : @return the id of the new granule
+ : @error failed to save, unauthorized
  :)
 declare function granule:create($granule as node(), $handle as xs:long) as xs:integer {
-    let $statement := granule:insert-statement($granule/*)
-    let $result := sql:execute($handle, $statement, false())
-
-    return
-        if ($result/name() = "sql:exception") then
-            error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement)
-        else
-            (: return the id of the inserted row :)
-            $result//sql:field[@name='id'][1]
+    let $collection := xs:string($granule/obs_collection/text())
+    return if (
+        (: check user can add granule to collection :)
+        ($collection and collection:has-access($collection, 'w')) or
+        (: any authenticated user can add granule not part of collection :)
+        (: FIXME use sm:is-authenticated() instead when fix for upstream bug #388 is released :)
+        (empty($collection) and sm:get-user-groups(xmldb:get-current-user()) = 'jmmc')) then
+            let $statement := granule:insert-statement($granule/*)
+            let $result := sql:execute($handle, $statement, false())
+        
+            return
+                if ($result/name() = "sql:exception") then
+                    error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement)
+                else
+                    (: return the id of the inserted row :)
+                    $result//sql:field[@name='id'][1]
+    else
+        error(xs:QName('granule:unauthorized'), 'Permission denied.')
 };
 
 (:~
@@ -127,7 +139,7 @@ declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node
             }</granule>
         else
             (: no matching granule found :)
-            error(xs:QName('granule:error'), 'No granule found with id ' || $id || '.')
+            error(xs:QName('granule:unknown'), 'No granule found with id ' || $id || '.')
 
     return $granule
 };
@@ -158,7 +170,7 @@ declare %private function granule:update-statement($id as xs:integer, $data as n
  : @param $id   the id of the granule to modify
  : @param $data the new content of the granule
  : @return empty
- : @error failed to update granule
+ : @error failed to update granule, unauthorized
  :)
 declare function granule:update($id as xs:integer, $data as node()) as empty() {
     granule:update($id, $data, config:get-db-connection())
@@ -171,20 +183,23 @@ declare function granule:update($id as xs:integer, $data as node()) as empty() {
  : @param $data   the new content of the granule
  : @param $handle the SQL database handle
  : @return empty
- : @error failed to update granule
+ : @error failed to update granule, unauthorized
  :)
 declare function granule:update($id as xs:integer, $data as node(), $handle as xs:long) as empty() {
-    (: protect the id column :)
-    let $statement := granule:update-statement($id, $data/*[name() != 'id'])
-    let $result := sql:execute($handle, $statement, false())
+    if (granule:has-access($id, 'w')) then
+        (: protect the id column :)
+        let $statement := granule:update-statement($id, $data/*[name() != 'id'])
+        let $result := sql:execute($handle, $statement, false())
 
-    return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
-        (: row updated successfully :)
-        ()
-    else if ($result/name() = 'sql:exception') then
-        error(xs:QName('granule:error'), 'Failed to update granule ' || $id || ': ' || $result//sql:message/text())
+        return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
+            (: row updated successfully :)
+            ()
+        else if ($result/name() = 'sql:exception') then
+            error(xs:QName('granule:error'), 'Failed to update granule ' || $id || ': ' || $result//sql:message/text())
+        else
+            error(xs:QName('granule:error'), 'Failed to update granule ' || $id || '.')
     else
-        error(xs:QName('granule:error'), 'Failed to update granule ' || $id || '.')
+        error(xs:QName('granule:unauthorized'), 'Permission denied.')
 };
 
 (:~
@@ -202,7 +217,7 @@ declare %private function granule:delete-statement($id as xs:integer) as xs:stri
  : 
  : @param $id the id of the granule to delete
  : @return empty
- : @error failed to delete
+ : @error failed to delete, unauthorized
  :)
 declare function granule:delete($id as xs:integer) as empty() {
     granule:delete($id, config:get-db-connection())
@@ -214,17 +229,53 @@ declare function granule:delete($id as xs:integer) as empty() {
  : @param $id     the id of the granule to delete
  : @param $handle the SQL database handle
  : @return empty
- : @error failed to delete
+ : @error failed to delete, unauthorized
  :)
 declare function granule:delete($id as xs:integer, $handle as xs:long) as empty() {
-    let $statement := granule:delete-statement($id)
-    let $result := sql:execute($handle, $statement, false())
+    if (granule:has-access($id, 'w')) then
+        let $statement := granule:delete-statement($id)
+        let $result := sql:execute($handle, $statement, false())
 
-    return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
-        (: row deleted successfully :)
-        ()
-    else if ($result/name() = 'sql:exception') then
-        error(xs:QName('granule:error'), 'Failed to delete granule ' || $id || ': ' || $result//sql:message/text())
+        return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
+            (: row deleted successfully :)
+            ()
+        else if ($result/name() = 'sql:exception') then
+            error(xs:QName('granule:error'), 'Failed to delete granule ' || $id || ': ' || $result//sql:message/text())
+        else
+            error(xs:QName('granule:error'), 'Failed to delete granule ' || $id || '.')
     else
-        error(xs:QName('granule:error'), 'Failed to delete granule ' || $id || '.')
+        error(xs:QName('granule:unauthorized'), 'Permission denied.')
+};
+
+(:~
+ : Check whether the current user has access to a granule.
+ : 
+ : @param $id-or-granule the id of the granule to test or the granule as XML fragment
+ : @param $mode the partial mode to check against the granule e.g. 'rwx'
+ : @return true() if current user has access to granule for the mode
+ :)
+declare function granule:has-access($id-or-granule as item(), $mode as xs:string) {
+    let $granule :=
+        if ($id-or-granule instance of node()) then
+            $id-or-granule
+        else if ($id-or-granule instance of xs:integer) then
+            granule:retrieve($id-or-granule)
+        else
+            error(xs:QName('granule:error'), 'Bad granule id ' || $id-or-granule || '.')
+    return
+        if ($granule/obs_collection/node()) then
+            (: granule part of a collection: apply permissions from collection :)
+            let $collection := $granule/obs_collection/text()
+            return collection:has-access($collection, $mode)
+        (: authorize dba :)
+        (: FIXME stick with old API until fix for upstream bug #388 is released :)
+        else if (xmldb:is-admin-user(xmldb:get-current-user())) then
+            true()
+        (: authorize the application admins :)
+        (: FIXME use sm:id() instead when fix for upstream bug #388 is released :)
+        else if (sm:get-user-groups(xmldb:get-current-user()) = 'oidb') then
+            true()
+        else
+            (: TODO check datapi column and current user? store owner? :)
+            false()
 };
