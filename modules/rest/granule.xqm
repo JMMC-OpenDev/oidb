@@ -8,6 +8,7 @@ module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/restxq/granule";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "../config.xqm";
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "../upload.xqm";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log.xqm";
+import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";
 
 import module namespace jmmc-eso = "http://exist.jmmc.fr/jmmc-resources/eso";
 
@@ -30,7 +31,7 @@ declare %private function granule:upload($handle as xs:long, $granule as node())
             error(xs:QName('error'), 'Unknown collection id: ' || $collection)
         else
             let $updated-granule := granule:sanitize($granule)
-            return upload:upload($handle, $updated-granule/*)
+            return gran:create($updated-granule, $handle)
 };
 
 (:~

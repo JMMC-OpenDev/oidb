@@ -23,6 +23,7 @@ import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at
 import module namespace upload = "http://apps.jmmc.fr/exist/apps/oidb/upload" at "upload.xqm";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
+import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
 
 import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
@@ -233,7 +234,7 @@ declare function local:upload($handle as xs:long, $observations as xs:string) as
     (: ignore empty lines :)
     where exists($fields)
     return try {
-        <id>{ upload:upload($handle, local:metadata($fields)/node()) }</id>
+        <id>{ granule:create(local:metadata($fields), $handle) }</id>
     } catch error {
         <warning>{ 'Failed to convert observation log to granule (line ' || $line || '): ' || $err:description || ': ' || string-join($err:value, ', ') }</warning>
     }

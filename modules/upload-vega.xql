@@ -17,6 +17,7 @@ import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xq
 import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
 import module namespace sql="http://exist-db.org/xquery/sql";
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
+import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
@@ -134,7 +135,7 @@ declare function local:upload($handle as xs:long, $observations as node()*) as i
     (: insert new granules in db :)
     for $o in $observations
     return try {
-        <id>{ upload:upload($handle, local:metadata($o)/node()) }</id>
+        <id>{ granule:create(local:metadata($o), $handle) }</id>
     } catch * {
         <warning>Failed to convert observation log to granule (VegaObs ID { $o/ID/text() }): { $err:description } { $err:value }</warning>
     }
