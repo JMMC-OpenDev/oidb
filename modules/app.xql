@@ -1063,7 +1063,7 @@ declare %private function app:granules($query as item()*) as node()* {
             if (string($page) = 'NaN') then
                 1
             else
-                let $perpage := number($query[starts-with(., 'perpage=')])
+                let $perpage := number(substring-after($query[starts-with(., 'perpage=')], '='))
                 let $perpage := if (string($perpage) = 'NaN') then 25 else $perpage
                 return 1 + ($page - 1) * $perpage)
 
