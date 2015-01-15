@@ -16,16 +16,6 @@ import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateu
 
 
 (:~
- : Derive the filename from an URI.
- : 
- : @param $uri the URI to parse
- : @return the substring following the last '/' in the URI
- :)
-declare %private function upload:basename($uri as xs:anyURI) {
-    tokenize($uri, "/")[last()]
-};
-
-(:~
  : Format an INSERT SQL request with column names from the node names and 
  : values from the node values.
  : 
