@@ -23,7 +23,7 @@ let $query := adql:build-query((
     'public=yes' ))
     
 (: hard code indexes to improve efficiency :)
-let $rows := tap:execute($query)
+let $rows := tap:execute($query, -1) (: -1 avoids limit so we do loose and block records that should be made public :)
 
 return (
 <p># request performed on {current-dateTime()} for collection={$collection}&#10;</p>,
