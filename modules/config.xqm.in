@@ -107,10 +107,7 @@ import module namespace sql="http://exist-db.org/xquery/sql";
 (:~
  : Database configuration
  :)
-declare variable $config:sql-driver-classname := "@sql-driver@";
-declare variable $config:sql-url := "@sql-url@";
-declare variable $config:sql-username := "@sql-username@";
-declare variable $config:sql-password := "@sql-password@";
+declare variable $config:jndi-name := "@jndi-name@";
 
 (:~
  : Provide a db handle to access SQL database with XQuery sql module
@@ -118,11 +115,7 @@ declare variable $config:sql-password := "@sql-password@";
  : @return a connection handle
  :)
 declare function config:get-db-connection() as xs:long{
-    sql:get-connection(
-        $config:sql-driver-classname,
-        $config:sql-url,
-        $config:sql-username,
-        $config:sql-password)
+    sql:get-jndi-connection($config:jndi-name)
 };
 
 (:~

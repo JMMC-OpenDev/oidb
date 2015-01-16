@@ -15,10 +15,7 @@
 
         <!-- get substitution data from the property file (config.properties) -->
         <replace file="${build.dir}/config.xqm" propertyFile="config.properties">
-            <replacefilter token="@sql-driver@" property="sql-driver"/>
-            <replacefilter token="@sql-url@" property="sql-url"/>
-            <replacefilter token="@sql-username@" property="sql-username"/>
-            <replacefilter token="@sql-password@" property="sql-password"/>
+            <replacefilter token="@jndi-name@" property="jndi-name"/>
             <replacefilter token="@sql-table@" property="sql-table"/>
             <replacefilter token="@tap-baseurl@" property="tap-baseurl"/>
         </replace>
