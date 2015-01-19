@@ -58,7 +58,12 @@ declare %private function log:log($log as xs:string, $message as element()) {
             (: HTTP interaction, extract data from request object if missing from message :)
             (
                 if ($message/@session)   then () else attribute { 'session' }   { session:get-id() },
-                if ($message/@user)   then () else attribute { 'user' }   { request:get-attribute('fr.jmmc.oidb.login.user') },
+                if ($message/@user)   then () else attribute { 'user' }   { 
+                    let $user := request:get-attribute('fr.jmmc.oidb.login.user')
+                    (: throw a NPE (fixed on git but not released) let $user := if($user) then $user else data(sm:id()//*:real/*:username)  sm:id is use for scheduled jobs with setuid :)
+                    let $user := if($user) then $user else xmldb:get-current-user()
+                    return $user
+                    },
                 (: prefer XFF because ProxyPass makes request:get-remote-host() always returns localhost :)
                 if ($message/@remote) then () else attribute { 'remote' } { ( request:get-header("X-Forwarded-For"), request:get-remote-host())[1] }
             )
@@ -158,18 +163,43 @@ declare function log:submit($response as node()) {
 declare %private function log:report-submits($max as xs:integer, $successful as xs:boolean)as node()*{
     let $thead := <tr><th>Date</th><th>#Stored granules</th><th>Method</th><th>Submit by</th></tr>
     let $nbCols := count($thead//th)
-    let $submits := if($successful) then doc($log:submits)//submit[.//success] else doc($log:submits)//submit[.//error]
+    let $submits := if($successful) then doc($log:submits)//submit[.//success] else doc($log:submits)//submit[.//error or .//warning]
     let $items := subsequence(reverse($submits),1,$max)
     let $trs := for $item in $items
         let $time := data($item/@time)
         let $success := if( $item//success ) then true() else false()
-        let $class := if( $success ) then "success" else "danger"
+        let $class := if( $success ) then "success" else if( $item//warning) then "warning" else "danger"
         let $by := if ($item/@user) then jmmc-auth:get-obfuscated-email($item/@user) else ''
         let $granulesOk := count($item//id)
         let $method := if($item//file) then "xml" else if ($item//urls) then "Oifits uploads" else "VizieR"
         return (
             <tr class="{$class}"> <td>{$time}</td> <td>{$granulesOk}</td> <td>{$method}</td> <td>{$by}</td> </tr>,
-            if($success) then ()  else <tr class="{$class}"> <td colspan="{$nbCols}"> <ol>{for $e in $item//error return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}</ol> </td> </tr>
+            if($success) then ()  else <tr class="{$class}"> <td colspan="{$nbCols}"> 
+            <ol>{for $e in $item//error return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}</ol>
+            
+            { 
+                let $unknown-targets := for $e in $item//warning let $v := substring-after($e, "target:") return if($v) then <a>{$v}</a> else ()
+                let $unknown-modes := for $e in $item//warning let $v := substring-after($e, "mode:") return if($v) then <a>{$v}</a> else ()
+                return
+                    <ul>
+                        <li>
+                            {
+                                let $str := string-join( for $e in $unknown-targets group by $v := $e/text()    return count($e) || " " ||$v ," , ") 
+                                return if ($str) then "Unknown targets : "|| $str else ()
+                            }
+                        </li>
+                        <li>
+                            {
+                                let $str := string-join( for $e in $unknown-modes group by $v := $e/text()    return count($e) || " " ||$v ," , ") 
+                                return if ($str) then "Unknown modes : "|| $str else ()
+                            }
+                        </li>
+                    </ul>
+            }
+            
+            <ol>
+                {for $e in $item//warning return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}</ol>
+            </td> </tr>
         )
     return (<h4>{if($successful) then "Successful" else "Failed"} submits ({count($items)} over {count($submits)})</h4>,<table class="table table-condensed">{$thead,$trs}</table>)
 };
