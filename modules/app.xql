@@ -798,7 +798,7 @@ declare variable $app:latest-query := adql:build-query(( 'col=target_name', 'col
 declare function app:latest($node as node(), $model as map(*)) {
     let $data := tap:execute($app:latest-query)
 
-    let $fields := data($data//votable:FIELD/@ID)
+    let $fields := data($data//votable:FIELD/@name)
     let $name-pos := index-of($fields, 'target_name')
     let $url-pos  := index-of($fields, 'access_url')
 
@@ -1073,7 +1073,7 @@ declare %private function app:granules($query as item()*) as node()* {
                 return 1 + ($page - 1) * $perpage)
 
     (: transform the VOTable :)
-    let $fields := data($votable//votable:FIELD/@ID)
+    let $fields := data($votable//votable:FIELD/@name)
     let $url-pos := index-of($fields, 'access_url')
     return (
         (: group by source file (access_url) :)
