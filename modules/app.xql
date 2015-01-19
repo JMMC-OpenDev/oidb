@@ -142,9 +142,14 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
             (: or wait until release_date :)
             return if ($obs_release_date != '') then
                 (: build a datetime from a SQL timestamp :)
-                let $obs_release_date := dateTime(
-                    xs:date(substring-before($obs_release_date, " ")),
-                    xs:time(substring-after($obs_release_date, " ")))
+                let $obs_release_date := try {
+                        xs:dateTime($obs_release_date)
+                    }catch *{
+                        (: this case occured when RDBMS dates were retrieve as strings :)
+                        dateTime(
+                            xs:date(substring-before($obs_release_date, " ")),
+                            xs:time(substring-after($obs_release_date, " ")))
+                    }
                 (: compare release date to current time :)
                 return if (current-dateTime() gt $obs_release_date) then true() else false()
             else 
