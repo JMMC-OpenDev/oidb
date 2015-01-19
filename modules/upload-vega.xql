@@ -12,7 +12,7 @@ xquery version "3.0";
  :)
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xqm";
+import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
 import module namespace sql="http://exist-db.org/xquery/sql";
