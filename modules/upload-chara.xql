@@ -123,6 +123,26 @@ declare function local:resolve-pi($pi as xs:string) as xs:string {
 };
 
 (:~
+ : Check main validity point of CHARA observation log.
+ : 
+ : @param $type object type
+ : @param $b1 baseline length
+ : @param $b2 baseline length 
+ : @param $b3 baseline length 
+ : @return true() if all test passes else throw an error
+ : @error unsupported object type, missing baseline, non numeric baseline value, negative baseline value
+ :)
+declare function local:check-validity($type as xs:string, $b1 as xs:number, $b2 as xs:number, $b3 as xs:number) {
+    let $check-mode := if( $type = ('OBJ', 'CAL1', 'CAL2', 'CHK', 'UNKNO')) then () else error(xs:QName('error'), 'Unsupported object type', ( $type ))
+    let $baseline-lengths := ($b1, $b2, $b3)
+    let $baseline-sum := sum($baseline-lengths)
+    let $check-baselines := if( $baseline-sum = 0 ) then error(xs:QName('error'), 'missing baseline', $baseline-lengths) else ()
+    let $check-baselines := if( string(sum($baseline-sum))='NaN' ) then error(xs:QName('error'), 'non numeric baseline value', $baseline-lengths) else ()
+    let $check-baselines := for $b in $baseline-lengths return if( $b < 0 ) then error(xs:QName('error'), 'negative baseline value', $baseline-lengths) else ()
+    return true()
+};
+
+(:~
  : Turn a CHARA observation into a metadata fragment for upload.
  : 
  : @param $observation an observation
@@ -130,16 +150,23 @@ declare function local:resolve-pi($pi as xs:string) as xs:string {
  :)
 declare function local:metadata($observation as xs:string*) as node() {
     (: leading and trailing whitespaces significant in CSV (RFC4180) but annoying here :)
+    let $observation := for $e in $observation return normalize-space($e)
+    
+    let $type        := $observation[$local:TYPE]
+    let $b1          := $observation[$local:B1]
+    let $b2          := $observation[$local:B2]
+    let $b3          := $observation[$local:B3]
+    let $main-test   := local:check-validity($type, $b1, $b2, $b3)
     (: resolve star coordinates from star name :)
-    let $target-name := normalize-space($observation[$local:STAR])
+    let $target-name := $observation[$local:STAR]
     let $star        := local:resolve-target($target-name)
     let $ra          := number($star/@s_ra)
     let $dec         := number($star/@s_dec)
-    let $data-pi     := local:resolve-pi(normalize-space($observation[$local:PI]))
-    let $program     := normalize-space($observation[$local:PROGRAM])
-    let $date        := normalize-space($observation[$local:MJD])
-    let $ins-name    := normalize-space($observation[$local:COMBINER])
-    let $ins-mode    := normalize-space($observation[$local:FILTER])
+    let $data-pi     := local:resolve-pi($observation[$local:PI])
+    let $program     := $observation[$local:PROGRAM]
+    let $date        := $observation[$local:MJD]
+    let $ins-name    := $observation[$local:COMBINER]
+    let $ins-mode    := $observation[$local:FILTER]
     (: determine wavelength limits from mode and ASPRO config :)
     let $mode := local:resolve-mode($ins-name, $ins-mode)
     let $wl-min      := $mode/waveLengthMin
