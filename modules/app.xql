@@ -1009,10 +1009,9 @@ declare function app:transform-votable($votable as node(), $start as xs:double) 
  :)
 declare function app:transform-votable($votable as node(), $start as xs:double, $length as xs:double) {
     let $headers := $votable//votable:FIELD
-    let $header_names := for $header in $headers return data($header/@name)
 
     return <votable> <tr> {
-        for $field in $votable//votable:FIELD
+        for $field in $headers
         return <th>
             { $field/@name }
             { data($field/@name) }
@@ -1020,15 +1019,16 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
             <!-- { if($field/@unit) then ( <br/>, <span> [ { data($field/@unit) } ] </span> ) else () } -->
         </th>
         } </tr> {
-        for $row at $i in  $votable//votable:TABLEDATA/votable:TR
-        where $i >= $start and $i < $start + $length
+        for $row in $votable//votable:TABLEDATA/votable:TR[position() >= $start and position() < $start + $length]
         return <tr> {
-        for $node at $i in $row/votable:TD
-            return <td>
-                { $node/@*,
-                  attribute { "colname" } { $header_names[$i] },
-                  $node/node() }
-            </td>
+            map-pairs(function ($header, $cell) {
+                (: compare value against the null for the column :)
+                let $value := if ($cell = $header/votable:VALUES/@null) then '' else $cell/text()
+                return element { 'td' } {
+                    $cell/@*,
+                    attribute { "colname" } { data($header/@name) },
+                    $value }
+            }, $headers, $row/votable:TD)
         } </tr>
     } </votable>
 };
