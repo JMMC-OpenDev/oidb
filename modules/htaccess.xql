@@ -37,7 +37,7 @@ for $row at $pos in $rows//*:TR
     <p>
 # {$pos} obs_release_date:{ $obs_release_date } data_right:= { $data_rights }
 &lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;
-    Allow from all&#10;
+    Allow from all
     Satisfy any
 &lt;/Files&gt;
 
