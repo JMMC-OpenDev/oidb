@@ -492,4 +492,16 @@ $(function () {
                 $('#collection :input').prop('disabled', false);
             });
     });
+    
+    $('#oifits')
+        .find('tr .dropdown').one('click', function (e) {
+            $(this).sampify(
+                'table.load.fits',
+                // prepare parameters for the 'table.load.fits'
+                function () {
+                    // set SAMP parameter to URL of the relevant OIFITS file
+                    return { "url": $(this).siblings('a').attr('href') };
+                });
+        }).end()
+        .find('tr [data-toggle="checkreport"]').checkreport();
 });
