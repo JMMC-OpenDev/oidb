@@ -307,8 +307,6 @@ $(function () {
 
     // Turn fields from the form into a collection XML document
     function serializeCollection($collection) {
-        var s = new XMLSerializer();
-
         // Turn form into XML collection
         var collection = (new DOMParser()).parseFromString('<collection/>', 'text/xml');
         $(':input', $collection)
@@ -323,36 +321,39 @@ $(function () {
             collection.documentElement.appendChild(article);
         });
 
-        return s.serializeToString(collection);
+        return collection;
     }
 
     // Upload a collection XML to the REST endpoint of OiDB
-    function saveCollection(collection, id) {
+    function saveCollection(collection) {
+        var id = collection.documentElement.getAttribute('id');
+        var data = new XMLSerializer().serializeToString(collection);
+
         // save the collection, return the Deferred object of the operation
-        if (id === undefined || id === '') {
+        if (id === null || id === '') {
             // let service create the id for the collection
-            return $.ajax('restxq/oidb/collection', { data: collection, contentType: 'application/xml', type: 'POST' })
-                .then(function (data, textStatus, xhr) {
+            return $.ajax('restxq/oidb/collection', { data: data, contentType: 'application/xml', type: 'POST' })
+                .done(function (data, textStatus, xhr) {
                     // pick the collection id from the Location header returned above
                     var id = xhr.getResponseHeader('Location');
+                    // ... then update the collection
+                    collection.documentElement.setAttribute('id', id);
                     // ... and update collection form input
                     $('#collection :input[name="id"]').val(id);
                 });
         } else {
-            return $.ajax('restxq/oidb/collection/' + encodeURIComponent(id), { data: collection, contentType: 'application/xml', type: 'PUT' });
+            return $.ajax('restxq/oidb/collection/' + encodeURIComponent(id), { data: data, contentType: 'application/xml', type: 'PUT' });
         }
     }
 
     // Turn granule fields of the form into XML granules and attach each one
     // to an optional collection
     function serializeGranules($granules, collection) {
-        var s = new XMLSerializer();
-
         var data = {};
         // pick info for granules from collection
         if(typeof collection !== "undefined") {
             // FIXME using jQuery on XML, use low level DOM functions instead
-            var $collection = $(collection);
+            var $collection = $('collection', collection);
             data.obs_collection = $collection.attr('id');
 
             // data from collection to add to each granule
@@ -393,13 +394,15 @@ $(function () {
             granules.documentElement.appendChild(granule);
         });
 
-        return s.serializeToString(granules);
+        return granules;
     }
 
     // Upload a set of XML granules to the REST endpoint of OiDB
     function saveGranules(granules) {
+        var data = new XMLSerializer().serializeToString(granules);
+
         // save the collection, return the Deferred object of the operation
-        return $.ajax('restxq/oidb/granule', { data: granules, contentType: 'application/xml', type: 'POST' });
+        return $.ajax('restxq/oidb/granule', { data: data, contentType: 'application/xml', type: 'POST' });
     }
 
     $('form').submit(function (e) {
@@ -420,27 +423,22 @@ $(function () {
         $(':input', $collection_fs).prop('disabled', true);
         $('.tag span[data-role="remove"]', $collection_fs).remove();
 
-        var collection;
-        if ($('#collection').size() !== 0) {
-            collection = serializeCollection($collection_fs);
-        }
-
         var $granules = $('#oifits tr.granule');
-        var granules = serializeGranules($granules, collection);
-        
-        var save;
-        if (collection === undefined) {
-            save = saveGranules(granules);
-        } else {
-            var id = $('#collection :input[name="id"]').val();
-            // chain saving the collection and saving the granules
-            save = saveCollection(collection, id).pipe(function () {
-                // FIXME avoid serializing collection again
-                var granules = serializeGranules($granules, serializeCollection($collection_fs));
+
+        var collection;
+        $.when(1)
+            // save the collection if any
+            .pipe(function () {
+                if ($collection_fs.length !== 0) {
+                    collection = serializeCollection($collection_fs);
+                    return saveCollection(collection);
+                }
+            })
+            // save all granules
+            .pipe(function () {
+                var granules = serializeGranules($granules, collection);
                 return saveGranules(granules);
-            });
-        }
-        save
+            })
             // update the status of the granule fields
             .done(function (data) {
                 var status = [].slice.call(data.documentElement.childNodes)
