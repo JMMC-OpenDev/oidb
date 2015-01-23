@@ -65,7 +65,7 @@ declare %private function log:log($log as xs:string, $message as element()) {
                     return $user
                     },
                 (: prefer XFF because ProxyPass makes request:get-remote-host() always returns localhost :)
-                if ($message/@remote) then () else attribute { 'remote' } { ( request:get-header("X-Forwarded-For"), request:get-remote-host())[1] }
+                if ($message/@remote) then () else attribute { 'remote' } { request:get-remote-host() }
             )
         else
             (),
