@@ -41,6 +41,7 @@ function vizier:catalog-description($node as node(), $model as map(*)) as map(*)
         }
     return map {
         'source'        := 'http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=' || encode-for-uri($id),
+        'id'            := $id,
         'name'          := $id,
         'title'         := jmmc-vizier:catalog-title($readme),
         'description'   := jmmc-vizier:catalog-description($readme),

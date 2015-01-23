@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <form class="form-horizontal">
-        <fieldset id="details" data-template="vizier:catalog-description">
+        <input type="hidden" name="calib_level" value="3"/>
+        <fieldset id="collection" data-template="vizier:catalog-description">
             <legend>Collection details</legend>
             <input id="source" name="source" required="" type="hidden" data-template="helpers:form-control"/>
+            <input name="id" required="" type="hidden" data-template="helpers:form-control"/>
             <div class="form-group">
                 <label class="col-md-2 control-label" for="name">Name</label>
                 <div class="col-md-2">
@@ -69,6 +71,6 @@
     </form>
     <script type="text/javascript" src="resources/scripts/selectors.js"/>
     <script type="text/javascript" src="resources/scripts/checkreport.js"/>
-    <script type="text/javascript" src="resources/scripts/collection-vizier.js"/>
+    <script type="text/javascript" src="resources/scripts/upload.js"/>
     <div data-template="templates:include" data-template-path="_voar.html"/>
 </div>
