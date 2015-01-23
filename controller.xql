@@ -86,7 +86,7 @@ else if (ends-with($exist:resource, ".html")) then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         {
             $login(),
-            if ($exist:path = ( '/submit.html', '/collection-vizier.html', '/upload.html', '/backoffice.html' )) then
+            if ($exist:path = ( '/submit.html', '/upload-vizier.html', '/upload.html', '/backoffice.html' )) then
                 if (not(local:user-allowed())) then
                     (: unknown user, log in first :)
                     <forward url="{$exist:controller}/login.html"/>
