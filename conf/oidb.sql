@@ -26,7 +26,7 @@ CREATE TABLE oidb (
     obs_collection    text,
     obs_creator_name  text,
     -- ObsCore model: curation information
-    obs_release_date  timestamp without time zone,
+    obs_release_date  timestamp without time zone DEFAULT now(),
     obs_publisher_did text,
     bib_reference     text,
     data_rights       rights DEFAULT 'public'::text NOT NULL,
