@@ -132,7 +132,7 @@ declare function local:resolve-pi($pi as xs:string) as xs:string {
  : @return true() if all test passes else throw an error
  : @error unsupported object type, missing baseline, non numeric baseline value, negative baseline value
  :)
-declare function local:check-validity($type as xs:string, $b1 as xs:number, $b2 as xs:number, $b3 as xs:number) {
+declare function local:check-validity($type as xs:string, $b1 as xs:double, $b2 as xs:double, $b3 as xs:double) {
     let $check-mode := if( $type = ('OBJ', 'CAL1', 'CAL2', 'CHK', 'UNKNO')) then () else error(xs:QName('error'), 'Unsupported object type', ( $type ))
     let $baseline-lengths := ($b1, $b2, $b3)
     let $baseline-sum := sum($baseline-lengths)
