@@ -35,10 +35,13 @@ declare function local:transform($nodes as node()*) as item()* {
         case text() return $node
         case comment() return $node
         case attribute(href) return
-            if (ends-with($node, '/OiDb')) then attribute { 'href' } { '/' } else $node
+            if (ends-with($node, '/OiDB')) then attribute { 'href' } { '/' } 
+            else $node
         case attribute(src) return
             if (starts-with($node, '/')) then attribute { 'src' } { "http://www.jmmc.fr" || $node } else $node
-        default return element { QName(namespace-uri($node), name($node)) } { ( $node/@*, local:transform($node/node()) ) }
+        default return 
+            if(name($node)="a" and contains($node/@href, "/bin/edit/")) then ()
+            else element { QName(namespace-uri($node), name($node)) } { ( local:transform($node/@*), local:transform($node/node()) ) }
 };
 
 (:~
