@@ -167,13 +167,15 @@ declare %private function log:report-submits($max as xs:integer, $successful as 
     let $items := subsequence(reverse($submits),1,$max)
     let $trs := for $item in $items
         let $time := data($item/@time)
-        let $success := if( $item//success ) then true() else false()
+        let $errors := count($item//error)
+        let $warnings := count($item//warning)
+        let $success := ($errors+$warnings) = 0
         let $class := if( $success ) then "success" else if( $item//warning) then "warning" else "danger"
         let $by := if ($item/@user) then jmmc-auth:get-obfuscated-email($item/@user) else ''
         let $granulesOk := count($item//id)
         let $method := if($item//file) then "xml" else if ($item//urls) then "Oifits uploads" else "VizieR"
         return (
-            <tr class="{$class}"> <td>{$time}</td> <td>{$granulesOk}</td> <td>{$method}</td> <td>{$by}</td> </tr>,
+            <tr class="{$class}"> <td>{$time}</td> <td>{$granulesOk} / {$errors} errors / {$warnings} warnings</td> <td>{$method}</td> <td>{$by}</td> </tr>,
             if($success) then ()  else <tr class="{$class}"> <td colspan="{$nbCols}"> 
             <ol>{for $e in $item//error return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}</ol>
             
