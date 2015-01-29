@@ -33,7 +33,7 @@ declare function tap:execute($adql-statement as xs:string, $maxrec as xs:integer
         'REQUEST=doQuery',
         'LANG=ADQL',
         'FORMAT=votable',
-        if ($maxrec) then 'MAXREC=' || $maxrec else (),
+        'MAXREC=' || ( if ($maxrec) then  $maxrec else '-1' ),
         'QUERY=' || encode-for-uri($adql-statement)), '&amp;')
     let $data    := httpclient:get($uri, false(), <headers/> )//httpclient:body
 
