@@ -861,10 +861,15 @@ declare
 function app:homepage-header($node as node(), $model as map(*)) as map(*) {
     (: count rows and extract result from VOTable :)
     let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query($q) || ') AS e')//*:TD/text() }
+    let $data := tap:execute($app:data-pis-query)
+    let $datapis := $data//*:TD/text()
+    let $peoples := doc($config:data-root||"/people/people.xml")
+    let $persons := $peoples//person[alias=$datapis]
+    let $missings := $datapis[not(. = $peoples//alias)]
     return map {
         'n_facilities'  := $count(( 'distinct', 'col=facility_name' )),
         'n_instruments' := $count(( 'distinct', 'col=instrument_name' )),
-        'n_data_pis'    := $count(( 'distinct', 'col=datapi' )),
+        'n_data_pis'    := count($persons) + count($missings),
         'n_collections' := $count(( 'distinct', 'col=obs_collection' )),
         'n_oifits'      := $count(( 'distinct', 'col=access_url' )) - 1,
         'n_granules'    := $count(( 'caliblevel=1,2,3' )),
