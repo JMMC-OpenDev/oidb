@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
+    <div class="col-md-offset-1 col-md-10">
+        <h1> Data PIs</h1>
+        <ul data-template="app:data-pis-roles" class="list-inline">
+        (
+            <li data-template="helpers:each" data-template-from="roles" data-template-to="role">
+                <i data-template="helpers:model-value-attribute" data-template-key="role.icon" data-template-name="class"/>&#160;
+                <span data-template="helpers:model-value" data-template-key="role.description"/>
+            </li>
+        )</ul>
+        <table data-template="app:data-pis" class="table table-striped table-bordered table-hover">
+            <tr>
+                <th>Firstname Lastname</th>
+                <th>Aliases</th>
+            </tr>
+            <tr data-template="helpers:each" data-template-from="persons" data-template-to="person">
+                <td>
+                    <span data-template="helpers:each" data-template-from="person.icon" data-template-to="i">
+                        <i data-template="helpers:model-value-attribute" data-template-key="i" data-template-name="class"/>
+                    </span>
+                    <b>
+                        <span data-template="helpers:model-value" data-template-key="person.lastname"/>
+                    </b>&#160;
+                    <span data-template="helpers:model-value" data-template-key="person.firstname"/>
+                </td>
+                <td>
+                    <ul class="list-inline">
+                        <li data-template="helpers:each" data-template-from="person.alias" data-template-to="single-alias">
+                            <a data-template="app:data-pi-search-url" data-template-datapi-key="single-alias"/>
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

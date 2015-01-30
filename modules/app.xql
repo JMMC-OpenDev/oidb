@@ -331,21 +331,59 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
 
 declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));
 
+declare variable $app:data-pis-roles := <roles>
+            <e><k>tech</k><icon>glyphicon glyphicon-wrench</icon><description>Service account</description></e>
+            <e><k>instrument-pi</k><icon>glyphicon glyphicon-certificate</icon><description>Instrument PI</description></e>
+            <e><k>unregistered</k><icon>glyphicon glyphicon-bell</icon><description>Unregistered user</description></e>
+        </roles>;
+        
+declare
+    %templates:wrap
+function app:data-pis-roles($node as node(), $model as map(*)) as map(*) {
+    let $roles := $app:data-pis-roles//e 
+    return map:new(($model, map:entry('roles', $roles)))
+};        
 (:~
  : Build a list of dataPIs and put it in the model for templating.
  : 
  : It creates a 'datapis' entry in the model for the children of the node.
+ : It also extract the people informations from the xml db in a 'persons' entry.
  : 
  : @param $node the current node
  : @param $model the current model
- : @return a new map as model with dataPI names
+ : @return a new map as model with dataPI names and persons fragments
  :)
 declare
     %templates:wrap
 function app:data-pis($node as node(), $model as map(*)) as map(*) {
     let $data := tap:execute($app:data-pis-query)
     let $datapis := $data//*:TD/text()
-    return map:new(($model, map:entry('datapis', $datapis)))
+    let $persons := for $p in doc($config:data-root||"/people/people.xml")//person[alias=$datapis] 
+        let $icons := $app:data-pis-roles//e[k=$p/flag]/icon
+        order by upper-case($p/lastname)
+        return 
+            element {name ($p)} { $p/@*, $icons, $p/*[name()!='alias'], $p/alias[.=$datapis] }
+    let $missings := for $p in $datapis[not(.=$persons/alias)] 
+        let $e:=<person>{$app:data-pis-roles//e[k='unregistered']/icon}<firstname> </firstname><lastname> </lastname><alias>{$p}</alias></person>
+(:        let $u := update insert $e into doc($config:data-root||"/people/people.xml")/people:)
+        return 
+            $e
+    
+    return map:new(($model, map:entry('datapis', $datapis), map:entry('persons', ($persons,$missings))))
+};
+(:~
+ : Helper to build an URL for a given datapi on the search URL.
+ : 
+ : @param $datapi-key model's key for data pi value
+ : @param $node the current node
+ : @param $model the current model
+ : @return an URL to search page for the specified data-pi as string
+ :)
+declare function app:data-pi-search-url($node as node(), $model as map(*), $datapi-key as xs:string, $label-key as xs:string?) as node() {
+    let $datapi := map:get($model, $datapi-key)
+    let $label := if($label-key) then  map:get($model, $label-key) else $datapi
+    return 
+        <a href="search.html?datapi={$datapi}" alt="search for {$label}">{$label}</a>
 };
 
 declare
