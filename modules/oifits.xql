@@ -38,9 +38,30 @@ declare %private function oifits:get-data($model as map(*)) as item()* {
 };
 
 (:~
+ : Pick metadata from the OIFITS serialized to XML by OIExplorer and build XML granules.
+ : 
+ : @param $oifits the XML serialization of an OIFITS file
+ : @param $url    the URL of the source file
+ : @return XML granules for the file
+ :)
+declare %private function oifits:prepare-granules($oifits as node(), $url as xs:string) as element(granule)* {
+    for $target in $oifits/metadata/target
+    return element { 'granule' } {
+        $target/*,
+        (: add missing metadata items from extract :)
+        <access_url>{ $url }</access_url>,
+        (: convert file size B to kB :)
+        <access_estsize>{ $oifits/size/text() idiv 1000 }</access_estsize>
+    }
+};
+
+(:~
  : Extract granules from OIFITS file and put granule in model for templating.
  : 
  : The input file is taken at the URL in the 'url' key of the current model.
+ : 
+ : If an error is detected in the input file, an error message is added to the
+ : model and no granule is returned.
  : 
  : @param $node  the current node in the template
  : @param $model the current model
@@ -50,27 +71,25 @@ declare
     %templates:wrap
 function oifits:granules($node as node(), $model as map(*)) as map(*) {
     let $data := oifits:get-data($model)
-    (: process OIFITS file with OIExplorer to extract metadata :)
-    let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
-(:    let $oifits := jmmc-oiexplorer:to-xml(if (starts-with($data[last()], '/db/')) then util:binary-doc($data[last()]) else $data[last()])/oifits:)
     let $url := $data[1]
-    let $granules := 
-        for $target in $oifits/metadata/target
-        return element { 'granule' } { 
-            $target/*,
-            (: add missing metadata items from extract :)
-            <access_url>{ $url }</access_url>,
-            (: convert file size B to kB :)
-            <access_estsize>{ $oifits/size/text() idiv 1000 }</access_estsize> 
-        }
-    let $report := $oifits/checkReport/text()
+    return map { 'oifits' := map:new((
+        map:entry('url', $url),
+        try {
+            let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
 
-    return map { 'oifits' :=
-        map {
-            'url'      := $url,
-            'granules' := $granules,
-            'report'   := $report
-        }
+            let $report := $oifits/checkReport/text()
+            return map:new((
+                map:entry('report', $report),
+                (: TODO better tests on report, better report? :)
+                (: for now simply rejecting if any SEVERE item found :)
+                if (matches($report, 'SEVERE')) then
+                    map:entry('message', 'Invalid OIFITS file, see report for details.')
+                else
+                    let $granules := oifits:prepare-granules($oifits, $url)
+                    return map:entry('granules', $granules)))
+        } catch * {
+            map { 'message' := 'error parsing the OIFITS file at ' || $url || '.' }
+        }))
     }
 };
 

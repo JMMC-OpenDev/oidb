@@ -51,7 +51,12 @@
     </tr>
     <tr data-template="helpers:unless-model-key" data-template-key="oifits.granules">
         <td colspan="4">
-            No granules.
+            <span data-template="helpers:unless-model-key" data-template-key="oifits.message">
+                No granules.
+            </span>
+            <span data-template="helpers:if-model-key" data-template-key="oifits.message">
+                <span data-template="helpers:model-value" data-template-key="oifits.message"/>
+            </span>
         </td>
     </tr>
 </tbody>
