@@ -178,11 +178,11 @@ $(function () {
     }
 
     function processURL(url) {
-        return $.get('_oifits-form.html', { 'url': url }).done(addOIFITS);
+        return $.get('_oifits-form.html', { 'url': url, 'calib_level': calibLevel }).done(addOIFITS);
     }
 
     function processUpload(path) {
-        return $.get('_oifits-form.html', { 'staging': staging, 'path': path }).done(addOIFITS);
+        return $.get('_oifits-form.html', { 'staging': staging, 'path': path, 'calib_level': calibLevel }).done(addOIFITS);
     }
 
     function setupOIFITSModal() {

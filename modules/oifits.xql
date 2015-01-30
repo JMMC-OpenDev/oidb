@@ -60,16 +60,17 @@ declare %private function oifits:prepare-granules($oifits as node(), $url as xs:
  : 
  : The input file is taken at the URL in the 'url' key of the current model.
  : 
- : If an error is detected in the input file, an error message is added to the
+ : If an error is detected in the input file (L3 excepted) , an error message is added to the
  : model and no granule is returned.
  : 
  : @param $node  the current node in the template
  : @param $model the current model
+ : @param $calib_level calibration level (1 to 3)
  : @return a model with granule for the file as sequence of XML fragments.
  :)
 declare
     %templates:wrap
-function oifits:granules($node as node(), $model as map(*)) as map(*) {
+function oifits:granules($node as node(), $model as map(*), $calib_level as xs:integer) as map(*) {
     let $data := oifits:get-data($model)
     let $url := $data[1]
     return map { 'oifits' := map:new((
@@ -82,7 +83,7 @@ function oifits:granules($node as node(), $model as map(*)) as map(*) {
                 map:entry('report', $report),
                 (: TODO better tests on report, better report? :)
                 (: for now simply rejecting if any SEVERE item found :)
-                if (matches($report, 'SEVERE')) then
+                if ($calib_level<3 and matches($report, 'SEVERE')) then
                     map:entry('message', 'Invalid OIFITS file, see report for details.')
                 else
                     let $granules := oifits:prepare-granules($oifits, $url)
