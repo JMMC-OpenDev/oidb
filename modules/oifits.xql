@@ -84,7 +84,7 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
                 (: TODO better tests on report, better report? :)
                 (: for now simply rejecting if any SEVERE item found :)
                 if ($calib_level<3 and matches($report, 'SEVERE')) then
-                    map:entry('message', 'Invalid OIFITS file, see report for details.')
+                    map:entry('message', 'Invalid OIFITS file, see report for details. Please send feedback, if some SEVERE level are too strict.')
                 else
                     let $granules := oifits:prepare-granules($oifits, $url)
                     return map:entry('granules', $granules)))
