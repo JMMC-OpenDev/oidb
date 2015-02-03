@@ -159,6 +159,18 @@ declare function helpers:model-value($node as node(), $model as map(*), $key as 
 };
 
 (:~
+ : Return the content of the given key in the model as element.
+ : 
+ : @param $node  a placeholder for text
+ : @param $model the current model
+ : @param $key   the key to search in the model
+ : @return the content for key in model or nothing
+ :)
+declare function helpers:model-content($node as node(), $model as map(*), $key as xs:string) as item()* {
+    helpers:get($model, $key)
+};
+
+(:~
  : Add to the node an attribute with a value from the model. 
  : 
  : It creates a new attribute on the node and set its value to
