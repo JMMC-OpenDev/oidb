@@ -311,6 +311,48 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
     return map:new(map:entry('instruments', $instruments))
 };
 
+(:~
+ : Put instrument details into model for templating.
+ : 
+ : It takes the instrument name from the model using given key or from a 'name' HTTP parameter in the request.
+ : 
+ : @param $node
+ : @param $model the current model
+ : @return a submodel with instrument description
+ :)
+declare function app:instrument($node as node(), $model as map(*), $key as xs:string?) as map(*) {
+    let $id := if($key) then map:get($model,$key) else request:get-parameter('name', '')
+    
+    let $focal-instrument := collection('/db/apps/oidb-data/instruments')//focalInstrument[starts-with(./*:name,$id)]
+    let $facility := ($focal-instrument/ancestor::*:interferometerSetting/*:description/*:name)[1]
+    let $url := <url>{ 'search.html?instrument=' || encode-for-uri($id) }</url>
+    
+    let $anchor := <anchor>#{$id}</anchor>
+    
+    let $instrument := <instrument>
+        {if(count($focal-instrument)=1)
+            then jmmc-xml:strip-ns($focal-instrument/*)
+            else <name>{$id}</name>
+        }
+        <facility>{data($facility)}</facility>
+        {$url, $anchor}
+        </instrument>
+    return map { 'instrument' := $instrument, 'html-desc' := () (: TODO :) }
+};
+
+
+(:~
+ : Add instrument stats to the model for templating.
+ : 
+ : @param $node
+ : @param $model the current model
+ : @param $key the entry name in model with instrument id
+ : @return a submodel with stats of the requested instrument
+ :)
+declare function app:instrument-stats($node as node(), $model as map(*), $key as xs:string) as map(*) {
+    let $id := helpers:get($model, $key)
+    return app:stats(( 'instrument=' || $id ))
+};
 
 declare variable $app:facilities-query := adql:build-query(( 'col=facility_name', 'distinct' ));
 
