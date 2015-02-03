@@ -14,6 +14,7 @@ import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateu
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth";
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
+import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 (: Store main metadata to present in the search result table, granule summary, etc... :)
@@ -305,6 +306,7 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
     let $instruments := distinct-values(
         for $instrument-name in $data//*:TD/text()
         return tokenize($instrument-name, '[^A-Za-z0-9]')[1])
+    let $instruments := for $e in $instruments order by $e return $e
 
     return map:new(map:entry('instruments', $instruments))
 };
@@ -337,6 +339,15 @@ declare variable $app:data-pis-roles := <roles>
             <e><k>unregistered</k><icon>glyphicon glyphicon-bell</icon><description>Unregistered user</description></e>
         </roles>;
         
+(:~
+ : Build a list of dataPI roles and put it in the model for templating.
+ : 
+ : It creates a 'roles' entry in the model for the children of the node.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with one icon and description subelement per role
+ :)        
 declare
     %templates:wrap
 function app:data-pis-roles($node as node(), $model as map(*)) as map(*) {
@@ -979,18 +990,37 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
 };
 
 (:~
- : Count the number of OIFITS files and granules matching a given query.
+ : Count the number of OIFITS files and granules matching a given query. Provide the first and last observing date of records matching a given query.
  : 
- : @param $query the ADQL query
- : @return a map with counts of OIFITS and granules
+ : @param $query the query parameters
+ : @return a map with counts of OIFITS, granules ( resp. n_oifits, n_granules) and from-date and to-date
  :)
 declare %private function app:stats($query as item()*) as map(*) {
     let $count := function($q) { number(tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, $query )) || ') AS e')//*:TD) }
+    let $tmin-tmax := tap:execute(' SELECT MIN(e.t_min), MAX(e.t_max) FROM (' || adql:build-query( $query ) || ') AS e')//*:TD/text()
+    let $tmin-tmax := for $mjd in $tmin-tmax return jmmc-dateutil:MJDtoISO8601($mjd)
 
     return map {
         'n_oifits'   := $count(( 'distinct', 'col=access_url' )),
-        'n_granules' := $count(())
+        'n_granules'    := $count(( 'caliblevel=1,2,3' )),
+        'n_obs_logs'    := $count(( 'caliblevel=0' )),
+        'from-date'  :=$tmin-tmax[1],
+        'to-date'    :=$tmin-tmax[2]
     }
+};
+
+
+declare function app:date-multiline($node as node(), $model as map(*), $key as xs:string) as node()*{
+    let $date := xs:date(map:get($model, $key))
+    let $y := year-from-date($date)
+    let $m := ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')[month-from-dateTime($date)]
+    let $d := day-from-dateTime($date)
+    
+    return 
+    <div class="btn-group-vertical btn-group-xs" role="group">
+        <button type="button" class="btn btn-warning">{$y}</button>
+        <button type="button" class="btn btn-default">{$m}<br/>{$d}</button>
+    </div>
 };
 
 (:~

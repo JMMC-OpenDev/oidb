@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<div data-template="app:instrument" data-template-key="instrument">
+    <div data-template="app:instrument-stats" data-template-key="instrument.name">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab" data-template="helpers:model-value-attribute" data-template-key="instrument.name" data-template-name="id2">
+                <div class="row">
+                    <div class="col-md-5">
+                        <h4 class="panel-title">
+                            <a class="collapsed" data-toggle="collapse" data-parent="#accordion" data-template="helpers:model-value-attribute" data-template-key="instrument.anchor" data-template-name="href" aria-expanded="false" aria-controls="collapseThree">
+                                <span data-template="helpers:model-value" data-template-key="instrument.name"/> - <span data-template="helpers:model-value" data-template-key="instrument.facility"/>
+                            </a>
+                        </h4>
+                        <div class="list-group-item-text">
+                            <p style="white-space: pre-wrap;">
+                                <span data-template="app:ellipsize" data-template-key="instrument.description"/>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <a xmlns="http://www.w3.org/1999/xhtml" data-template="helpers:model-value-attribute" data-template-key="instrument.url" data-template-name="href">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <span data-template="helpers:model-value" data-template-key="n_granules"/> granules in
+                <span data-template="helpers:model-value" data-template-key="n_oifits"/> OIFITS files </li>
+                                <li class="list-group-item">
+                                    <span data-template="helpers:model-value" data-template-key="n_obs_logs"/> obs. logs</li>
+                            </ul>
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                From <span data-template="app:date-multiline" data-template-key="from-date"/> to
+                <span data-template="app:date-multiline" data-template-key="to-date"/>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree" data-template="helpers:model-value-attribute" data-template-key="instrument.name" data-template-name="id">
+                <div class="panel-body">
+                    <span data-template="helpers:model-content" data-template-key="html-desc"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
