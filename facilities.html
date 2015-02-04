@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <h1>Facilities ( page under construction <i class="glyphicon glyphicon-wrench"/> )</h1>
-    <p>Content will be setup on top of <a href="http://jmmc.fr/~swmgr/AsproOIConfigurations/ASPRO2-CONF_2014_0403/">instrument description</a> provided by <a href="http://www.jmmc.fr/aspro2">Aspro2</a> and other Olbin resources. More informations will be added on top of it as remote web site and all other interesting informations...</p>
-    <h2>Current facilities present in the L0-L3 granules:</h2>
-    <ul data-template="app:facilities">
-        <li data-template="helpers:each" data-template-from="facilities" data-template-to="facility">
-            <span data-template="helpers:model-value" data-template-key="facility"/>
-        </li>
-    </ul>
+    <h1>Facilities </h1>
+    <p>Content is partially setup on top of <a href="http://jmmc.fr/~swmgr/AsproOIConfigurations/">facility description</a> provided by <a href="http://www.jmmc.fr/aspro2">Aspro2</a>. More informations will be added on top of it: remote web site...</p>
+    <div data-template="app:facilities">
+        <div data-template="helpers:model-content" data-template-key="aspro-facilities"/>
+    </div>
 </div>

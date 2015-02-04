@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml">
+    <div class="row">
+        <div class="col-md-9">
     <div>
         <strong>Name: </strong>
         <span data-template="helpers:model-value" data-template-key="collection.name"/>
@@ -7,6 +9,14 @@
     <div>
         <strong>Title: </strong>
         <span data-template="helpers:model-value" data-template-key="collection.title"/>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div data-template="app:collection-stats" data-template-key="collection.id">
+                From <span data-template="app:date-multiline" data-template-key="from-date"/> to
+            <span data-template="app:date-multiline" data-template-key="to-date"/>
+            </div>
+        </div>
     </div>
     <div>
         <strong>Description: </strong>

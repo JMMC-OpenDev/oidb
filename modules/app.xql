@@ -5,6 +5,8 @@ module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates";
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
+import module namespace math="http://www.w3.org/2005/xpath-functions/math";
+import module namespace xmath="http://exist-db.org/xquery/math";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
@@ -324,7 +326,7 @@ declare function app:instrument($node as node(), $model as map(*), $key as xs:st
     let $id := if($key) then map:get($model,$key) else request:get-parameter('name', '')
     
     let $focal-instrument := collection('/db/apps/oidb-data/instruments')//focalInstrument[starts-with(./*:name,$id)]
-    let $facility := ($focal-instrument/ancestor::*:interferometerSetting/*:description/*:name)[1]
+    let $facility := <facility>{string-join(($focal-instrument/ancestor::*:interferometerSetting/*:description/*:name), " / ")}</facility>
     let $url := <url>{ 'search.html?instrument=' || encode-for-uri($id) }</url>
     
     let $anchor := <anchor>#{$id}</anchor>
@@ -334,8 +336,7 @@ declare function app:instrument($node as node(), $model as map(*), $key as xs:st
             then jmmc-xml:strip-ns($focal-instrument/*)
             else <name>{$id}</name>
         }
-        <facility>{data($facility)}</facility>
-        {$url, $anchor}
+        {$facility, $url, $anchor}
         </instrument>
     return map { 'instrument' := $instrument, 'html-desc' := () (: TODO :) }
 };
@@ -369,8 +370,35 @@ declare
     %templates:wrap
 function app:facilities($node as node(), $model as map(*)) as map(*) {
     let $data := tap:execute($app:facilities-query)
-    let $facilities := distinct-values($data//*:TD/text())
-    return map:new(map:entry('facilities', $facilities))
+    let $tap-facilities := distinct-values($data//*:TD/text())
+    
+    let $aspro-facilities := <table class="table table-striped table-bordered table-hover">
+    <tr><th>Name</th><th>Description</th><th>X,Y,Z coordinates</th><th>Lat,Lon approximation </th><th>records in the database</th></tr>
+        {
+            for $facility in collection($config:data-root)//*:interferometerSetting   
+                let $name := data($facility/*:description/*:name)
+                let $desc := data($facility/*:description/*:description)
+                (: http://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates :)
+                let $coords := data($facility/*:description/*:position/*)
+                let $x := xs:double($coords[1])
+                let $y := xs:double($coords[2])
+                let $z := xs:double($coords[3])
+                let $r := xs:double(6371000)
+                let $lat := xmath:degrees(math:asin( $z div $r ))
+                let $lon := xmath:degrees(math:atan2($y, $x))
+                
+                let $has-records := for $f in $tap-facilities return matches( $f, $name)
+                let $has-records := if( true() = $has-records) then <i class="glyphicon glyphicon-ok"/> else ()
+
+                where  not($name = ("DEMO", "Paranal", "Sutherland") )
+                return 
+                    <tr>
+                        <th>{$name}</th><td>{$desc}</td><td>{string-join($coords,",")}</td><td>{$lat},{$lon} </td><td>{$has-records}</td>
+                    </tr>
+        }
+        </table>
+    
+    return map { 'tap-facilities' := $tap-facilities , 'aspro-facilities' := $aspro-facilities }
 };
 
 declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));
@@ -1042,10 +1070,12 @@ declare %private function app:stats($query as item()*) as map(*) {
     let $tmin-tmax := tap:execute(' SELECT MIN(e.t_min), MAX(e.t_max) FROM (' || adql:build-query( $query ) || ') AS e')//*:TD/text()
     let $tmin-tmax := for $mjd in $tmin-tmax return jmmc-dateutil:MJDtoISO8601($mjd)
 
+    let $n_granules := $count(( 'caliblevel=1,2,3' ))
+    let $n_oifits := if($n_granules = 0 ) then 0 else $count(( 'distinct', 'col=access_url' ))
     return map {
-        'n_oifits'   := $count(( 'distinct', 'col=access_url' )),
-        'n_granules'    := $count(( 'caliblevel=1,2,3' )),
-        'n_obs_logs'    := $count(( 'caliblevel=0' )),
+        'n_oifits'   := $n_oifits,
+        'n_granules' := $n_granules,
+        'n_obs_logs' := $count(( 'caliblevel=0' )),
         'from-date'  :=$tmin-tmax[1],
         'to-date'    :=$tmin-tmax[2]
     }
