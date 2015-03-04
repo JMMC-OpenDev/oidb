@@ -36,10 +36,12 @@ let $response :=
 
                 return string-join((
                     '# Use this file as a config file for curl to retrieve data from the OiDB portal.',
-                    '# Example       : curl -f --config <file>',
+                    '# Example       : curl --config <file>',
                     '#',
                     "# Collected from http://oidb.jmmc.fr on "|| current-dateTime(),
-                    '# ADQL query    : ' || $query ,                    
+                    '# ADQL query    : ' || $query ,     
+(:                    '# tap response  : ' || serialize($data) ,     :)
+(:                    '# Nb records    : ' || count($data//*:TR) ,     :)
                     '#',
                     '# To retrieve private data protected by password, you may add --netrc option to curl and fill ',
                     '# $HOME/.netrc file with following template (see man curl / man netrc for more details) :',
@@ -54,8 +56,9 @@ let $response :=
                     let $obs-creator-name := index-of($fields, 'obs_creator_name')
 
                     for $row in $data//*:TR
-                    where starts-with($row/*:TD[$access-url-idx]/text(), 'http')
-                    group by $url := $row/*:TD[$access-url-idx]/text()
+                    let $url := app:fix-relative-url($row/*:TD[$access-url-idx]/text()) 
+                    where starts-with($url, 'http')
+                    group by $url-group:=$url
                     return (
                         (: grouped tuples so there may be more than a single row, pick first for now:)
                         let $row := $row[1]
@@ -66,7 +69,7 @@ let $response :=
                             ()
                         else
                             '# Note: the following file is not public, contact ' || $row/*:TD[$obs-creator-name] || ' for availability',
-                        concat('url = "', $url),
+                        concat('url = "', $url-group),
                         'remote-name'
                     )
                 ), '&#xa;')
