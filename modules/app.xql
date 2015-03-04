@@ -507,7 +507,9 @@ declare function app:input-each-band($node as node(), $model as map(*)) as node(
  : @param $model the current model
  : @return a new map as model with band names
  :)
-declare function app:bands($node as node(), $model as map(*)) as map(*) {
+declare     
+	%templates:wrap
+function app:bands($node as node(), $model as map(*)) as map(*) {
     map:new(($model, map:entry('bands', jmmc-astro:band-names())))
 };
 

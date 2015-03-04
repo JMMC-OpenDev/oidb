@@ -10,6 +10,12 @@ input {
   background:#7f7f7f;
   background:rgba(255,255,255,0.5);
 }
+/* may be uncommented to highlight mouse over the header vignettes 
+.transparent:hover{
+    transform: scale(1.1);
+    background:rgba(255,255,255,1);
+}
+*/
 
 /* used on granule tables for links to details page */
 .pointer {
@@ -19,4 +25,9 @@ input {
 /* popover with OIFitsViewer checkReport */
 #oifits .popover {
     max-width: none;
+}
+
+/* increase margin in the search form. only ".form-horizontal .form-group" get it from default bootstrap */
+#filters .form-inline .form-group {
+    margin-bottom: 15px;
 }
