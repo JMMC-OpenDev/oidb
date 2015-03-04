@@ -168,19 +168,20 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
  : Format a cell for the access_url column.
  : 
  : It contains the link to the file and an eventual status icon for private 
- : data.
+ : data. The url is replace by get-data.html?id=$id if id parameter is provided else the original url is used.
  : 
- : @param $url the URL to the OIFits file
+ : @param $id optional granule id 
+ : @param $url the URL to the OIFits file to hide behind get-data.html if an associated id is given
  : @param $data_rights availability of the dataset
  : @param $release_date the date at which data become public 
  : @param $creator_name owner of the data
  : @return an <a> element
  :)
-declare %private function app:format-access-url($id as xs:string, $url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?) {
+declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?) {
     let $public := app:public-status($data_rights, $release_date)
     return 
         element {"a"} {
-        attribute { "href" } { "get-data.html?id="||$id (: $url :) }, 
+        attribute { "href" } { if(exists($id)) then "get-data.html?id="||$id else $url }, 
         if ($public or $creator_name = '') then
             ()
           else 
@@ -191,6 +192,20 @@ declare %private function app:format-access-url($id as xs:string, $url as xs:str
          tokenize($url, "/")[last()] ,
          if ($public) then () else <i class="glyphicon glyphicon-lock"/> 
         }
+};
+
+(:~
+ : Append scheme://host:port if given input starts with /, else return the same input.
+ : 
+ : @param $url the input URL to prefix with actual server if 
+ : @return a full qualified url.
+ :)
+declare function app:fix-relative-url($url as xs:string) as xs:string {
+    if(starts-with($url, "/")) 
+    then
+        request:get-scheme()||"://"||request:get-server-name()||":"||request:get-server-port()||$url 
+    else
+        $url
 };
 
 (:~
@@ -572,6 +587,9 @@ function app:search($node as node(), $model as map(*),
         (: Search database, use request parameters :)
         (: clean up pagination stuff, recovered later from function parameters :)
         let $params := adql:clear-pagination(adql:split-query-string())
+
+        return if (empty($params)) then map {}
+        else
 
         let $votable := tap:execute(
             adql:build-query((
