@@ -24,7 +24,7 @@ declare function local:get-doc() as element() {
 };
 
 (:~
- : Apply transformation to HTML content.
+ : Apply transformation to HTML content with special filtering to counterpass twiki tips.
  : 
  : @param $nodes the node to transform
  : @return the transformed nodes
@@ -34,13 +34,15 @@ declare function local:transform($nodes as node()*) as item()* {
     return typeswitch($node)
         case text() return $node
         case comment() return $node
-        case attribute(href) return
-            if (ends-with($node, '/OiDB')) then attribute { 'href' } { '/' } 
-            else $node
         case attribute() return
-            $node
-        case attribute(src) return
-            if (starts-with($node, '/')) then attribute { 'src' } { "http://www.jmmc.fr" || $node } else $node
+            if (name($node)="href" and ends-with($node, '/OiDB')) 
+            then 
+                attribute { 'href' } { './' } 
+            else if (name($node)="src" and starts-with($node, '/')) 
+            then
+                attribute { 'src' } { "http://www.jmmc.fr" || $node } 
+            else
+                $node
         default return 
             if(name($node)="a" and contains($node/@href, "/bin/edit/")) then ()
             else element { QName(namespace-uri($node), name($node)) } { ( local:transform($node/@*), local:transform($node/node()) ) }
