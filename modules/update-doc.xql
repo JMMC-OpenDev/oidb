@@ -37,6 +37,8 @@ declare function local:transform($nodes as node()*) as item()* {
         case attribute(href) return
             if (ends-with($node, '/OiDB')) then attribute { 'href' } { '/' } 
             else $node
+        case attribute() return
+            $node
         case attribute(src) return
             if (starts-with($node, '/')) then attribute { 'src' } { "http://www.jmmc.fr" || $node } else $node
         default return 
