@@ -34,6 +34,19 @@ declare function local:user-admin() as xs:boolean {
     request:get-attribute($domain || '.superuser')
 };
 
+declare variable $cookie-agreement := 
+    let $cookie-name := "cookie-agreement" (: TODO move as config constant :)
+    return if ( exists(request:get-cookie-value($cookie-name))) 
+        then
+            request:set-attribute($cookie-name, "true") 
+        else if( exists(request:get-parameter('i_agree_to_conditions', ())) ) 
+        then 
+            (
+                response:set-cookie($cookie-name,util:uuid(), xs:yearMonthDuration('P10Y'), false()),
+                request:set-attribute($cookie-name, "true") 
+            )
+        else 
+            ();
 let $store-res-name := request:set-attribute("exist:path", $exist:path)
 return 
 if($exist:path eq '') then

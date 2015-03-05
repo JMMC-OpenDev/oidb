@@ -31,3 +31,21 @@ input {
 #filters .form-inline .form-group {
     margin-bottom: 15px;
 }
+
+/* term of use cookie  */
+#cookie-agreement {
+    background: #202226;
+    color: #F1F1F3;
+    font-family: Lato,'Helvetica Neue',Helvetica,Arial,sans-serif;
+    font-size: 12px;
+	display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+	max-width:100%;
+	padding: 5px;
+    z-index: 999999; 
+    opacity: .7;
+}
