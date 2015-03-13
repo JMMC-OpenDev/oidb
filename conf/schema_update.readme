@@ -1,0 +1,11 @@
+March 2015
+Add quality_flag in model:
+
+   * Add column to oidb
+ ALTER TABLE oidb ADD quality_level     integer;
+
+   * Update TAP_SCHEMA
+INSERT INTO "TAP_SCHEMA"."columns" VALUES ('oidb', 'quality_level', 'Quality data level estimated by data provider', NULL, 'meta.code.qual', NULL, 'INTEGER', -1, 0, 0, 0);
+
+Restart existdb/taplib
+
