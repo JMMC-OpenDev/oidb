@@ -47,6 +47,7 @@ declare variable $cookie-agreement :=
             )
         else 
             ();
+            
 let $store-res-name := request:set-attribute("exist:path", $exist:path)
 return 
 if($exist:path eq '') then

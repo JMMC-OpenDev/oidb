@@ -97,7 +97,7 @@ declare function app:td-cells($row as node(), $columns as xs:string*)
                         let $data-rights := $row/td[@colname='data_rights']
                         let $obs-release-date := $row/td[@colname='obs_release_date']
                         return if($data-rights and $obs-release-date) then
-                            app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'])
+                            app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
                         else
                             $access-url
                 case "obs_collection"
@@ -122,6 +122,8 @@ declare function app:td-cells($row as node(), $columns as xs:string*)
                 case "nb_vis2"
                 case "nb_t3"
                     return if($cell = "" or data($cell) = -1) then '-' else data($cell)
+                case "quality_level"
+                    return if($cell = "") then "Unknown" else map:get($app:data-quality-levels, data($cell))
                 default
                     return translate(data($cell)," ","&#160;")
             } </td>
@@ -177,8 +179,12 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
  : @param $creator_name owner of the data
  : @return an <a> element
  :)
-declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?) {
+declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?, $datapi as xs:string?) {
     let $public := app:public-status($data_rights, $release_date)
+    let $c := if($creator_name) then <li>{$creator_name||" (data creator)"}</li> else ()
+    let $d := if($datapi) then <li>{$datapi||" (data PI)"}</li> else ()
+    let $contact := <span><b>Contact:</b><ul>{$c, $d}</ul></span>
+    let $contact := serialize($contact)
     return 
         element {"a"} {
         attribute { "href" } { if(exists($id)) then "get-data.html?id="||$id else $url }, 
@@ -187,7 +193,8 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
           else 
             (
                 attribute { "rel" }                 { "tooltip" },
-                attribute { "data-original-title" } { concat("Contact ", $creator_name, " for availability") }
+                attribute { "data-original-title" } { $contact },
+                attribute { "data-html" } { "true" }
             ),
          tokenize($url, "/")[last()] ,
          if ($public) then () else <i class="glyphicon glyphicon-lock"/> 
@@ -408,12 +415,21 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
                 where  not($name = ("DEMO", "Paranal", "Sutherland") )
                 return 
                     <tr>
-                        <th>{$name}</th><td>{$desc}</td><td>{string-join($coords,",")}</td><td>{$lat},{$lon} </td><td>{$has-records}</td>
+                        <th><a href="search.html?facility={$name}">{$name}</a></th><td>{$desc}</td><td>{string-join($coords,",")}</td><td>{$lat},{$lon} </td><td>{$has-records}</td>
+                    </tr>
+        }
+        {
+            let $aspro-facilities := data(collection($config:data-root)//*:interferometerSetting/*:description/*:name)
+            for $facility in $tap-facilities
+                where  not( $facility = $aspro-facilities )
+                return
+                    <tr>
+                        <th><a href="search.html?facility={$facility}">{$facility}</a></th><td></td><td></td><td></td><td><i class="glyphicon glyphicon-ok"/></td>
                     </tr>
         }
         </table>
     
-    return map { 'tap-facilities' := $tap-facilities , 'aspro-facilities' := $aspro-facilities }
+    return map { 'tap-facilities' := $tap-facilities , 'facilities' := $aspro-facilities }
 };
 
 declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));
@@ -465,7 +481,7 @@ function app:data-pis($node as node(), $model as map(*)) as map(*) {
         return 
             $e
     
-    return map:new(($model, map:entry('datapis', $datapis), map:entry('persons', ($persons,$missings))))
+    return map:new(($model, map:entry('datapis', $datapis), map:entry('persons', ($missings, $persons))))
 };
 (:~
  : Helper to build an URL for a given datapi on the search URL.
@@ -541,6 +557,27 @@ declare function app:wavelength-divisions($node as node(), $model as map(*)) as 
     map:new(($model, map:entry('wavelength-divisions', jmmc-astro:wavelength-division-names())))
 };
 
+declare variable $app:data-quality-levels := map {
+                                0:"Unknown",
+                                1:"Trash",
+                                2:"To be reduced again",
+                                3:"Quick look (risky to publish)",
+                                4:"Science ready",
+                                5:"Outstanding quality" };
+
+(:~
+ : Put a map for data quality levels in the model for templating.
+ : Levels are 0 to 4 for respectivly, 
+ : Trash, To be reduced again, Quick look (risky to publish), Science ready, Outstanding quality
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with quality levels
+ :)
+declare function app:data-quality-flags($node as node(), $model as map(*)) as map(*) {
+    (: map:new(($model, map:entry('data-quality-flags', $jmmc-astro:data-quality-flags))) :)
+    map:new(($model, map:entry('data-quality-flags', $app:data-quality-levels)))
+};
 
 (:~
  : Return an element with counts of the number of observations, all OIFits 
@@ -591,13 +628,13 @@ function app:search($node as node(), $model as map(*),
         return if (empty($params)) then map {}
         else
 
-        let $votable := tap:execute(
-            adql:build-query((
+        let $paginated-query := adql:build-query((
                 $params,
                 (: force query pagination to limit number of rows returned :)
-                'page=' || $page, 'perpage=' || $perpage)))
+                'page=' || $page, 'perpage=' || $perpage))
+        let $votable := tap:execute( $paginated-query )
         let $overflow := tap:overflowed($votable)
-        let $data := app:transform-votable($votable, 1 + ($page - 1) * $perpage, $perpage)
+        let $data := app:transform-votable($votable)
 
         (: default columns to display :)
         let $column-names := if($all) then
@@ -789,7 +826,7 @@ declare function app:serialize-query-string() as xs:string* {
  : 
  : A query with the identifier for the row is passed to the TAP service and the
  : returned VOTable is formatted as an HTML table.
- : TODO refactor using templating
+ : TODO refactor using templating and td-cells()
  : 
  : @param $node
  : @param $model
@@ -869,7 +906,7 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
         <table class="table table-striped table-bordered table-hover">
         {
             let $row := $granule//tr[td]
-            let $columns := ($app:main-metadata, "obs_creator_name")
+            let $columns := ($app:main-metadata , "obs_creator_name", "quality_level")
             let $tds := app:td-cells($row, $columns )
             for $td at $pos in $tds
                 let $m := $columns[$pos]
@@ -1323,6 +1360,17 @@ declare function app:user-info($node as node(), $model as map(*), $key as xs:str
 };
 
 (:~
+ : Add the user name to the model for templating associated to 'datapi' key.
+ : 
+ : @param $node  the current node
+ : @param $modem the current model
+ : @return a new model with datapi entry
+ :)
+declare function app:get-datapi($node as node(), $model as map(*)) as map(*) {
+    map{'datapi' := login:user-name() }
+};
+
+(:~
  : Truncate a text string from the model to a given length.
  : TODO: move to templates-helpers
  : 
@@ -1403,7 +1451,7 @@ declare variable $app:base-upload := $config:data-root || '/oifits/staging';
 
 (:~
  : Add upload data to model for templating.
- : 
+ : calib_description entry is not present if calib_level is not valid for upload
  : @param $node
  : @param $model
  : @param $calib_level the calibration level of the data to be uploaded
@@ -1411,20 +1459,38 @@ declare variable $app:base-upload := $config:data-root || '/oifits/staging';
  :)
 declare
     %templates:wrap
-function app:upload($node as node(), $model as map(*), $staging as xs:string?, $calib_level as xs:integer) as map(*) {
+function app:upload($node as node(), $model as map(*), $staging as xs:string?, $calib_level as xs:integer?) as map(*) {
     (: TODO check 0 < calib_level < 3 or calib_level = ( 2, 3 ) :)
     let $staging := if ($staging) then $staging else util:uuid()
     (: a short textual description of the calibration level :)
+    let $map := map { 
+        'oifits':= (),
+        'staging' := $staging,
+        'calib_level' := $calib_level
+    }
+    let $map := if($calib_level = 3) then map:new(($map, map:entry('skip-quality-level-selector', true()))) else $map
+    let $map := map:new(($map, app:upload-check-calib-level($node, $model, $calib_level)))
+    return $map
+};
+
+(:~
+ : Test if calib_level param is valid and set calib_description entry to the model for templating, else leave empty map.
+ : 
+ : @param $node  the current node
+ : @param $modem the current model
+ : @param $calib_level the calibration level of the data to be uploaded
+ : @return a new model with calib_description entry if calib_level is valid for upload
+ :)
+declare function app:upload-check-calib-level($node as node(), $model as map(*), $calib_level as xs:integer?) as map(*) {
     let $calib_description :=
         if ($calib_level = 2) then'calibrated'
         else if ($calib_level = 3) then 'published'
         else ''
-    return map {
-        'oifits':= (),
-        'staging' := $staging,
-        'calib_level' := $calib_level,
-        'calib_description' := $calib_description
-    }
+    return 
+        if($calib_level = (2,3)) then 
+            map{'calib_description' := $calib_description }
+        else 
+            map{}
 };
 
 (:~

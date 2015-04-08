@@ -73,13 +73,14 @@ declare
 function oifits:granules($node as node(), $model as map(*), $calib_level as xs:integer) as map(*) {
     let $data := oifits:get-data($model)
     let $url := $data[1]
-    return map { 'oifits' := map:new((
+    let $map := map { 
+        'oifits' := map:new((
         map:entry('url', $url),
         try {
             let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
 
             let $report := $oifits/checkReport/text()
-            return map:new((
+            return map:new(( 
                 map:entry('report', $report),
                 (: TODO better tests on report, better report? :)
                 (: for now simply rejecting if any SEVERE item found :)
@@ -92,6 +93,9 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
             map { 'message' := 'error parsing the OIFITS file at ' || $url || '.' }
         }))
     }
+    let $s1-map := if ($calib_level=3) then map:entry('skip-quality-level-selector', true()) else ()
+    let $s2-map := if ( $calib_level=2 and count(map:get(map:get($map,'oifits'),'granules'))>1) then () else map:entry('skip-oifits-quality-level-selector', true()) 
+    return map:new(($map, $s1-map, $s2-map))
 };
 
 (:~

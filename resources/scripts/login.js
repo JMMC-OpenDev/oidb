@@ -34,7 +34,7 @@ $(function () {
 
     $( document ).ajaxError(function (event, jqXHR, ajaxSettings, thrownError) {
         // only interested in authentication errors
-        if (jqXHR.status != 401 || settings.suppressErrors) {
+        if (jqXHR.status != 401 || ajaxSettings.suppressErrors) { 
             return;
         }
 

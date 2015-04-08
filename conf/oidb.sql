@@ -58,7 +58,9 @@ CREATE TABLE oidb (
     instrument_name   text,
     -- OiDB Extension (OIFits metadata)
     instrument_mode   text,
-
+    -- TODO 0,1,2,3,4
+    quality_level     integer,
+ 
     nb_channels       integer NOT NULL,
     nb_vis            integer,
     nb_vis2           integer,

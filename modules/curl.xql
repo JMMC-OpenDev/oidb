@@ -2,6 +2,8 @@ xquery version "3.0";
 
 (:~
  : Return a curl config file to download the OIFits files from a selection.
+ : TODO add datapi if given for associated contact
+ : TODO include in every file comment the creator and datapi 
  :)
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
@@ -54,9 +56,11 @@ let $response :=
                     let $data-rights-idx  := index-of($fields, 'data_rights')
                     let $obs-release-date := index-of($fields, 'obs_release_date')
                     let $obs-creator-name := index-of($fields, 'obs_creator_name')
+                    let $datapi := index-of($fields, 'datapi')
 
                     for $row in $data//*:TR
-                    let $url := app:fix-relative-url($row/*:TD[$access-url-idx]/text()) 
+                    (: get only first url of the group and force it to be a string to avoid empty param :)
+                    let $url := app:fix-relative-url(string(($row/*:TD[$access-url-idx])[1]))
                     where starts-with($url, 'http')
                     group by $url-group:=$url
                     return (
@@ -74,7 +78,7 @@ let $response :=
                     )
                 ), '&#xa;')
             } catch * {
-                '# Error: ' || $err:description
+                '# Sorry an error occured: ' || $err:description || "&#10;#&#10;#&#10;# Please contact the user support"
             }
 (:        }:)
 (:    </collection>:)

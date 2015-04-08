@@ -8,8 +8,22 @@ module namespace vizier="http://apps.jmmc.fr/exist/apps/oidb/vizier";
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
+import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
 
 import module namespace jmmc-vizier="http://exist.jmmc.fr/jmmc-resources/vizier";
+
+declare
+    %templates:wrap
+function vizier:assert-empty-collection($node as node(), $model as map(*), $catalog as xs:string?) as map(*) {
+    if( collection:retrieve($catalog||"") ) then 
+        (
+            flash:error(<span xmlns="http://www.w3.org/1999/xhtml"><strong>Error!</strong>&#160;{ 'Catalog ' || $catalog || ' already exist.' }</span>),
+            (: back to submit start page :)
+            response:redirect-to(xs:anyURI('submit.html'))
+        )
+    else
+        ()
+};
 
 (:~
  : Add a catalog description to the model for templating.
@@ -46,7 +60,8 @@ function vizier:catalog-description($node as node(), $model as map(*)) as map(*)
         'title'         := jmmc-vizier:catalog-title($readme),
         'description'   := jmmc-vizier:catalog-description($readme),
         'last-modified' := jmmc-vizier:catalog-date($readme),
-        'bibcodes'      := jmmc-vizier:catalog-bibcodes($readme)
+        'bibcodes'      := jmmc-vizier:catalog-bibcodes($readme),
+        'datapi'        := jmmc-vizier:catalog-creator($readme)
     }
 };
 
@@ -64,6 +79,7 @@ declare
 function vizier:catalog-files($node as node(), $model as map(*)) as map(*) {
     let $id := request:get-parameter('catalog', '')
     return map {
-        'oifits' := jmmc-vizier:catalog-fits($id)
+        'oifits' := jmmc-vizier:catalog-fits($id),
+        'skip-quality-level-selector' := true()
     }
 };

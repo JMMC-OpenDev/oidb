@@ -73,6 +73,7 @@ INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", 
     -- OiDB Extension (OIFits metadata)
 -- TODO: add description, ucd ?    
 ('oidb', 'instrument_mode', 'Instrument mode', NULL, NULL, NULL, 'VARCHAR', -1, 0, 0, 0),
+('oidb', 'quality_level', 'Quality data level estimated by data provider', NULL, 'meta.code.qual', NULL, 'INTEGER', -1, 0, 0, 0),
 ('oidb', 'nb_channels', 'number of spectral channels', NULL, NULL, NULL, 'INTEGER', -1, 0, 0, 0),
 ('oidb', 'nb_vis', 'number of OI_VIS data (complex visiblity)', NULL, NULL, NULL, 'INTEGER', -1, 0, 0, 0),
 ('oidb', 'nb_vis2', 'number of OI_VIS2 data (square visiblity)', NULL, NULL, NULL, 'INTEGER', -1, 0, 0, 0),

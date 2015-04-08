@@ -49,26 +49,27 @@ declare %private function adql:set_quantifier($params as item()*) as xs:string {
  : It makes use of the 'page' and 'perpage' parameters to select items
  : from pages up to and including 'page'.
  : 
- : @note ADQL does not define a way to skip the items before selected rows
- : (OFFSET in SQL).
+ : @note ADQL does not yet define a way to skip the items before selected rows
+ : (OFFSET in SQL) but we use a modified one that does it
  : 
  : @param $params a sequence of parameters
  : @return a TOP fragment or an empty string
  :)
 declare %private function adql:set_limit($params as xs:string*) as xs:string {
-    let $limit-page :=
         let $page    := number(adql:get-parameter($params, 'page', ()))
+    let $page := if( string($page) != 'NaN' ) then $page else ()
+    
+    let $limit-param := number(adql:get-parameter($params, 'limit', ()))
+    let $limit-param := if (string($limit-param) != 'NaN') then $limit-param else ()
+    
+    return
+        if ( exists($page) or exists($limit-param) ) then
         let $perpage := number(adql:get-parameter($params, 'perpage', 25))
-        return if (string($page) != 'NaN' and string($perpage) != 'NaN') then
-            $page * $perpage
-        else
-            ()
-    let $limit-limit :=
-        let $limit := number(adql:get-parameter($params, 'limit', ()))
-        return if (string($limit) != 'NaN') then $limit else ()
-    let $limit := max(( $limit-page, $limit-limit ))
-    return if (exists($limit)) then
-        "TOP " || $limit
+            let $perpage := if( string($perpage) != 'NaN' ) then $perpage else 25
+            let $limit := max(( $perpage, $limit-param ))
+            let $offset  := ($page - 1) * $perpage
+            return 
+                "TOP " || $limit || " OFFSET " || $offset
     else
         ""
 };

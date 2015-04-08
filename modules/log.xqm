@@ -296,13 +296,13 @@ declare function log:report-searches($max as xs:integer)as node(){
 (:~
  : Generate a report with statistics on visits
  : 
- : @param $max define the max number of record to report (10 by default)
+ : @param $max define the max number of record to report
  : @return ignore
  :)
 declare function log:report-visits($max as xs:integer)
 as node()
 {
-    let $visits := doc($log:visits)//visit
+    let $visits := subsequence(doc($log:visits)//visit,1,$max)
     let $total-hits := count($visits)
     let $items := subsequence(reverse($visits),1,$max)
     let $sessions := <sessions>

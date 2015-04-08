@@ -155,6 +155,13 @@ $(function () {
     function addOIFITS(oifits) {
         var $oifits = $(oifits);
         $oifits.insertBefore('#oifits table tfoot');
+        
+        $('.oifits-quality-level-selector').change(function() {
+        //$("#selectBox").val("3");
+        var oifitsdefaultvalue = this.value;
+        $(this).parents("tbody").find( ".quality-level-selector" ).val(this.value);
+        console.log($(this).parents("tbody").find( ".quality-level-selector" ));
+        });
 
         // initialize selectors on new granules
         $('[data-role="targetselector"]', $oifits).targetselector();
@@ -361,8 +368,6 @@ $(function () {
             if ($article.size() !== 0) {
                 // may have more than one article attached
                 $article = $article.first();
-                data.obs_creator_name = $('author', $article).text();
-                data.datapi           = $('author', $article).text();
                 data.bib_reference    = $('bibcode', $article).text();
                 data.obs_release_date = $('pubdate', $article).text();
             }
@@ -370,9 +375,10 @@ $(function () {
 
         // granule calibration level
         data.calib_level = $('input[name="calib_level"]').val();
+        // datapi = obs_creator_name
+        data.datapi      = $('input[name="datapi"]').val();
+        data.obs_creator_name = data.datapi
         // TODO curation info if L < 3
-        //
-        // TODO handle case with empty datapi (on server side using authenticated user ?)
 
         var granules = (new DOMParser()).parseFromString('<granules/>', 'text/xml');
         $granules.each(function (index, element) {
@@ -401,7 +407,7 @@ $(function () {
     function saveGranules(granules) {
         var data = new XMLSerializer().serializeToString(granules);
 
-        // save the collection, return the Deferred object of the operation
+        // save the granule, return the Deferred object of the operation
         return $.ajax('restxq/oidb/granule', { data: data, contentType: 'application/xml', type: 'POST' });
     }
 
@@ -474,6 +480,9 @@ $(function () {
                             window.open('show.html?id=' + id);
                         });
                 });
+                
+                $('.oifits-quality-level-selector').prop('disabled', true);
+
             })
             .done(function(x) {
                 // all granule successfully uploaded, reuse the submit button
@@ -484,6 +493,7 @@ $(function () {
                     .click(function (e) { e.preventDefault(); document.location = "submit.html"; });
             })
             .fail(function (x) {
+                console.warn("Error occured : " + x.responseText)
                 // had some failures, let user have another chance
                 $buttons.removeAttr('disabled').children('img').remove();
                 // re-enable collection form

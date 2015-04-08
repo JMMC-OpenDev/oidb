@@ -12,8 +12,7 @@ import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at ".
 import module namespace jmmc-eso = "http://exist.jmmc.fr/jmmc-resources/eso";
 
 declare namespace rest="http://exquery.org/ns/restxq";
-
-
+ 
 (:~
  : Return a granule given its granule ID.
  : 
@@ -73,6 +72,8 @@ declare %private function granule:sanitize($granule as node()) as node() {
     (: assume that we are on a eso case with a given progid :)
     let $pi := if(empty($datapi) and $progid) then jmmc-eso:get-pi-from-progid($progid) else ()
     
+    (: FIXME add here the current user as data-pi   :)
+    
     return element {name($granule)} {
         for $e in $granule/* return $e,
         if($pi) then element {"datapi"} {$pi} else ()
@@ -115,7 +116,7 @@ function granule:save-granules($granules as document-node()) {
                 <error>{ $err:description } { $err:value }</error>
             } catch granule:unauthorized {
                 response:set-status-code(401), (: Unauthorized :)
-                <error>Permission denied</error>
+                <error>{ $err:description } { $err:value }</error>
             } catch exerr:EXXQDY0002 {
                 (: data is not a valid XML document :)
                 response:set-status-code(400), (: Bad Request :)

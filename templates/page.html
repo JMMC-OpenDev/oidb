@@ -14,7 +14,7 @@
         <script type="text/javascript" src="resources/scripts/samp.js"/>
         <script type="text/javascript" src="resources/scripts/login.js"/>
     </head>
-    <body id="body">
+    <body id="body" data-template="jmmc-about:changelog">
         <nav class="navbar navbar-default" role="navigation">
             <div class="container-fluid">
                 <!-- Brand and toggle get grouped for better mobile display -->
@@ -90,7 +90,7 @@
                                 </li>
                                 <li>
                                     <a href="feedback.html">
-                                        <i class="glyphicon glyphicon-question-sign"/> Feedback</a>
+                                        <i class="glyphicon glyphicon-question-sign"/> Contact / Feedback</a>
                                 </li>
                                 <li>
                                     <a href="about.html">
@@ -100,10 +100,13 @@
                         </li>
                     </ul>
                     <ul class="nav navbar-nav navbar-right">
-                        <li>
+                        <li data-template="helpers:unless-model-key" data-template-key="stable">
                             <a href="#">
                                 <span class="text-warning">
-                                    <span class="glyphicon glyphicon-warning-sign"/> Prototype under development, do not use in production.</span>
+                                    <span class="glyphicon glyphicon-danger-sign"/>
+                                    <b>
+                                        <span data-template="jmmc-about:status"/>
+                                    </b> release, use at your own risk.</span>
                             </a>
                         </li>
                         <li class="dropdown">
@@ -161,7 +164,7 @@
         <div data-template="helpers:unless-attribute-set" data-template-attribute="cookie-agreement">
             <div id="cookie-agreement" class="container-fluid">
                 <div class="row">
-                    <div class="col-md-8">By accessing this website hereinafter you will be considered as accepting the term of use and accept to get a cookie for statistical purpose.</div>
+                    <div class="col-md-8">By accessing and using this website, you acknowledge and accept the terms of use.  Click on « Accept » to validate.</div>
                     <div class="col-md-4 text-right">
                         <a class="btn btn-default btn-xs" href="doc.html#3_Terms_of_use_USER_MUST_READ">Get more details</a>&#160;
                     <a class="btn btn-success btn-xs" href="?i_agree_to_conditions">Accept</a>&#160;
@@ -173,11 +176,28 @@
                 </div>
             </div>
         </div>
+        <footer id="footer" class="navbar">
+            <hr/>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p>Designed and built with all the love in the JMMC by the <a href="http://www.jmmc.fr/jmmc_groups.htm#oidbgroup" target="_blank">OIDB</a> group members.</p>
+                        <p>Maintained by the <a href="http://www.jmmc.fr/jmmc_groups.htm#technicalgroup">JMMC technical team</a> with the help of <a href="https://github.com/twbs/bootstrap/graphs/contributors">IPAG / OSUG-DC / UJF - INSU</a>.</p>
+                        <p>Code licensed under <a href="" target="_blank">TBD</a>, documentation under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
+                    </div>
+                    <div class="col-md-4">
+                         Current version: <span data-template="jmmc-about:version"/>
+                        <br/>
+                        <a class="btn btn-default btn-xs" href="doc.html#3_Terms_of_use_USER_MUST_READ">Terms of Use</a>&#160;
+                    </div>
+                </div>
+            </div>
+        </footer>
         <script type="text/javascript">
             $(document).ready(function() {
                 $("[rel='tooltip']").tooltip();
             });
         </script>
-        <div data-template="app:log"/>
+        <div data-template="app:log"><!-- removed by template but perform a log entry for stats --></div>&gt;
     </body>
 </html>

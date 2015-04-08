@@ -1,114 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <form class="form-horizontal" data-template="app:upload">
-        <h1>Add <span data-template="helpers:model-value" data-template-key="calib_description"/> OIFITS files</h1>
-        <input type="hidden" name="calib_level" data-template="helpers:model-value-attribute" data-template-key="calib_level" data-template-name="value"/>
-        <input type="hidden" name="staging" data-template="helpers:model-value-attribute" data-template-key="staging" data-template-name="value"/>
-        <div class="row">
-            <div class="col-md-offset-3 col-md-6">
-                <a href="#" class="btn active btn-primary btn-block" role="button" id="create-collection-btn" data-loading-text="Loading...">
-                    <span class="glyphicon glyphicon-briefcase"/>
-                    Create a collection
-                </a>
+    <div data-template="app:upload-check-calib-level">
+        <!-- prevent app:upload from bad param -->
+        <div data-template="helpers:unless-model-key" data-template-key="calib_description">
+            <div class="col-md-10 col-md-offset-1 alert alert-dismissible alert-danger fade in " role="alert">
+                Sorry, <em>calib_level</em> parameter is missing or not supported. Please try to <a href="submit.html">submit</a> again.
+                <button type="button" class="close" data-dismiss="alert">
+                    <span aria-hidden="true">×</span>
+                    <span class="sr-only">Close</span>
+                </button>
             </div>
         </div>
-        <fieldset id="oifits" data-template="app:upload">
-            <legend>OIFITS files</legend>
-            <div class="col-md-offset-1 col-md-10">
-                <table class="table table-bordered table-condensed">
-                    <thead>
-                        <th>Target</th>
-                        <th>Instrument</th>
-                        <th>Instrument mode</th>
-                        <th>Night</th>
-                    </thead>
-                    <tbody data-template="helpers:render" data-template-partial="_oifits-form.html" data-template-key="oifits" data-template-as="url"/>
-                    <tfoot>
-                        <tr>
-                            <td colspan="4">
-                                <a href="#" class="btn active btn-primary btn-block" role="button" data-toggle="modal" data-target="#oifitsModal" data-loading-text="Loading...">
-                                    <span class="glyphicon glyphicon-plus"/>&#160;Add files
-                                </a>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </fieldset>
-        <fieldset>
-            <div class="form-group">
-                <div class="col-md-offset-6 col-md-4">
-                    <button type="submit" class="btn btn-primary btn-block">Save</button>
-                    <a href="submit.html" class="btn btn-default btn-xs btn-block" role="button">Cancel</a>
+        <!-- or send submit form material -->
+        <div data-template="helpers:if-model-key" data-template-key="calib_description">
+            <form class="form-horizontal" data-template="app:upload">
+                <h1>Add <span data-template="helpers:model-value" data-template-key="calib_description"/> OIFITS files</h1>
+                <input type="hidden" name="calib_level" data-template="helpers:model-value-attribute" data-template-key="calib_level" data-template-name="value"/>
+                <input type="hidden" name="staging" data-template="helpers:model-value-attribute" data-template-key="staging" data-template-name="value"/>
+                <div class="row">
+                    <div class="col-md-offset-2 col-md-3">
+                        <a href="#" class="btn active btn-primary btn-block" role="button" id="create-collection-btn" data-loading-text="Loading...">
+                            <span class="glyphicon glyphicon-briefcase"/>
+                            Create a collection
+                        </a>
+                    </div>
+                    <div class="col-md-offset-1 col-md-3">
+                        <a href="#" class="btn active btn-primary btn-block" role="button" id="append-to-collection-btn" data-loading-text="Loading...">
+                            <span class="glyphicon glyphicon-briefcase"/>
+                            Append to ... TBD
+                        </a>
+                    </div>
                 </div>
-            </div>
-        </fieldset>
-    </form>
-    <script type="text/javascript" src="resources/scripts/selectors.js"/>
-    <script type="text/javascript" src="resources/scripts/checkreport.js"/>
-    <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
-    <script type="text/javascript" src="resources/scripts/bootstrap-tagsinput.min.js"/>
-    <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
-    <script type="text/javascript" src="resources/scripts/upload.js"/>
-    <div data-template="templates:include" data-template-path="_voar.html"/>
-
-    <!-- Modals -->
-    <div class="modal fade" id="articleModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>×</span>
-                        <span class="sr-only">Close</span>
-                    </button>
-                    <h4 class="modal-title">Add new article from bibcode</h4>
-                </div>
-                <div class="modal-body">
+                <fieldset id="oifits" data-template="app:upload">
+                    <legend>OIFITS files</legend>
+                    <div class="col-md-offset-1 col-md-10">
+                        <table class="table table-bordered table-condensed">
+                            <thead>
+                                <th>Target</th>
+                                <th>Instrument</th>
+                                <th>Instrument mode</th>
+                                <th>Night</th>
+                                <th>
+                                    <span data-template="helpers:unless-model-key" data-template-key="skip-quality-level-selector">Quality</span>
+                                </th>
+                            </thead>
+                            <tbody data-template="helpers:render" data-template-partial="_oifits-form.html" data-template-key="oifits" data-template-as="url"/>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="5">
+                                        <a href="#" class="btn active btn-primary btn-block" role="button" data-toggle="modal" data-target="#oifitsModal" data-loading-text="Loading...">
+                                            <span class="glyphicon glyphicon-plus"/>&#160;Add files
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </fieldset>
+                <fieldset>
                     <div class="form-group">
-                        <label class="control-label" for="bibcode">Bibcode</label>
-                        <input type="text" name="bibcode" placeholder="Enter article bibcode" class="form-control"/>
+                        <div class="col-md-offset-6 col-md-4">
+                            <button type="submit" class="btn btn-primary btn-block">Save</button>
+                            <a href="submit.html" class="btn btn-default btn-xs btn-block" role="button">Cancel</a>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" data-loading-text="Loading...">Add</button>
+                </fieldset>
+            </form>
+            <script type="text/javascript" src="resources/scripts/selectors.js"/>
+            <script type="text/javascript" src="resources/scripts/checkreport.js"/>
+            <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
+            <script type="text/javascript" src="resources/scripts/bootstrap-tagsinput.min.js"/>
+            <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
+            <script type="text/javascript" src="resources/scripts/upload.js"/>
+            <div data-template="templates:include" data-template-path="_voar.html"/>
+        
+            <!-- Modals -->
+            <div class="modal fade" id="articleModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span>×</span>
+                                <span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title">Add new article from bibcode</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label" for="bibcode">Bibcode</label>
+                                <input type="text" name="bibcode" placeholder="Enter article bibcode" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" data-loading-text="Loading...">Add</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="modal fade" id="oifitsModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>×</span>
-                        <span class="sr-only">Close</span>
-                    </button>
-                    <h4 class="modal-title">Add new OIFITS files</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="oifitsSrc" value="url"/> From files at URLs
-                        </label>
-                        <div class="form-group">
-                            <label class="control-label" for="urls">URLs</label>
-                            <textarea name="urls" placeholder="One URL per line" rows="4" class="form-control"/>
+            <div class="modal fade" id="oifitsModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span>×</span>
+                                <span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title">Add new OIFITS files</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="oifitsSrc" value="url"/> From files at URLs
+                                </label>
+                                <div class="form-group">
+                                    <label class="control-label" for="urls">URLs</label>
+                                    <textarea name="urls" placeholder="One URL per line" rows="4" class="form-control"/>
+                                </div>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="oifitsSrc" value="upload"/> From local files
+                                </label>
+                                <div class="form-group">
+                                    <label class="control-label" for="files">Files</label>
+                                    <input type="file" name="files" placeholder="Drop OIFits files here or select a file to upload" multiple="multiple"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Add</button>
                         </div>
                     </div>
-                    <div class="radio">
-                        <label>
-                            <input type="radio" name="oifitsSrc" value="upload"/> From local files
-                        </label>
-                        <div class="form-group">
-                            <label class="control-label" for="files">Files</label>
-                            <input type="file" name="files" placeholder="Drop OIFits files here or select a file to upload" multiple="multiple"/>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Add</button>
                 </div>
             </div>
         </div>

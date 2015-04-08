@@ -69,23 +69,17 @@ declare function granule:create($granule as node()) as xs:integer {
  :)
 declare function granule:create($granule as node(), $handle as xs:long) as xs:integer {
     let $collection := xs:string($granule/obs_collection/text())
-    return if (
-        (: check user can add granule to collection :)
-        ($collection and collection:has-access($collection, 'w')) or
-        (: any authenticated user can add granule not part of collection :)
-        (: FIXME use sm:is-authenticated() instead when fix for upstream bug #388 is released :)
-        (empty($collection) and sm:get-user-groups(xmldb:get-current-user()) = 'jmmc')) then
-            let $statement := granule:insert-statement($granule/*)
-            let $result := sql:execute($handle, $statement, false())
-        
-            return
-                if ($result/name() = "sql:exception") then
-                    error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement)
-                else
-                    (: return the id of the inserted row :)
-                    $result//sql:field[@name='id'][1]
-    else
-        error(xs:QName('granule:unauthorized'), 'Permission denied.')
+    let $check-collection := if(exists($collection)) then true() else error(xs:QName('granule:error'), 'obs_collection is not present in given granule.')
+    let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into '|| $collection ||'.')
+    
+    let $statement := granule:insert-statement($granule/*)
+    let $result := sql:execute($handle, $statement, false())
+    return
+        if ($result/name() = "sql:exception") then
+            error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement)
+        else
+            (: return the id of the inserted row :)
+            $result//sql:field[@name='id'][1]
 };
 
 (:~

@@ -17,6 +17,15 @@
                 <ul class="dropdown-menu" role="menu"/>
             </span>
         </td>
+        <td>
+            <div data-template="helpers:unless-model-key" data-template-key="skip-oifits-quality-level-selector">
+                <div data-template="app:data-quality-flags">
+                    <select class="form-control oifits-quality-level-selector" name="quality_level_common_oifits" data-template="helpers:form-control" size="1">
+                        <option data-template="helpers:select-options" data-template-key="data-quality-flags" data-template-sorted="yes"/>
+                    </select>
+                </div>
+            </div>
+        </td>
     </tr>
     <tr class="granule" data-template="helpers:each" data-template-from="oifits.granules" data-template-to="granule">
         <td>
@@ -47,10 +56,19 @@
             <input name="t_min" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.t_min" data-template-name="value"/>
             <input name="t_max" type="hidden" data-template="helpers:model-value-attribute" data-template-key="granule.t_max" data-template-name="value"/>
         </td>
+        <td>
+            <div data-template="helpers:unless-model-key" data-template-key="skip-quality-level-selector">
+                <div data-template="app:data-quality-flags">
+                    <select class="form-control quality-level-selector" name="quality_level" data-template="helpers:form-control" size="1">
+                        <option data-template="helpers:select-options" data-template-key="data-quality-flags" data-template-sorted="yes"/>
+                    </select>
+                </div>
+            </div>
+        </td>
         <input type="hidden" data-template="oifits:hidden-inputs"/>
     </tr>
     <tr data-template="helpers:unless-model-key" data-template-key="oifits.granules">
-        <td colspan="4">
+        <td colspan="5">
             <span data-template="helpers:unless-model-key" data-template-key="oifits.message">
                 No granules.
             </span>

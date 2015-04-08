@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    
     <div data-template="templates:if-parameter-set" data-template-param="id">
         <div data-template="app:show"/>
-        
         <h1>Comments</h1>
         <div class="col-md-offset-1 col-md-10" id="comments">
             <div data-template="comments:comments">
@@ -21,9 +19,9 @@
     </div>
     <div data-template="templates:if-parameter-unset" data-template-param="id">
         <div class="alert alert-warning fade in">
-                <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
-                <strong>Can't display any information</strong>
+            <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+            <strong>Can't display any information</strong>
                 Please provide a granule id in url. e.g ?id=123
-            </div>    
+            </div>
     </div>
 </div>

@@ -66,7 +66,7 @@ declare function collection:update($id as xs:string, $collection as node()) {
         attribute { "id" } { $id },
         (: update (!) the 'updated' attribute with current time :)
         attribute { "updated" } { current-dateTime() },
-        $collection/@*[name()!=( 'updated', 'id' )],
+        $collection/@*[not(name()=( 'updated', 'id' ))],
         $collection/*
     } </collection>
 

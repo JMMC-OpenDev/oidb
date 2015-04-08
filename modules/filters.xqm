@@ -86,6 +86,18 @@ declare function filters:instrument($params as xs:string) {
 };
 
 (:~
+ : Format an ADQL condition for matching/not matching a facility
+ : name.
+ : 
+ : @param $params the pattern for the facility name
+ : @return an ADQL condition or ()
+ :)
+declare function filters:facility($params as xs:string) {
+    filters:like-text($params, 'facility_name')
+};
+
+
+(:~
  : Format an ADQL condition matching rows with calibration levels. 
  : 
  : @param $params the calibration levels, comma separated
