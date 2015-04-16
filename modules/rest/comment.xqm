@@ -26,7 +26,7 @@ declare variable $comment:comments := $config:data-root || '/comments/comments.x
  : @return the UUID of the new comment
  : @error Failed to save the comment or no parent comment
  :)
-declare %private function comment:save($parent as xs:string?, $granule-id as xs:integer, $author as xs:string, $text as xs:string) {
+declare %private function comment:save($parent as xs:string?, $granule-id as xs:integer, $author as xs:string, $email as xs:string, $text as xs:string) {
     let $comments := doc($comment:comments)/comments
     let $parent := if ($parent) then $comments//comment[@granule-id=$granule-id][@id=$parent] else $comments
 
@@ -35,6 +35,7 @@ declare %private function comment:save($parent as xs:string?, $granule-id as xs:
         let $comment :=
             <comment id="{ $id }" granule-id="{ $granule-id }">
                 <author>{ $author }</author>
+                <email>{$email}</email>
                 <date>{ current-dateTime() }</date>
                 <text>{ $text }</text>
             </comment>
@@ -57,8 +58,8 @@ declare
 function comment:store-comment($comment as node()) {
     let $comment := $comment/comment
 
-    (: FIXME do not use email for user id :)
-    let $author := login:user-email()
+    let $author     := login:user-name()
+    let $email      := login:user-email()
     let $granule-id := data($comment/@granule-id)
     let $parent := data($comment/@parent)
 
@@ -68,7 +69,7 @@ function comment:store-comment($comment as node()) {
         else
             try {
                 <http:response status="201">
-                    <http:body><data>{ comment:save($parent, $granule-id, $author, $comment/text[1]/text()) }</data></http:body>
+                    <http:body><data>{ comment:save($parent, $granule-id, $author, $email, $comment/text[1]/text()) }</data></http:body>
                 </http:response>
             } catch * {
                 util:log('warn', $err:description),
