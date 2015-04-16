@@ -67,7 +67,7 @@ declare %private function adql:set_limit($params as xs:string*) as xs:string {
         let $perpage := number(adql:get-parameter($params, 'perpage', 25))
             let $perpage := if( string($perpage) != 'NaN' ) then $perpage else 25
             let $limit := max(( $perpage, $limit-param ))
-            let $offset  := ($page - 1) * $perpage
+            let $offset  := max( ( (($page - 1) * $perpage ), 0))
             return 
                 "TOP " || $limit || " OFFSET " || $offset
     else
