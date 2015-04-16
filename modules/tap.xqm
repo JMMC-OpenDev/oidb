@@ -66,7 +66,7 @@ declare function tap:status() as xs:string?
     let $tables := doc($config:TAP_TABLES)
     return if (empty($tables)) then
         'service error (no /tables resource)'
-    else if (name($tables/*) != 'tableset') then
+    else if (not(exists($tables/*:tableset))) then
         'bad response (no table metadata)'
     else
         ()
