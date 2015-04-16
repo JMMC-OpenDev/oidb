@@ -6,6 +6,7 @@ import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace xmldb = "http://exist-db.org/xquery/xmldb";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at 'config.xqm';
+import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at 'comments.xqm';
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql" ;
 
 declare variable $log:downloads := $config:data-root || '/log/downloads.xml';
@@ -13,7 +14,7 @@ declare variable $log:searches := $config:data-root || '/log/searches.xml';
 declare variable $log:submits := $config:data-root || '/log/submits.xml';
 declare variable $log:visits := $config:data-root || '/log/visits.xml'; (: This may be disabled in the futur if nb of records is too much :)
 
-declare variable $log:files := ( $log:downloads, $log:searches, $log:submits, $log:visits );
+declare variable $log:files := ( $log:downloads, $log:searches, $log:submits, $log:visits, $comments:comments );
 
 (: Notes : Records should have success or error to help quick stat computation,  user IP :)
 
