@@ -1,5 +1,5 @@
 xquery version "3.0";
-
+ 
 module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
@@ -8,6 +8,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace math="http://www.w3.org/2005/xpath-functions/math";
 import module namespace xmath="http://exist-db.org/xquery/math";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
+import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
@@ -80,53 +81,68 @@ declare function app:row-cells($node as node(), $model as map(*)) {
     let $columns := $model('columns')
     let $colnames := for $column in $columns return map:get($column, 'name')
     return
-        app:td-cells($row, $colnames)
+        app:td-cells($row, $colnames)//td (: ignore tr parent of tds :)
 };
 
-declare function app:td-cells($row as node(), $columns as xs:string*)
+declare function app:tr-cells($rows as node()*, $columns as xs:string*)
+{
+    let $trs := app:td-cells($rows, $columns )
+    for $tr at $pos in $trs
+        let $m := $columns[$pos]
+        return <tr><th>{$m}</th>{$tr//td}</tr>
+};
+
+declare function app:td-cells($rows as node()*, $columns as xs:string*)
 {
         (: output cells in the same order as headers :)
         for $col in $columns
-        let $cell := $row/td[@colname=$col]
-        return <td> {
-            switch ($cell/@colname)
-                case "access_url"
-                    return
-                        let $access-url := data($cell)
-                        let $id := $row/td[@colname='id']
-                        let $data-rights := $row/td[@colname='data_rights']
-                        let $obs-release-date := $row/td[@colname='obs_release_date']
-                        return if($data-rights and $obs-release-date) then
-                            app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
-                        else
-                            $access-url
-                case "obs_collection"
-                    return
-                        let $obs-collection := data($cell)
-                        return if ($obs-collection) then
-                            app:format-collection-url($obs-collection)
-                        else
-                            ''
-                case "s_ra"
-                    return jmmc-astro:to-hms($cell)
-                case "s_dec"
-                    return jmmc-astro:to-dms($cell)
-                case "em_min"
-                case "em_max"
-                    return app:format-wavelengths(number(data($cell)))
-                case "t_min"
-                case "t_max"
-                    return app:format-mjd($cell)
-                case "nb_channels"
-                case "nb_vis"
-                case "nb_vis2"
-                case "nb_t3"
-                    return if($cell = "" or data($cell) = -1) then '-' else data($cell)
-                case "quality_level"
-                    return if($cell = "") then "Unknown" else map:get($app:data-quality-levels, data($cell))
-                default
-                    return translate(data($cell)," ","&#160;")
-            } </td>
+        return <tr>
+        {
+            for $row in $rows
+            let $cell := $row/td[@colname=$col]
+            return <td> {
+                switch ($cell/@colname)
+                    case "access_url"
+                        return
+                            let $access-url := data($cell)
+                            let $id := $row/td[@colname='id']
+                            let $data-rights := $row/td[@colname='data_rights']
+                            let $obs-release-date := $row/td[@colname='obs_release_date']
+                            return if($data-rights and $obs-release-date) then
+                                app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
+                            else
+                                $access-url
+                    case "obs_collection"
+                        return
+                            let $obs-collection := data($cell)
+                            return if ($obs-collection) then
+                                app:format-collection-url($obs-collection)
+                            else
+                                ''
+                    case "id"
+                        return <a href="show.html?id={$cell}">{data($cell)}</a>
+                    case "s_ra"
+                        return jmmc-astro:to-hms($cell)
+                    case "s_dec"
+                        return jmmc-astro:to-dms($cell)
+                    case "em_min"
+                    case "em_max"
+                        return app:format-wavelengths(number(data($cell)))
+                    case "t_min"
+                    case "t_max"
+                        return app:format-mjd($cell)
+                    case "nb_channels"
+                    case "nb_vis"
+                    case "nb_vis2"
+                    case "nb_t3"
+                        return if($cell = "" or data($cell) = -1) then '-' else data($cell)
+                    case "quality_level"
+                        return if($cell = "") then "Unknown" else map:get($app:data-quality-levels, data($cell))
+                    default
+                        return translate(data($cell)," ","&#160;")
+                } </td>
+        }   
+        </tr>
 };
 
 (:~
@@ -905,12 +921,9 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
         <h2><i class="glyphicon glyphicon-zoom-in"/> Summary</h2>
         <table class="table table-striped table-bordered table-hover">
         {
-            let $row := $granule//tr[td]
+            let $row := ($granule//tr[td], $granule)[1] (: use tr if votable is provided else te given node as supposed to be a tr :)
             let $columns := ($app:main-metadata , "obs_creator_name", "quality_level")
-            let $tds := app:td-cells($row, $columns )
-            for $td at $pos in $tds
-                let $m := $columns[$pos]
-                return <tr><th>{$m}</th>{$td}</tr>
+            return app:tr-cells($row, $columns)
         }
     </table>
     </div>
@@ -1533,4 +1546,71 @@ declare function app:random-vignette($node as node(), $model as map(*), $categor
         attribute { 'style' } { $background || data($node/@style) },
         templates:process($node/node(), $model)
     }
+};
+
+declare function app:rssItems($max as xs:integer) as node()* {
+    let $latest-granules := adql:build-query(( 'order=subdate','order=^id', 'limit='||$max ))
+    let $votable         := tap:execute($latest-granules)
+    let $data            := app:transform-votable($votable)
+    
+    let $granule-items :=
+        for $rows in $data//tr[td] 
+            group by $url:=$rows/td[@colname="access_url"]
+            order by ($rows/td[@colname="subdate"])[1] descending
+        
+            return
+            let $first-row := ($rows)[1]
+            let $date := xs:dateTime($first-row/td[@colname="subdate"])
+            let $first-id := $first-row/td[@colname="id"]
+            let $summary := 
+                <table border="1" class="table table-striped table-bordered table-hover">
+                    {
+                        let $columns := ("id", $app:main-metadata ,"obs_collection", "obs_creator_name", "quality_level")
+                        return app:tr-cells($rows, $columns)
+                    }
+                </table>
+            let $c := count($rows)
+            let $authors := distinct-values($rows//td[@colname="datapi"])
+(:            app:show-granule-summary(<a/>,  map {'granule' := $rows }, "granule"):)
+            return
+                <item xmlns:dc="http://purl.org/dc/elements/1.1/">
+                    <link>{app:fix-relative-url("/show.html?id="||$first-id)}</link>
+                    <title> {$c} last submitted granules</title>
+                    <dc:creator>{$authors}</dc:creator>
+                    <description>
+                        {
+                            serialize(
+                                (
+                                    <h2>Description:</h2>
+                                    , <br/>
+                                    , $summary
+                                )
+                            )
+                        }
+                    </description>
+                    <pubDate>{jmmc-dateutil:ISO8601toRFC822($date)}</pubDate>
+                </item>
+                
+    let $last-comments := comments:last-comments($max)
+    let $comment-items := for $c in $last-comments 
+        let $granule-id := $c/@granule-id
+        let $date   := $c/date
+        let $text   := data($c/text)
+        let $author := data($c/author)
+            
+        return
+                <item xmlns:dc="http://purl.org/dc/elements/1.1/">
+                    <link>{app:fix-relative-url("/show.html?id="||$granule-id)}</link>
+                    <title> granule comment </title>
+                    <dc:creator>{$author}</dc:creator>
+                    <description>
+                        {   (: content could remember the thread ... :)
+                            serialize( <div><b>From {$author}</b> on {$date}:<br/> <em>{$text}</em></div> )
+                        }
+                    </description>
+                    <pubDate>{$date}</pubDate>
+                </item>
+        
+                
+    return for $item in ($granule-items, $comment-items) order by $item/pubDate descending return $item
 };
