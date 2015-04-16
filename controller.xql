@@ -54,6 +54,10 @@ if($exist:path eq '') then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="{concat(request:get-uri(), '/')}"/>
     </dispatch>
+else if($exist:path eq '/rss') then
+    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+        <forward url="rss.xql"/>
+    </dispatch>
 else if ($exist:path eq "/") then
     (: forward root path to index.xql :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
