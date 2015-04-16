@@ -2,6 +2,7 @@ xquery version "3.0";
 
 (:~
  : This module provides functions to handle comments.
+ : see also restxq/comments.xsl to look at the REST interface
  :)
 module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments";
 
@@ -39,7 +40,17 @@ declare
 %templates:wrap
 %templates:default("maxComments", 10)
 function comments:last-comments($node as node(), $model as map(*), $maxComments as xs:integer) as map(*) {
-    map { 'comments' := subsequence(reverse(doc($comments:comments)//comment), 1, $maxComments) }
+    map { 'comments' := comments:last-comments($maxComments) }
+};
+
+(:~
+ : Return the n last comments.
+ :
+ : @param $max the max number of elements
+ : @return a list of comments
+ :)
+declare function comments:last-comments($maxComments as xs:integer) as node()* {
+    subsequence(for $c in doc($comments:comments)//comment order by $c/date return $c, 1, $maxComments)
 };
 
 (:~
