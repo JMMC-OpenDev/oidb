@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div data-template="app:upload-check-calib-level">
         <!-- prevent app:upload from bad param -->
@@ -13,26 +12,12 @@
         </div>
         <!-- or send submit form material -->
         <div data-template="helpers:if-model-key" data-template-key="calib_description">
+            <h1>Add <span data-template="helpers:model-value" data-template-key="calib_description"/> OIFITS files</h1>
             <form class="form-horizontal" data-template="app:upload">
-                <h1>Add <span data-template="helpers:model-value" data-template-key="calib_description"/> OIFITS files</h1>
                 <input type="hidden" name="calib_level" data-template="helpers:model-value-attribute" data-template-key="calib_level" data-template-name="value"/>
                 <input type="hidden" name="staging" data-template="helpers:model-value-attribute" data-template-key="staging" data-template-name="value"/>
-                <div class="row">
-                    <div class="col-md-offset-2 col-md-3">
-                        <a href="#" class="btn active btn-primary btn-block" role="button" id="create-collection-btn" data-loading-text="Loading...">
-                            <span class="glyphicon glyphicon-briefcase"/>
-                            Create a collection
-                        </a>
-                    </div>
-                    <div class="col-md-offset-1 col-md-3">
-                        <a href="#" class="btn active btn-primary btn-block" role="button" id="append-to-collection-btn" data-loading-text="Loading...">
-                            <span class="glyphicon glyphicon-briefcase"/>
-                            Append to ... TBD
-                        </a>
-                    </div>
-                </div>
                 <fieldset id="oifits" data-template="app:upload">
-                    <legend>OIFITS files</legend>
+                    <legend>Step 1 : Upload OIFITS files</legend>
                     <div class="col-md-offset-1 col-md-10">
                         <table class="table table-bordered table-condensed">
                             <thead>
@@ -57,9 +42,27 @@
                         </table>
                     </div>
                 </fieldset>
+                <fieldset id="oifits" data-template="app:upload">
+                    <legend>Step 2 : Choose collection</legend>
+                    <div class="row">
+                        <div class="col-md-offset-2 col-md-3">
+                            <a href="#" class="btn active btn-primary btn-block" role="button" id="create-collection-btn" data-loading-text="Loading...">
+                                <span class="glyphicon glyphicon-briefcase"/>
+                                Create a collection
+                            </a>
+                        </div>
+                        <div class="col-md-offset-2 col-md-3">
+                            <a href="#" class="btn active btn-primary btn-block" role="button" id="append-to-collection-btn" data-loading-text="Loading...">
+                                <span class="glyphicon glyphicon-briefcase"/>
+                                Append to ... TBD
+                            </a>
+                        </div>
+                    </div>
+                </fieldset>
                 <fieldset>
+                    <legend>Step 3 : Save</legend>
                     <div class="form-group">
-                        <div class="col-md-offset-6 col-md-4">
+                        <div class="col-md-offset-4 col-md-4">
                             <button type="submit" class="btn btn-primary btn-block">Save</button>
                             <a href="submit.html" class="btn btn-default btn-xs btn-block" role="button">Cancel</a>
                         </div>
