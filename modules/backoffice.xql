@@ -10,6 +10,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm"; 
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace scheduler="http://exist-db.org/xquery/scheduler";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
 declare variable $backoffice:update-doc := "OiDB doc updater";
 declare variable $backoffice:update-vega := "OiDB VEGA updater";
@@ -25,6 +26,12 @@ declare variable $backoffice:update-chara := "OiDB CHARA updater";
 declare function backoffice:main-status($node as node(), $model as map(*)) as node()* {
     <div>
         <dl class="dl-horizontal">
+            {
+                if(app:user-admin()) then 
+                    (<dt><span class="glyphicon glyphicon-warning-sign"/>&#160;Warning</dt>, <dd><span class="label label-danger">you are superuser</span></dd>)
+                else
+                    ()
+            }
             <dt>Current datetime</dt>
             <dd>{current-dateTime()}</dd>
             <dt>Uptime</dt>
