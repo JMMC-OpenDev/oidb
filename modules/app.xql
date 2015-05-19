@@ -26,6 +26,18 @@ declare variable $app:main-metadata := ( 'target_name', 'access_url', 't_min', '
 (: UCD (Unified Content Descriptor) description service :)
 declare variable $app:UCD_URL := "http://cdsws.u-strasbg.fr/axis/services/UCD?method=explain&amp;ucd=";
 
+
+declare variable $app:domain := "fr.jmmc.oidb.login";
+
+declare function app:user-allowed() as xs:boolean {
+    let $user := request:get-attribute($app:domain || '.user')
+    return $user and $user != "guest"
+};
+
+declare function app:user-admin() as xs:boolean {
+   request:get-attribute($app:domain || '.superuser')
+};
+
 (:~
  : Return a selection of items from the data row as HTML5 data attributes.
  : 

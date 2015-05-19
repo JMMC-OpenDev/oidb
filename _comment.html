@@ -5,16 +5,12 @@
     </div>
     <div class="media-body">
         <h4 class="media-heading">
-            <div data-template="app:user-info" data-template-key="comment.author">
-                <span data-template="helpers:model-value" data-template-key="user.name"/>
-                <span data-template="helpers:if-model-key" data-template-key="user.affiliation">
-                    &#160;(<small>
-                        <span data-template="helpers:model-value" data-template-key="user.affiliation"/>
-                    </small>)
-                </span>
-                &#160;
+            <div>
+                <span data-template="helpers:model-value" data-template-key="comment.author"/>
+                  <!-- to resurect affiliation display, please use back again app:user-info template  -->
                 <small>
-                    <i>Posted on <span data-template="helpers:model-value" data-template-key="comment.date"/></i>
+                    <i>Posted on <span data-template="helpers:model-value" data-template-key="comment.date"/>
+                    </i>
                 </small>
             </div>
         </h4>
