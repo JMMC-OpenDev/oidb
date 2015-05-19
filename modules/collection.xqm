@@ -7,6 +7,7 @@ xquery version "3.0";
 module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
 (: Root directory where collections are stored :)
 declare variable $collection:collections-uri := $config:data-root || '/collections';
@@ -81,13 +82,13 @@ declare function collection:update($id as xs:string, $collection as node()) {
 };
 
 (:~
- : Remove a collection given its ID.
+ : Remove a collection given its ID with associated granules in SQL db.
  : 
- : The XML resource for the collection is deleted.
+ : The XML resource for the collection and sql records are deleted.
  : 
  : @param $id the id of the collection to delete
  : @return empty
- : @error collection not found, not authorized
+ : @error failed to delete, collection not found, not authorized
  :)
 declare function collection:delete($id as xs:string) {
     let $collection := collection:retrieve($id)
@@ -96,8 +97,53 @@ declare function collection:delete($id as xs:string) {
     else if (not(collection:has-access($collection, 'w'))) then
         error(xs:QName('collection:unauthorized'), 'Permission denied.')
     else
-        (: TODO also remove the granules :)
+        (
+            collection:delete-granules($id),
         xmldb:remove(util:collection-name($collection), util:document-name($collection))
+        )
+};
+
+
+(:~
+ : Format an SQL DELETE request with the given collection id to remove associated granules.
+ : 
+ : @param $collection-id the id of the collection to delete
+ : @return a SQL DELETE statement
+ :)
+declare %private function collection:delete-granules-statement($collection-id as xs:string) as xs:string {
+    "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $collection-id || "'"
+};
+
+(:~
+ : Remove the granules associated to the given collection ID.
+ : 
+ : @param @param $collection-id the id of the collection to delete
+ : @return empty
+ : @error failed to delete
+ :)
+declare function collection:delete-granules($collection-id as xs:string) as empty() {
+    collection:delete-granules($collection-id, config:get-db-connection())
+};
+
+(:~
+ : Remove the granules associated to the given collection ID.
+ : 
+ : @param @param $collection-id the id of the collection to delete
+ : @param $handle the SQL database handle
+ : @return empty
+ : @error failed to delete
+ :)
+declare function collection:delete-granules($collection-id as xs:string, $handle as xs:long) as empty() {
+        let $statement := collection:delete-granules-statement($collection-id)
+        let $result := sql:execute($handle, $statement, false())
+
+        return if ($result/name() = 'sql:result' and $result/@updateCount > 0) then
+            (: rows deleted successfully :)
+            ()
+        else if ($result/name() = 'sql:exception') then
+            error(xs:QName('collection:error'), 'Failed to delete granules for collection ' || $collection-id || ': ' || $result//sql:message/text())
+        else
+            error(xs:QName('collection:error'), 'Failed to delete granules for collection ' || $collection-id || '.')
 };
 
 (:~
@@ -114,7 +160,7 @@ declare function collection:list() as element(collection)* {
 };
 
 (:~
- : Check whether the current user has access to collection.
+ : Check whether the current user has access to collection or is superuser.
  : 
  : @param $id-or-collection the id of the collection to test or the collection as XML fragment
  : @param $mode the partial mode to check against the collection e.g. 'rwx'
@@ -132,5 +178,5 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
         error(xs:QName('collection:error'), 'No such collection')
     else
         (: check access to collection XML file :)
-        sm:has-access(document-uri(root($collection)), $mode)
+        sm:has-access(document-uri(root($collection)), $mode) or app:user-admin()
 };
