@@ -2,9 +2,13 @@
 <a xmlns="http://www.w3.org/1999/xhtml" class="list-group-item" data-template="helpers:model-value-attribute" data-template-key="collection.url" data-template-name="href">
     <div data-template="app:collection-stats" data-template-key="collection.id">
         <div class="row">
-            <div class="col-md-9">
+            <div class="col-md-10">
                 <h4 class="list-group-item-heading">
-                    <span data-template="helpers:model-value" data-template-key="collection.name"/> - <span data-template="helpers:model-value" data-template-key="collection.title"/>
+                    <div data-template="templates:if-attribute-set" data-template-attribute="fr.jmmc.oidb.login.superuser">
+                        <button type="button" class="btn btn-default" data-template="helpers:model-value-attribute" data-template-key="collection.id" data-template-name="data-colref">
+                            <span class="glyphicon glyphicon-trash"/> Remove whole collection</button>&#160;
+                    </div>
+                    &#160; <span data-template="helpers:model-value" data-template-key="collection.name"/> - <span data-template="helpers:model-value" data-template-key="collection.title"/>
                 </h4>
                 <div class="list-group-item-text">
                     <p style="white-space: pre-wrap;">
@@ -17,7 +21,7 @@
                 </em>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
             From <span data-template="app:date-multiline" data-template-key="from-date"/> to
             <span data-template="app:date-multiline" data-template-key="to-date"/>
             </div>
