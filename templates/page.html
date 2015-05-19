@@ -14,6 +14,10 @@
         <script type="text/javascript" src="resources/scripts/sampjs/samp.js"/>
         <script type="text/javascript" src="resources/scripts/samp.js"/>
         <script type="text/javascript" src="resources/scripts/login.js"/>
+        <div data-template="templates:if-attribute-set" data-template-attribute="fr.jmmc.oidb.login.superuser">
+			<!-- includes javascript for admin operations if authenticated as superuser -->
+            <script type="text/javascript" src="resources/scripts/admin.js"/>
+        </div>
     </head>
     <body id="body" data-template="jmmc-about:changelog">
         <nav class="navbar navbar-default" role="navigation">
@@ -191,12 +195,12 @@
                         <p>
                             This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>
                             <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">
-                                <img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"/>
+                                <img alt="Creative Commons License" style="border-width:0" src="resources/images/by-nc-sa_4.0_88x31.png"/>
                             </a>.
                         </p>
                     </div>
                     <div class="col-md-2">
-                         Current version: <span data-template="jmmc-about:version"/>
+                         Current version: <span data-template="jmmc-about:version"/>&#160;<span data-template="jmmc-about:status"/>
                         <br/>
                         <a class="btn btn-default btn-xs" href="doc.html#3_Terms_of_use_USER_MUST_READ">Terms of Use</a>&#160;
                     </div>
