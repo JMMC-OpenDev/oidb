@@ -1,5 +1,12 @@
 // SAMP
 
+
+function qualifyURL(url) {
+  var a = document.createElement('a');
+  a.href = url;
+  return a.cloneNode(false).href;
+}
+
 function getCookie(name) {
     var cookies = document.cookie ? document.cookie.split('; ') : [];
     for(c in cookies) {
@@ -103,6 +110,7 @@ $(function () {
                 conn.getSubscribedClients([mtype], function (res) {
                     var parameters = jQuery.isFunction(params) ? params.call(e.currentTarget) : params;
                     var sendMessage = function (id) {
+                        if(parameters.url){ parameters.url=qualifyURL(parameters.url); }
                         var msg = new samp.Message(mtype, parameters);
                         conn.notify([id, msg]);
                     };
