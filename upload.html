@@ -24,7 +24,7 @@
                                 <th>Target</th>
                                 <th>Instrument</th>
                                 <th>Instrument mode</th>
-                                <th>Night</th>
+                                <th>Time interval</th>
                                 <th>
                                     <span data-template="helpers:unless-model-key" data-template-key="skip-quality-level-selector">Quality</span>
                                 </th>
@@ -71,7 +71,6 @@
             </form>
             <script type="text/javascript" src="resources/scripts/selectors.js"/>
             <script type="text/javascript" src="resources/scripts/checkreport.js"/>
-            <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>
             <script type="text/javascript" src="resources/scripts/bootstrap-tagsinput.min.js"/>
             <script type="text/javascript" src="resources/scripts/bootstrap3-typeahead.min.js"/>
             <script type="text/javascript" src="resources/scripts/upload.js"/>
@@ -101,6 +100,25 @@
                     </div>
                 </div>
             </div>
+            <div class="modal fade" id="errorModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span>×</span>
+                                <span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title">Submission form is not complete:</h4>
+                        </div>
+                        <div class="modal-body">
+                            <ul id="errorModalList"/>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="modal fade" id="oifitsModal" tabindex="-1" role="dialog">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -114,20 +132,20 @@
                         <div class="modal-body">
                             <div class="radio">
                                 <label>
-                                    <input type="radio" name="oifitsSrc" value="url"/> From files at URLs
-                                </label>
-                                <div class="form-group">
-                                    <label class="control-label" for="urls">URLs</label>
-                                    <textarea name="urls" placeholder="One URL per line" rows="4" class="form-control"/>
-                                </div>
-                            </div>
-                            <div class="radio">
-                                <label>
                                     <input type="radio" name="oifitsSrc" value="upload"/> From local files
                                 </label>
                                 <div class="form-group">
                                     <label class="control-label" for="files">Files</label>
                                     <input type="file" name="files" placeholder="Drop OIFits files here or select a file to upload" multiple="multiple"/>
+                                </div>
+                            </div>
+                            <div class="radio">
+                                <label>
+                                    <input type="radio" name="oifitsSrc" value="url"/> From files at URLs
+                                </label>
+                                <div class="form-group">
+                                    <label class="control-label" for="urls">URLs</label>
+                                    <textarea name="urls" placeholder="One URL per line" rows="4" class="form-control"/>
                                 </div>
                             </div>
                         </div>
