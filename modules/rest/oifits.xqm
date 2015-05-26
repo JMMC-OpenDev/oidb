@@ -69,7 +69,7 @@ declare %private function oifits:basename($name as xs:string) as xs:string {
  :)
 declare %private function oifits:save($path as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
     let $new-collection := string-join(tokenize($path, '/')[position()!=last()] ! encode-for-uri(.), '/')
-    let $resource := encode-for-uri(oifits:basename($path))
+    let $resource := xmldb:encode(oifits:basename($path))
     
     let $collection := xmldb:create-collection($collection, $new-collection)
 
