@@ -25,14 +25,18 @@ declare %private function oifits:get-data($model as map(*)) as item()* {
     else if ('url' = request:get-parameter-names()) then
         request:get-parameter('url', false())
     else
+        (: TODO check $staging and $path :)
         let $staging := request:get-parameter('staging', false())
         let $path    := request:get-parameter('path', false())
-        (: TODO check $staging and $path :)
+        (: fix path so it corresponds to a valid collection or resource name :)
+        let $path := string-join(tokenize($path, '/') ! xmldb:encode(.), '/')
 
         (: TODO create a route in controller for staged files :)
-        let $path := string-join(tokenize($path, '/') ! encode-for-uri(.), '/')
         (: FIXME strange that it is necessary to encode AGAIN the path for the url, upstream bug? :)
-        let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || string-join(tokenize($path, '/') ! encode-for-uri(.), '/')
+        (: http://www.ietf.org/rfc/rfc1738.txt :)
+		(: http://www.blooberry.com/indexdot/html/topics/urlencoding.htm :)
+        let $url-file := string-join(tokenize($path, '/') ! replace(.,"%25","%2525") ! replace(.,"%3A","%253A") ! replace(.,"%3F","%253F") ! replace(.,"%5B","%255B") ! replace(.,"%5D","%255D") , '/')
+        let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || $url-file
         let $data := util:binary-doc($oifits:staging || $staging || '/' || $path)
         return ( $url, $data )
 };
