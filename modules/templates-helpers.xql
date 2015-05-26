@@ -143,7 +143,10 @@ declare function helpers:get($model as item()*, $key as xs:string) as item()* {
  : @return a string with value of the key in the model
  :)
 declare %private function helpers:model-value($model as map(*), $key as xs:string) as xs:string? {
-    xs:string(helpers:get($model, $key))
+    let $v := helpers:get($model, $key)
+    return if( $v ) then string-join($v, ", ")
+    else ()
+(:    xs:string(helpers:get($model, $key)):)
 };
 
 (:~
