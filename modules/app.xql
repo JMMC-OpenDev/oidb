@@ -104,6 +104,13 @@ declare function app:tr-cells($rows as node()*, $columns as xs:string*)
         return <tr><th>{$m}</th>{$tr//td}</tr>
 };
 
+(:~ 
+ : Output a tr fragment per given column picking data from given rows.
+ : 
+ : @param $rows the rows to search data into
+ : @param $columns the list of column name to output
+ : @return a sequence of <tr/> elements for the each columns with one td per row
+ :)
 declare function app:td-cells($rows as node()*, $columns as xs:string*)
 {
         (: output cells in the same order as headers :)
@@ -112,7 +119,23 @@ declare function app:td-cells($rows as node()*, $columns as xs:string*)
         {
             for $row in $rows
             let $cell := $row/td[@colname=$col]
-            return <td> {
+                return
+                    if($cell) then app:td-cell($cell, $row) else <td class="missing-column-{$col}"/>
+        }   
+        </tr>
+};
+
+(:~ 
+ : Output a td fragment per given column picking data from given rows.
+ : 
+ : @param $cell the cell element to convert if appropriate
+ : @param $columns the list of column name to output
+ : @param $row the row to search complimentary data into
+ : @return a sequence of <tr/> elements for the each columns with one td per row
+ :)
+declare function app:td-cell($cell as node(), $row as node()*) as element()
+{
+    <td> {
                 switch ($cell/@colname)
                     case "access_url"
                         return
@@ -123,7 +146,12 @@ declare function app:td-cells($rows as node()*, $columns as xs:string*)
                             return if($data-rights and $obs-release-date) then
                                 app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
                             else
-                                $access-url
+                        <a href="{ $access-url }"> { tokenize($access-url, "/")[last()] }</a>
+            case "bib_reference"
+                return <a href="{ app:adsbib-url($cell) }">{ data($cell) }</a>
+            case "em_min"
+            case "em_max"
+                return app:format-wavelengths(number(data($cell)))
                     case "obs_collection"
                         return
                             let $obs-collection := data($cell)
@@ -133,13 +161,18 @@ declare function app:td-cells($rows as node()*, $columns as xs:string*)
                                 ''
                     case "id"
                         return <a href="show.html?id={$cell}">{data($cell)}</a>
+            case "keywords" 
+                return if(exists(data($cell))) then 
+                        <div class="bootstrap-tagsinput"> {  	 	 
+                            let $keywords := tokenize($cell, ";")  	 	 
+                            for $kw in $keywords  	 	 
+                                return <span class="tag label label-info">{ $kw }</span>  	 	 
+                        }</div>
+                    else ''
                     case "s_ra"
                         return jmmc-astro:to-hms($cell)
                     case "s_dec"
                         return jmmc-astro:to-dms($cell)
-                    case "em_min"
-                    case "em_max"
-                        return app:format-wavelengths(number(data($cell)))
                     case "t_min"
                     case "t_max"
                         return app:format-mjd($cell)
@@ -153,8 +186,6 @@ declare function app:td-cells($rows as node()*, $columns as xs:string*)
                     default
                         return translate(data($cell)," ","&#160;")
                 } </td>
-        }   
-        </tr>
 };
 
 (:~
@@ -253,10 +284,15 @@ declare function app:fix-relative-url($url as xs:string) as xs:string {
  :)
 declare %private function app:format-collection-url($id as xs:string) {
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]/name/text()
-    return element { "a" } {
+    return (
+        element { "a" } {
         attribute { "href" } { "collection.html?id=" || encode-for-uri($id) },
         if ($collection) then $collection else $id
-    }
+            },
+        if (starts-with($id, 'J/')) then
+            (",&#160;",<a href="{ app:vizcat-url($id) }">VizieR&#160;<span class="glyphicon glyphicon-new-window"></span></a>)
+        else ()
+    )
 };
 
 (:~
@@ -889,25 +925,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
         {
             for $th at $i in $data//th[@name!='id']
             let $td := $data//td[position()=index-of($data//th, $th)]
-            return <tr> <th> { $th/node() } </th> {
-                if ($td[@colname='access_url']) then 
-                    <td> <a href="{ $td/text() }"> { tokenize($td/text(), "/")[last()] }</a></td>
-                else if ($td[@colname='obs_collection' and starts-with($td/text(), 'J/')]) then
-                    <td> <a href="{ app:vizcat-url($td/text()) }">{ $td/text() }</a></td>
-                else if ($td[@colname='bib_reference']/node()) then
-                    <td> <a href="{ app:adsbib-url($td) }">{ $td/text() }</a></td>
-                else if ($td[@colname='keywords']/node()) then  	 	 
-                    <td>  	 	 
-                        <link rel="stylesheet" type="text/css" href="resources/css/bootstrap-tagsinput.css"/>  	 	 
-                        <div class="bootstrap-tagsinput"> {  	 	 
-                            let $keywords := tokenize($td/text(), ";")  	 	 
-                            for $kw in $keywords  	 	 
-                            return <span class="tag label label-info">{ $kw }</span>  	 	 
-                        } </div>  	 	 
-                    </td>
-                else
-                    <td> { $td/text() } </td>
-            } </tr>
+            return <tr> <th> { $th/node() } </th> {app:td-cell($td, $data) } </tr>
         }
     </table>)
 };
