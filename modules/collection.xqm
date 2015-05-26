@@ -137,13 +137,13 @@ declare function collection:delete-granules($collection-id as xs:string, $handle
         let $statement := collection:delete-granules-statement($collection-id)
         let $result := sql:execute($handle, $statement, false())
 
-        return if ($result/name() = 'sql:result' and $result/@updateCount > 0) then
+        return if ($result/name() = 'sql:result' and $result/@updateCount >= 0) then
             (: rows deleted successfully :)
             ()
         else if ($result/name() = 'sql:exception') then
-            error(xs:QName('collection:error'), 'Failed to delete granules for collection ' || $collection-id || ': ' || $result//sql:message/text())
+            error(xs:QName('collection:error'), 'Failed to delete granules for collection , sql:exception ' || $collection-id || ': ' || $result//sql:message/text())
         else
-            error(xs:QName('collection:error'), 'Failed to delete granules for collection ' || $collection-id || '.')
+            error(xs:QName('collection:error'), 'Failed to delete granules for collection ' || $collection-id || ': ' || serialize($result))
 };
 
 (:~
