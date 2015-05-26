@@ -140,13 +140,12 @@ declare function helpers:get($model as item()*, $key as xs:string) as item()* {
  : 
  : @param $model the current model
  : @param $key   the key to search for in the model
- : @return a string with value of the key in the model
+ : @return null if no key is found or a string with value of the key in the model / string separeted by ccomma if multiple values are found
  :)
 declare %private function helpers:model-value($model as map(*), $key as xs:string) as xs:string? {
     let $v := helpers:get($model, $key)
-    return if( $v ) then string-join($v, ", ")
-    else ()
-(:    xs:string(helpers:get($model, $key)):)
+    return 
+        if( $v ) then string-join($v, ", ") else ()
 };
 
 (:~
