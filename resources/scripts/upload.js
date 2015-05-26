@@ -11,10 +11,13 @@ $(function () {
                 $(':input[name="bibcode"][value="' + bibcode + '"]', $fieldset).size() === 0
             );
         }
-
+        
+        
         // add a button to open a dialog for adding new article
+        // add-article-button class is set to remote it on first article addition
         $('> div', $fieldset).append($('\
-            <div class="pull-right">\
+            <div class="pull-right add-article-button">\
+                <input value="" placeholder="bibcode" name="bibcode" class="readonly" required="required" role="button" data-toggle="modal" data-target="#articleModal" data-loading-text="..."/>\
                 <a href="#" class="btn active btn-primary" role="button" data-toggle="modal" data-target="#articleModal" data-loading-text="...">\
                     <span class="glyphicon glyphicon-plus"/>&#160;Add article\
                 </a>\
@@ -39,7 +42,10 @@ $(function () {
                                 // close modal when finished
                                 $modal.modal('hide');
                             });
+                        // prevent multiple bibcodes
+                        $('.add-article-button', $fieldset).remove();
                     });
+                
             } else {
                 // incorrect bibcode, decorate field and let user try again
                 $bibcode.parents('.form-group').addClass('has-error');
@@ -299,15 +305,19 @@ $(function () {
     setupOIFITSModal();
 
 
-
-
     $.fn.serializeXML = function(doc, root) {
         this.each(function () {
-            var name = $(this).attr('name');
-            if (name) {
-                var e = doc.createElement(name);
-                e.textContent = $(this).val();
-                root.appendChild(e);
+            var $input = $(this)
+            var name = $input.attr('name');
+            var val = $input.val()
+            var values = $.isArray(val) ? val : [val] // this special hack is for handling select cases with multiple options
+            if (name){
+                $.each(values, function( index, value ) {
+                    console.log("append element '"+name+"' with "+value); 
+                    var e = doc.createElement(name);
+                    e.textContent = value;
+                    root.appendChild(e);
+                });
             }
         });
     };
@@ -321,7 +331,8 @@ $(function () {
                 var id = $(element).val();
                 collection.documentElement.setAttribute("id", id); 
             }).end()
-            .not('#articles :input, [name="id"]').serializeXML(collection, collection.documentElement);
+            .not('#articles :input, [name="id"]')
+            .serializeXML(collection, collection.documentElement);
         $('#articles > li', $collection).each(function () {
             var article = collection.createElement('article');
             $(':input', this).serializeXML(collection, article);
@@ -357,16 +368,19 @@ $(function () {
     // to an optional collection
     function serializeGranules($granules, collection) {
         var data = {};
+        
         // pick info for granules from collection
         if(typeof collection !== "undefined") {
             // FIXME using jQuery on XML, use low level DOM functions instead
             var $collection = $('collection', collection);
-            data.obs_collection = $collection.attr('id');
-
+            
             // data from collection to add to each granule
+            data.obs_collection = $collection.attr('id');
+            data.keywords = $('keyword', $collection).map(function(){return $(this).text()}).get().join(" ; ");
+            
             var $article = $('article', $collection);
             if ($article.size() !== 0) {
-                // may have more than one article attached
+                // may have more than one article attached (... in the future : button is by now remove after first successfull article setup)
                 $article = $article.first();
                 data.bib_reference    = $('bibcode', $article).text();
                 data.obs_release_date = $('pubdate', $article).text();
@@ -418,9 +432,27 @@ $(function () {
     $('form').submit(function (e) {
         e.preventDefault();
 
+        var $collection_fs = $('#collection');
+        var collection = serializeCollection($collection_fs);
+        var $granules = $('#oifits tr.granule');
+        
+        // perform some checkup before submit
+        $error_list = $("#errorModalList").empty();
         if ($('#oifits tr.granule').size() == 0) {
+            $error_list.append($("<li>You must add one or more OIFits file(s) in step 1 section</li>"));
+        }
+        if ($collection_fs.length == 0) {
+            $error_list.append($("<li>You must create or select a collection in step 2 section</li>"));
+        }else{
+            if ( ! ( $(':input[name="name"]',$collection_fs).val() && $(':input[name="title"]',$collection_fs).val() ) ) {
+                $error_list.append($("<li>You must setup the <b>name</b> and <b>title</b> of your collection in step 2 section</li>"));
+            }
+        }
+        if( $error_list.has( "li" ).length ){
+            $("#errorModal").modal();
             return;
         }
+        
 
         var $buttons = $('.btn', this);
         // disable form buttons while the data is uploaded
@@ -428,21 +460,15 @@ $(function () {
             .attr('disabled', 'disabled')
             .filter(':submit').append('<img src="resources/images/spinner.gif"/>');
 
-        var $collection_fs = $('#collection');
         // freeze the collection form
         $(':input', $collection_fs).prop('disabled', true);
         $('.tag span[data-role="remove"]', $collection_fs).remove();
 
-        var $granules = $('#oifits tr.granule');
 
-        var collection;
         $.when(1)
             // save the collection if any
             .pipe(function () {
-                if ($collection_fs.length !== 0) {
-                    collection = serializeCollection($collection_fs);
-                    return saveCollection(collection);
-                }
+                return saveCollection(collection);
             })
             // save all granules
             .pipe(function () {
