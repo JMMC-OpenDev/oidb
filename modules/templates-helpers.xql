@@ -145,7 +145,7 @@ declare function helpers:get($model as item()*, $key as xs:string) as item()* {
 declare %private function helpers:model-value($model as map(*), $key as xs:string) as xs:string? {
     let $v := helpers:get($model, $key)
     return 
-        if( $v ) then string-join($v, ", ") else ()
+        if( exists($v) ) then string-join(for $e in $v return xs:string($e), ", ") else ()
 };
 
 (:~
@@ -170,6 +170,18 @@ declare function helpers:model-value($node as node(), $model as map(*), $key as 
  :)
 declare function helpers:model-content($node as node(), $model as map(*), $key as xs:string) as item()* {
     helpers:get($model, $key)
+};
+(:~
+ : Return the content of the given key in the model as a xml comment.
+ : 
+ : @param $node  a placeholder for text
+ : @param $model the current model
+ : @param $key   the key to search in the model
+ : @return the content for key in model or nothing in comment
+ :)
+declare function helpers:model-comment($node as node(), $model as map(*), $key as xs:string) as node()? {
+    let $content := helpers:get($model, $key)
+    return comment {$content}
 };
 
 (:~
