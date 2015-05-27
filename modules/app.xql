@@ -1156,7 +1156,7 @@ declare function app:collections($node as node(), $model as map(*)) as map(*) {
 declare function app:collection($node as node(), $model as map(*)) as map(*) {
     let $id := request:get-parameter('id', '')
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
-    return map { 'collection' := $collection }
+    return map { 'collection' := $collection, 'document-name' :=  util:document-name($collection) }
 };
 
 (:~
