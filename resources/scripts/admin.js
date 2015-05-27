@@ -16,7 +16,7 @@ $(function () {
     
     function deleteCollection(id, $blockToRemove) {
         $.ajax(
-            'restxq/oidb/collection/'+id, { type: 'DELETE' }
+            'restxq/oidb/collection/'+encodeURIComponent(id), { type: 'DELETE' }
         ).done(function() {
             $blockToRemove.remove();
         }).fail(function( jqXHR, textStatus, errorThrown ) {
