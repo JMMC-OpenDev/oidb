@@ -146,7 +146,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                             return if($data-rights and $obs-release-date) then
                                 app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
                             else
-                        <a href="{ $access-url }"> { tokenize($access-url, "/")[last()] }</a>
+                                <a href="{ $access-url }"> { tokenize($access-url, "/")[last()]  ! xmldb:decode(.) }</a>
             case "bib_reference"
                 return <a href="{ app:adsbib-url($cell) }">{ data($cell) }</a>
             case "em_min"
@@ -255,7 +255,7 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
                 attribute { "data-original-title" } { $contact },
                 attribute { "data-html" } { "true" }
             ),
-         tokenize($url, "/")[last()] ,
+         tokenize($url, "/")[last()] ! xmldb:decode(.) ,
          if ($public) then () else <i class="glyphicon glyphicon-lock"/> 
         }
 };

@@ -20,6 +20,13 @@ declare variable $oifits:base-staging := $config:data-root || '/oifits/staging/'
 (: the MIME type for OIFits data :)
 declare variable $oifits:mime-type := 'application/oifits';
 
+(: Replace xmldb:encode to replace the minimal subset that keep valid resource name :)
+declare %private function oifits:normalise-resource-path($path as xs:string) as xs:string
+{
+    (: <space> " # % : < > ? [ \ ] ^ ` { | }:) 
+	(: take care of the first % replacement that MUST occur at the begining of replace sequence :)
+    $path ! replace(.,"%","%25") ! replace(.,' ',"%20")! replace(.,'"',"%22") ! replace(.,"#","%23")  ! replace(.,":","%3A")  ! replace(.,"<","%3C")  ! replace(.,">","%3E")  ! replace(.,"\?","%3F")  ! replace(.,"\[","%5B")  ! replace(.,"\\","%5C")  ! replace(.,"\]","%5D")  ! replace(.,"\^","%5E")  ! replace(.,"`","%60")  ! replace(.,"\{","%7B")  ! replace(.,"\|","%7C")  ! replace(.,"\}","%7D")
+};
 (:~
  : Strip last component from filename
  : 
@@ -68,8 +75,9 @@ declare %private function oifits:basename($name as xs:string) as xs:string {
  : @return en element with status for the operation
  :)
 declare %private function oifits:save($path as xs:string, $data as xs:base64Binary, $collection as xs:string) as node() {
-    let $new-collection := string-join(tokenize($path, '/')[position()!=last()] ! encode-for-uri(.), '/')
-    let $resource := xmldb:encode(oifits:basename($path))
+    let $new-collection := string-join(tokenize($path, '/')[position()!=last()] ! xmldb:encode(.), '/')
+    (:    let $resource := xmldb:encode(oifits:basename($path)):)
+    let $resource := oifits:normalise-resource-path(oifits:basename($path))
     
     let $collection := xmldb:create-collection($collection, $new-collection)
 
@@ -81,11 +89,12 @@ declare %private function oifits:save($path as xs:string, $data as xs:base64Bina
             If the document is invalid, it is then deleted.
         :)
         let $doc := xmldb:store($collection, $resource, $data, $oifits:mime-type)
+        let $doc-name := oifits:basename($doc)
 
         return if ($doc) then
             try {
                 jmmc-oiexplorer:check(util:binary-doc($doc)),
-                <file name="{ $path }"/>
+                <file name="{ $doc-name }" original-path="{$path}"/>
             } catch * {
                 (: not an OIFits :)
                 xmldb:remove($collection, oifits:basename($path)),

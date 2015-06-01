@@ -18,6 +18,11 @@ import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 
 declare variable $oifits:staging := $config:data-root || '/oifits/staging/';
 
+(: Replace some escaped chars to beautify the provided urls :)
+declare %private function oifits:unescape-uri-path($path as xs:string) as xs:string
+{
+ $path ! replace(.,"%2522","%22") ! replace(.,"%253C","%3C")  ! replace(.,"%253E","%3E")  ! replace(.,"%255C","%5C")  ! replace(.,"%2560","%60")  ! replace(.,"%257B","%7B")  ! replace(.,"%257C","%7C") ! replace(.,"%257D","%7D")
+};
 declare %private function oifits:get-data($model as map(*)) as item()* {
     if (map:contains($model, 'url')) then
         map:get($model, 'url')
@@ -28,16 +33,13 @@ declare %private function oifits:get-data($model as map(*)) as item()* {
         (: TODO check $staging and $path :)
         let $staging := request:get-parameter('staging', false())
         let $path    := request:get-parameter('path', false())
-        (: fix path so it corresponds to a valid collection or resource name :)
-        let $path := string-join(tokenize($path, '/') ! xmldb:encode(.), '/')
-
+        
         (: TODO create a route in controller for staged files :)
-        (: FIXME strange that it is necessary to encode AGAIN the path for the url, upstream bug? :)
-        (: http://www.ietf.org/rfc/rfc1738.txt :)
-		(: http://www.blooberry.com/indexdot/html/topics/urlencoding.htm :)
-        let $url-file := string-join(tokenize($path, '/') ! replace(.,"%25","%2525") ! replace(.,"%3A","%253A") ! replace(.,"%3F","%253F") ! replace(.,"%5B","%255B") ! replace(.,"%5D","%255D") , '/')
+        let $url-file := string-join(tokenize($path, '/') ! encode-for-uri(.), '/') ! oifits:unescape-uri-path(.)
         let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || $url-file
+        
         let $data := util:binary-doc($oifits:staging || $staging || '/' || $path)
+        
         return ( $url, $data )
 };
 
