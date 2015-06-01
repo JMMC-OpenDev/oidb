@@ -21,7 +21,7 @@ declare variable $oifits:staging := $config:data-root || '/oifits/staging/';
 (: Replace some escaped chars to beautify the provided urls :)
 declare %private function oifits:unescape-uri-path($path as xs:string) as xs:string
 {
- $path ! replace(.,"%2522","%22") ! replace(.,"%253C","%3C")  ! replace(.,"%253E","%3E")  ! replace(.,"%255C","%5C")  ! replace(.,"%2560","%60")  ! replace(.,"%257B","%7B")  ! replace(.,"%257C","%7C") ! replace(.,"%257D","%7D")
+ $path ! replace(.,"%2522","%22") ! replace(.,"%253C","%3C")  ! replace(.,"%253E","%3E")  ! replace(.,"%255C","%5C")  ! replace(.,"%255E","%5E") ! replace(.,"%2560","%60")  ! replace(.,"%257B","%7B")  ! replace(.,"%257C","%7C") ! replace(.,"%257D","%7D")
 };
 declare %private function oifits:get-data($model as map(*)) as item()* {
     if (map:contains($model, 'url')) then
