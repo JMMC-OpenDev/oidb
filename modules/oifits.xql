@@ -86,11 +86,11 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
             let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
 
             let $report := $oifits/checkReport/text()
+            let $reject-nonl3-severe := false() (: true rejects L1/L2 with SEVERE entry :)
             return map:new(( 
                 map:entry('report', $report),
                 (: TODO better tests on report, better report? :)
-                (: for now simply rejecting if any SEVERE item found :)
-                if ($calib_level<3 and matches($report, 'SEVERE')) then
+                if ($reject-nonl3-severe and $calib_level<3 and matches($report, 'SEVERE')) then
                     map:entry('message', 'Invalid OIFITS file, see report for details. Please send feedback, if some SEVERE level are too strict.')
                 else
                     let $granules := oifits:prepare-granules($oifits, $url)
