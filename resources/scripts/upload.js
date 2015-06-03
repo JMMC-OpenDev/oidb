@@ -62,7 +62,7 @@ $(function () {
 
     function setupCollectionFieldset($fieldset) {
         var $article_fs = $('#articles', $fieldset).parents('.form-group').first();
-        var $keywords_fs = $('select[name="keywords"]', $fieldset).parents('.form-group').first();
+        var $keywords_fs = $('select[name="keyword"]', $fieldset).parents('.form-group').first();
 
         // collection of data not published
         if (calibLevel != 3) {
