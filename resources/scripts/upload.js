@@ -81,7 +81,7 @@ $(function () {
             $article_fs.hide();
         } else {
             // disable the field for keywords (use article keywords instead)
-            $keywords_fs.hide();
+            $keywords_fs.remove();
 
             // add button to add new article from bibcode
             addNewArticleButton($article_fs);
