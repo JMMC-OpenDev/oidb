@@ -111,6 +111,19 @@
         });
     }
     TargetSelector.prototype = new Selector();
+    TargetSelector.prototype.build = function(options) {
+            var self = this;
+
+            // when selecting an option, update the form inputs
+            self.$select.change(function () {
+                var data = $(this).find(':selected').data();
+                // set value of hidden form fields with selected data
+                self.val(data);
+            });
+            
+            // run validation on current choice
+            self.$select.change();
+        };
     TargetSelector.prototype.constructor = TargetSelector;
     TargetSelector.prototype.targetCache = {};
     TargetSelector.prototype.fetchTargets = function () {
