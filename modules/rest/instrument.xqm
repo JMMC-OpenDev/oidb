@@ -23,7 +23,7 @@ declare variable $instrument:asproconf-uri := $config:data-root || '/instruments
  : Return a list of all instruments known with their hosting facilities.
  : 
  : It accepts patterns for instrument name and/or facility name and return only
- : matching pairs. The patterns are normalized: they are stripped of any
+ : matching pairs or the full set for empty cases. The patterns are normalized: they are stripped of any
  : non-alphabetic characters that are typically appended to instrument names
  : for description of the instrument mode.
  : 
@@ -51,18 +51,19 @@ function instrument:list($facname as xs:string*, $insname as xs:string*) as elem
             let $filtered := $all[upper-case(./name)=$normalize($facname)]
             return if (empty($filtered)) then $all else $filtered
         for $f in $facilities
-        (: list of instruments matching $insname in given facility :)
-        let $instruments :=
-            let $instruments := if ($insname != '') then
-                    $f/focalInstrument[starts-with(upper-case(./name), $normalize($insname))]
-                else
-                    $f/focalInstrument
-            (: filter out number of telescopes from full names :)
-            let $names := for $x in $instruments/name/text() return $normalize($x)
-            return $instruments[index-of($names, $normalize(./name))[1]]
-        return
-            for $i in $instruments
-            return <instrument facility="{$f/name}" name="{$normalize($i/name)}"/>
+            (: list of instruments matching $insname in given facility :)
+            let $instruments :=
+                let $instruments := if ($insname != '') then
+                        let $res := $f/focalInstrument[starts-with(upper-case(./name), $normalize($insname))]
+                        return if($res) then $res else $f/focalInstrument
+                    else
+                        $f/focalInstrument
+                (: filter out number of telescopes from full names :)
+                let $names := for $x in $instruments/name/text() return $normalize($x)
+                return $instruments[index-of($names, $normalize(./name))[1]]
+            return
+                for $i in $instruments[not($normalize(name)="FAKE")]
+                return <instrument facility="{$f/name}" name="{$normalize($i/name)}"/>
     } </instruments>
 };
 
