@@ -111,6 +111,7 @@
         });
     }
     TargetSelector.prototype = new Selector();
+    // overwrite build function to avoid color highlighting (origin data are considered more reliable)
     TargetSelector.prototype.build = function(options) {
             var self = this;
 
