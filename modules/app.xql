@@ -1049,30 +1049,39 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
     return 
         <div id="contact">
             <h2><i class="glyphicon glyphicon-envelope"/> Contact</h2>
-            <table class="table table-striped table-bordered table-hover">
             {
-                let $row := ($granule//tr[td], $granule)[1] (: use tr if votable is provided else te given node as supposed to be a tr :)
-                let $columns := ("datapi", "obs_creator_name")
-                let $values := $row//td[@colname=$columns]
-                let $datapi-is-obs-creator := $values[1]=$values[2]
-                let $columns := if($datapi-is-obs-creator) then $columns[2] else $columns
+                let $row := ($granule//tr[td], $granule)[1] (: use tr if votable is provided else the given node as supposed to be a tr :)
+               
+                let $datapi := $row//td[@colname="datapi"]
                 
-                let $trs := for $c in $columns
-                    let $val := $row//td[@colname=$c]/text()
-                    let $header := if($datapi-is-obs-creator) then $c || " and datapi" else $c
-                    let $val := if (empty($val)) then () else switch ($c)
-                        case "obs_creator_name" return 
-                            let $email := user:get-email($val)
-                            return if($email) then
-                                let $js :=  app:get-encoded-email-array($email)
-                                return <a href="#" data-contarr="{$js}">{$val}&#160;<i class="glyphicon glyphicon-envelope"/></a>
-                            else $val
-                        default return 
-                            $val
-                    return <tr><th>{$header}</th><td>{$val}</td></tr>
-                return $trs
+                let $obs_creator_name := $row//td[@colname="obs_creator_name"]
+                let $obs_creator_name-email := user:get-email($obs_creator_name)
+                let $obs_creator_name-link := if($obs_creator_name-email) then
+                                let $js :=  app:get-encoded-email-array($obs_creator_name-email)
+                                    return <a href="#" data-contarr="{$js}">{$obs_creator_name}&#160;<i class="glyphicon glyphicon-envelope"/></a>
+                                else data($obs_creator_name)
+                
+                return 
+                    if($obs_creator_name=$datapi) then 
+                        <address>
+                            <strong>Data PI / OBS creator</strong><br/>
+                            {$obs_creator_name-link} 
+                        </address> 
+                    else 
+                        let $datapi-email := user:get-email($datapi)
+                        let $datapi-link := if($datapi-email) then
+                                let $js :=  app:get-encoded-email-array($datapi-email)
+                                    return <a href="#" data-contarr="{$js}">{$datapi-email}&#160;<i class="glyphicon glyphicon-envelope"/></a>
+                                else <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
+                                If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user maycontact the creator of the resource just below.</span>
+                        return 
+                        <address>
+                            <strong>Data PI</strong><br/>
+                            {$datapi-link}<br/>
+                            <strong>OBS creator</strong><br/>
+                            {$obs_creator_name-link}
+                        </address>    
             }
-            </table>
         </div>
 };
 
