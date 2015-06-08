@@ -22,6 +22,10 @@ import module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits" at "
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
 
+import module namespace user="http://apps.jmmc.fr/exist/apps/oidb/restxq/user" at "rets/user.xqm";
+
+
+
 import module namespace jmmc-about="http://exist.jmmc.fr/jmmc-resources/about";
 import module namespace jmmc-web="http://exist.jmmc.fr/jmmc-resources/web";
 

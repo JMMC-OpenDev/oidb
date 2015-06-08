@@ -86,4 +86,20 @@ $(function () {
 
         $commentForm.insertAfter($(this).hide()).show();
     });
+   
+    //+ Jonas Raoni Soares Silva
+    //@ http://jsfromhell.com/string/rot13 [rev. #1]
+    String.prototype.rot13 = function(){
+        return this.replace(/[a-zA-Z]/g, function(c){
+            return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+        });
+    };
+    
+    // connect the cont-act links
+    $("a[data-contarr]").on('click', function (e){
+        var array = eval($(this).data("contarr"))
+        var str = array[0].join("")+array[1]+"@"+array[2].reverse().join(".");
+        location.href=str.rot13();
+        return false;
+    });
 });
