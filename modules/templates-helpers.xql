@@ -262,11 +262,11 @@ function helpers:select-options($node as node(), $model as map(*), $key as xs:st
     let $options := $model($key)
     let $ret := if ($options instance of map(*)) then
         for $key at $pos in map:keys($options)
-        order by if ($sorted="no") then $pos else $key ascending
+        order by if ($sorted="no") then $pos else upper-case($key) ascending
         return <option value="{ $key }">{ map:get($options, $key) }</option>
     else
         for $value at $pos in $options
-        order by if ($sorted="no") then $pos else $value ascending
+        order by if ($sorted="no") then $pos else upper-case($value) ascending
         return <option value="{ $value }">{ $value }</option>
     return if($sorted="descending") then reverse($ret) else $ret
 };
