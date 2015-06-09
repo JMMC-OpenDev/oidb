@@ -43,7 +43,7 @@
                         </table>
                     </div>
                 </fieldset>
-                <fieldset id="oifits" data-template="app:upload">
+                <fieldset id="collection" data-template="app:upload">
                     <legend>Step 2 : Choose collection</legend>
                     <div class="row">
                         <div class="col-md-offset-2 col-md-3">
@@ -52,11 +52,14 @@
                                 Create a collection
                             </a>
                         </div>
-                        <div class="col-md-offset-2 col-md-3">
+                        <div class="col-md-offset-2 col-md-3" data-template="app:user-collections-options">
                             <a href="#" class="btn active btn-primary btn-block" role="button" id="append-to-collection-btn" data-loading-text="Loading...">
                                 <span class="glyphicon glyphicon-briefcase"/>
-                                Append to ... TBD
+                                Append to ... 
                             </a>
+                            <select class="form-control" name="collection" data-template="helpers:form-control">
+                                <option data-template="helpers:select-options" data-template-key="user-collections"/>
+                            </select>
                         </div>
                     </div>
                 </fieldset>

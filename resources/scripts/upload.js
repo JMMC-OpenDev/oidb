@@ -300,7 +300,26 @@ $(function () {
                 $btn.button('reset').remove();
             });
         e.preventDefault();
-    });
+    })
+    
+    $('#append-to-collection-btn').click(function (e) {
+        var $btn = $(this);
+        var $form_div = $("#collection")
+        $btn.button('loading');
+        var colid = $btn.next(":input").val()
+        
+         $.get( '_collection-form.html?id='+encodeURIComponent(colid) )
+            .done(function (data) {
+                var $collection = $(data);
+                setupCollectionFieldset($collection);
+                $collection.hide().replaceAll($btn.closest('.row')).slideDown('slow');
+                $btn.button('reset').remove();
+                $form_div.find(":input").prop("readonly", true);
+                // prevent multiple bibcodes
+                 $('.add-article-button').remove();
+            });
+        e.preventDefault();
+    })
 
     setupOIFITSModal();
 

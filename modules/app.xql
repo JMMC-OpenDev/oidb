@@ -10,6 +10,8 @@ import module namespace xmath="http://exist-db.org/xquery/math";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
+import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
+
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace user="http://apps.jmmc.fr/exist/apps/oidb/restxq/user" at "rest/user.xqm";
@@ -130,12 +132,12 @@ declare function app:td-cells($rows as node()*, $columns as xs:string*)
 };
 
 (:~ 
- : Output a td fragment per given column picking data from given rows.
+ : Output a td fragment per given column picking data from given row.
  : 
  : @param $cell the cell element to convert if appropriate
  : @param $columns the list of column name to output
  : @param $row the row to search complimentary data into
- : @return a sequence of <tr/> elements for the each columns with one td per row
+ : @return a <td/> element for the given cell
  :)
 declare function app:td-cell($cell as node(), $row as node()*) as element()
 {
@@ -170,7 +172,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                     case "id"
                         return <a href="show.html?id={$cell}">{data($cell)}</a>
                     case "keywords" 
-                        return if(exists(data($cell))) then 
+                        return if(exists(data($cell)) and data($cell)!="") then 
                                 <div class="bootstrap-tagsinput"> {  	 	 
                                     let $keywords := tokenize($cell, ";")  	 	 
                                     for $kw in $keywords  	 	 
@@ -380,6 +382,61 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
         )
     }
 };
+
+(:~
+ : Build a map of user writable collections and put it in the model for templating.
+ : 
+ : It creates a 'user-collections' entry in the model for the children of the nodes.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with collections details
+ :)
+declare
+    %templates:wrap
+function app:user-collections-options($node as node(), $model as map(*), $calib_level as xs:integer?) as map(*) {
+    let $data := tap:execute($app:collections-query)
+    let $ids := $data//*:TD/text()
+    let $collections := collection("/db/apps/oidb-data/collections")/collection
+    return map {
+        'user-collections' := map:new(
+            for $id in $ids
+            return if ( exists($id) ) then
+                let $col := $collections[@id=$id]
+                let $valid-level := if(exists($calib_level)) then if($calib_level>2) then exists($col//bibcode/text()) else empty($col//bibcode/text()) else true()
+                let $name := $col/name/text() || " - " || $col/datapi/text()
+                return if( $valid-level and collection:has-access($col, "w")  ) then map:entry($id, $name) else () (: TODO improve calib_level filtering :)
+                else ()
+        )
+    }
+};
+
+(:~
+ : Build a map with data associated to the given collections .
+ : 
+ : It creates a 'user-collections' entry in the model for the children of the nodes.
+ : 
+ : @param $node the current node
+ : @param $model the current model
+ : @return a new map as model with collections details
+ :)
+declare
+    %templates:wrap
+function app:collection-form($node as node(), $model as map(*), $id as xs:string?) as map(*) {
+    if(empty($id)) then $model else
+        let $collection := collection($config:data-root)//collection[@id=$id]
+        return if(empty($collection)) then $model else 
+        map {
+        'id' := $id
+        ,'name' := $collection/name/text()
+        ,'title' := $collection/title/text()
+        ,'description' := $collection/description/text()
+        ,'keywords' := ($collection//keyword/text())
+        ,'bibcodes' := ($collection//bibcode/text())
+         }
+};
+
+
 
 declare variable $app:oifits-query := adql:build-query(( 'col=access_url', 'distinct' ));
 (: TODO copy/update app:instruments for facilities + TBD oifits files , granules :)
@@ -751,8 +808,13 @@ function app:search($node as node(), $model as map(*),
             let $th := $data//th[@name=$name]
             return map {
                 'name'    := $name,
-                'ucd'     := $th/a/text(),
-                'ucd-url' := data($th/a/@href)
+(:                'ucd'     := $th/a/text(),:)
+(:                'ucd-url' := data($th/a/@href),:)
+                'description' := data($th/@description),
+                'label'   := switch ($name)
+                    case "em_min" return "wlen_min"
+                    case "em_max" return "wlen_max"
+                    default return $name
             }
 
         (: pick rows from transformed votable - skip row of headers :)
@@ -967,7 +1029,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                 {
                     for $th at $i in $data//th[@name!='id']
                     let $td := $data//td[position()=index-of($data//th, $th)]
-                    return <tr> <th> { $th/node() } </th> {app:td-cell($td, $data) } </tr>
+                    return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{data($th/@description)}"/> &#160; { $th/node() } </th> {app:td-cell($td, $data) } </tr>
                 }
                 </table>
             </div>
@@ -1054,12 +1116,12 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                
                 let $datapi := $row//td[@colname="datapi"]
                 
-                let $obs_creator_name := $row//td[@colname="obs_creator_name"]
+                let $obs_creator_name := data($row//td[@colname="obs_creator_name"])
                 let $obs_creator_name-email := user:get-email($obs_creator_name)
                 let $obs_creator_name-link := if($obs_creator_name-email) then
                                 let $js :=  app:get-encoded-email-array($obs_creator_name-email)
                                     return <a href="#" data-contarr="{$js}">{$obs_creator_name}&#160;<i class="glyphicon glyphicon-envelope"/></a>
-                                else data($obs_creator_name)
+                                else $obs_creator_name
                 
                 return 
                     if($obs_creator_name=$datapi) then 
@@ -1379,7 +1441,7 @@ declare function app:transform-votable($votable as node()) as node() {
  : @return a <votable/> element
  :)
 declare function app:transform-votable($votable as node(), $start as xs:double) as node() {
-    app:transform-votable($votable, $start, count($votable//votable:TR), <br/>)
+    app:transform-votable($votable, $start, count($votable//votable:TR), ())
 };
 
 (:~
@@ -1394,6 +1456,7 @@ declare function app:transform-votable($votable as node(), $start as xs:double) 
  : @param $votable a VOTable
  : @param $start   the starting row position
  : @param $length  the number of rows to transform
+ : @param $ucd-separator separator between field name and ucd link. ucd is not displayed if ucd-separator is empty
  : @return a <votable/> element
  :)
 declare function app:transform-votable($votable as node(), $start as xs:double, $length as xs:double, $ucd-separator ) {
@@ -1403,8 +1466,9 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
         for $field in $headers
         return <th>
             { $field/@name }
+            { attribute {"description"} {data($field/votable:DESCRIPTION)} }
             { data($field/@name) }
-            { if($field/@ucd)  then ($ucd-separator, <a href="{ concat($app:UCD_URL,data($field/@ucd)) }"> { data($field/@ucd) } </a>) else () }
+            { if($field/@ucd and exists($ucd-separator))  then ($ucd-separator, <a href="{ concat($app:UCD_URL,data($field/@ucd)) }"> { data($field/@ucd) } </a>) else () }
             <!-- { if($field/@unit) then ( <br/>, <span> [ { data($field/@unit) } ] </span> ) else () } -->
         </th>
         } </tr> {
@@ -1629,7 +1693,12 @@ declare function app:column-sort($node as node(), $model as map(*)) as node() {
         $node/@* except ( $node/@href, $node/@class ),
         attribute { 'href'  }  { '?' || adql:to-query-string($new-query) },
         attribute { 'class' } { concat(data($node/@class), if ($asc) then ' dropup' else '') },
-        templates:process($node/node(), $model),
+(:        attribute { "rel" }                 { "tooltip" },:)
+(:        attribute { "data-original-title" } { $column('description') },:)
+(:        attribute { "data-html" } { "false" },:)
+        attribute { "title" } { $column('description') },
+
+        templates:process($node/node(), $model), 
         if ($same-key) then <span class="caret"/> else ()
     }
 };

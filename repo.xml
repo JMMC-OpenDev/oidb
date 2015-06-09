@@ -17,13 +17,18 @@
     using a given property file (see build.xml for detail)
     </note>
     <changelog>
+        <change xmlns="" version="0.7">
+            <h3>Pre V1.0 release</h3>
+            <ul>
+              <li>To be updated/cleaned for our V1.0</li>
+            </ul>
+        </change>
         <change xmlns="" version="0.6">
             <h3>Pre V1.0 release</h3>
             <ul>
-              <li>Condition of use are explicitly displayed on every page if associated cookie is not accepted.</li>
-              <li>Search form's layout compressed leaving right level of space.</li>
+              <li>Terms of use are explicitly displayed on every page if associated cookie is not accepted.</li>
+              <li>Search form's layout compressed.</li>
               <li>Search page does display some result only if request parameters are provided.</li>
-              <li>First basic support to upload OIFits files. Development still required so we can append files in previous existing collections.</li>
             </ul>
         </change>
         <change xmlns="" version="0.5">

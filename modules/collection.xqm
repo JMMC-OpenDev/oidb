@@ -161,22 +161,23 @@ declare function collection:list() as element(collection)* {
 
 (:~
  : Check whether the current user has access to collection or is superuser.
- : 
+ : TODO make it work using string as input arg
  : @param $id-or-collection the id of the collection to test or the collection as XML fragment
  : @param $mode the partial mode to check against the collection e.g. 'rwx'
  : @return true() if current user has access to collection for the mode
  :)
 declare function collection:has-access($id-or-collection as item(), $mode as xs:string) {
     let $collection :=
-        if ($id-or-collection instance of node()) then
-            $id-or-collection
-        else if ($id-or-collection instance of xs:string) then
+        if ($id-or-collection instance of xs:string) then
             collection:retrieve($id-or-collection)
+        else if ($id-or-collection instance of node()) then
+             $id-or-collection
         else
             error(xs:QName('collection:error'), 'Bad collection id ' || $id-or-collection || '.')
     return if (empty($collection)) then
         error(xs:QName('collection:error'), 'No such collection')
     else
         (: check access to collection XML file :)
-        sm:has-access(document-uri(root($collection)), $mode) or app:user-admin()
+        let $path := document-uri(root($collection)) 
+        return if(exists($path)) then  sm:has-access($path , $mode) or app:user-admin() else false()
 };

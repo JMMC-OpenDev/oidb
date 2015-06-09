@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<fieldset xmlns="http://www.w3.org/1999/xhtml" id="collection">
+<fieldset xmlns="http://www.w3.org/1999/xhtml" id="collection" data-template="app:collection-form">
     <legend>Collection details</legend>
     <input type="hidden" name="id" data-template="helpers:form-control"/>
     <div class="form-group">
@@ -25,13 +25,17 @@
     <div class="form-group">
         <label class="col-md-2 control-label">Article</label>
         <div class="col-md-8">
-            <ul id="articles" class="list-group"/>
+            <ul id="articles" class="list-group">
+                <li data-template="helpers:render" data-template-partial="_article-form.html" data-template-key="bibcodes" data-template-as="bibcode"/>
+            </ul>
         </div>
     </div>
     <div class="form-group">
         <label class="col-md-2 control-label">Keywords</label>
         <div class="col-md-8">
-            <select multiple="multiple" name="keyword"/>
+            <select multiple="multiple" name="keyword" data-template="helpers:form-control">
+                <option data-template="helpers:select-options" data-template-key="keywords"/>
+            </select>
         </div>
     </div>
     <div class="form-group" data-template="app:get-datapi">
