@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="xar" name="oidb">
-    <property name="project.version" value="0.1"/>
+    <xmlproperty file="expath-pkg.xml"/>
+    <property name="project.version" value="${package(version)}"/>
     <property name="project.app" value="oidb"/>
     <property name="build.dir" value="build"/>
 

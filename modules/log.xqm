@@ -6,7 +6,7 @@ import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace xmldb = "http://exist-db.org/xquery/xmldb";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at 'config.xqm';
-import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at 'comments.xqm';
+import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at 'comments.xql';
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql" ;
 
 declare variable $log:downloads := $config:data-root || '/log/downloads.xml';

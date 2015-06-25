@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>alpha</status>
+    <status>stable</status>
     <license/>
     <copyright>true</copyright>
     <type>application</type>
@@ -17,86 +17,10 @@
     using a given property file (see build.xml for detail)
     </note>
     <changelog>
-        <change xmlns="" version="0.7">
-            <h3>Pre V1.0 release</h3>
+        <change xmlns="" version="1.0">
+            <h3>V1.0 release</h3>
             <ul>
-              <li>To be updated/cleaned for our V1.0</li>
-            </ul>
-        </change>
-        <change xmlns="" version="0.6">
-            <h3>Pre V1.0 release</h3>
-            <ul>
-              <li>Terms of use are explicitly displayed on every page if associated cookie is not accepted.</li>
-              <li>Search form's layout compressed.</li>
-              <li>Search page does display some result only if request parameters are provided.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="0.5">
-            <h3>Pre SPIE 2014 version</h3>
-            <ul>
-                <li>Added first homepage.</li>
-                <li>Added first documentation section in the Help menu (extracteed from the wiki).</li>
-                <li>Fixed t_min and t_max have correct values per granule. Was the same for every granules of the oifits.</li>
-                <li>TODO:
-                  <ul>
-                        <li>Improve and normalise data PI contact informations. Especially for PIONIER where instrument PI has been setup by default.</li>
-                        <li>Fill empty pages such as facilities, instruments, data pis</li>
-                        <li>Provide a two step submission form with upload facility and data management (new version, private access with limited embargo period and permission managementfor sharing).</li>
-                        <li>Lot of other tasks...</li>
-                    </ul>
-                </li>
-            </ul>
-        </change>
-        <change xmlns="" version="0.4">
-            <h3>End of March version</h3>
-            <ul>
-                <li>Added VOTable export through SAMP.</li>
-                <li>Added export of OIFits collection for <a href="http://www.jmmc.fr/oifitsexplorer_page.htm">OIFitsExplorer</a>.</li>
-                <li>Added SAMP persistence through session.</li>
-                <li>Fixed link to <a href="http://simbad.u-strasbg.fr/simbad/">Simbad</a> (<a href="http://trac.jmmc.fr/jmmc-sw/ticket/598">
-                        <del>#598</del>
-                    </a>).</li>
-                <li>Added sorting and pagination options to search form.</li>
-                <li>Added simple validation of user inputs on form submission (bibcode, calibration level).</li>
-                <li>Improved error reporting from malformed search filters.</li>
-                <li>New position filter for Cone Search (<a href="http://trac.jmmc.fr/jmmc-sw/ticket/589">
-                        <del>#589</del>
-                    </a>).</li>
-                <li>Added new page to edit and execute custom ADQL query</li>
-            </ul>
-        </change>
-        <change xmlns="" version="0.3">
-            <h3>Mid-March version</h3>
-            <ul>
-                <li>Rework on search interface engine</li>
-                <li>Uses <a href="http://cds.u-strasbg.fr/cgi-bin/Sesame">Sesame name resolver</a> to search arround any given target name. </li>
-            </ul>
-        </change>
-        <change xmlns="" version="0.2">
-            <h3>February version</h3>
-            <ul>
-                <li>Preliminary import of VEGA dataset to the main database (<a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbVega">detailed process</a>)</li>
-                <li>Improved submit form and status reporting</li>
-                <li>Logging of submission</li>
-                <li>Display of observation coordinates in sexagesimal</li>
-            </ul>
-        </change>
-        <change xmlns="" version="0.1">
-            <h3>Prototype prior to first group meeting</h3>
-            <ul>
-                <li>Added SAMP export (SAMPjs)</li>
-                <li>Added detail page with full display of metadata</li>
-                <li>Added predefined searches (Cone Search with name resolver)</li>
-                <li>Added pagination of results</li>
-                <li>Initial test with user authentification</li>
-            </ul>
-        </change>
-        <change xmlns="" version="0.0">
-            <h3>Initial prototype</h3>
-            <ul>
-                <li>First tries to ingest remote data (VEGA, CDS collections, PIONIER)</li>
-                <li>Accept an empty votable provided by TAP service (dsa)</li>
-                <li>Added release data for secure records without obs_release_date</li>
+              <li>First public release hosting public data</li>
             </ul>
         </change>
     </changelog>

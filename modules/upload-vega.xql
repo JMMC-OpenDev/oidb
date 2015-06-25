@@ -99,6 +99,7 @@ declare function local:metadata($observation as node()) as node() {
         <target_name>{ $target-name }</target_name>,
         <datapi>{ $data-pi }</datapi>,
         <obs_collection>{ $local:collection }</obs_collection>,
+        <obs_creator_name>Denis Mourard</obs_creator_name>,
         <obs_id>{ $program }</obs_id>,
         <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
         <access_url> -/- </access_url>, (: FIXME no file :)

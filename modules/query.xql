@@ -43,8 +43,12 @@ function query:run($node as node(), $model as map(*),
 
         let $columns :=
             for $th in $data//th
-            return map {
+            return map { (: TODO merge with app.xql common code :)
                 'name'    := data($th/@name),
+		'label'   := switch ($th/@name)
+                    case "em_min" return "wlen_min"
+                    case "em_max" return "wlen_max"
+                    default return $th/@name,
                 'ucd'     := $th/a/text(),
                 'ucd-url' := data($th/a/@href)
             }

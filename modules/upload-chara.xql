@@ -55,14 +55,16 @@ declare variable $local:asproconf-uri := '/db/apps/oidb-data/instruments';
 (:  prepare a cache for target resolutions :)
 declare variable $local:cache :=
     try {
-        doc(xmldb:store($config:data-root || '/tmp', 'upload-chara.xml', <cache/>))/cache
+        let $doc := doc($config:data-root || '/tmp/upload-chara.xml')
+        let $doc := if($doc) then $doc else doc(xmldb:store($config:data-root || '/tmp', 'upload-chara.xml', <cache/>))
+        return $doc/cache
     } catch * {
         error(xs:QName('error'), 'Failed to create cache for upload-chara.xql: ' || $err:description, $err:value)
     };
 declare variable $local:cache-insert   := jmmc-cache:insert($local:cache, ?, ?);
 declare variable $local:cache-get      := jmmc-cache:get($local:cache, ?);
 declare variable $local:cache-contains := jmmc-cache:contains($local:cache, ?);
-declare variable $local:cache-destroy  := function() { xmldb:remove($config:data-root || '/tmp', 'upload-chara.xml') };
+declare variable $local:cache-destroy  := function() { true() (: xmldb:remove($config:data-root || '/tmp', 'upload-chara.xml') :) };
 
 (:~
  : Remove all CHARA records from a previous import.
@@ -92,8 +94,9 @@ declare function local:resolve-target($name as xs:string) {
         else
             (: miss, resolve by name and cache the results for next time :)
             let $target := try { sesame:resolve($name)/target } catch sesame:resolve { () }
+            let $target := if( $target ) then $target else if(ends-with($name, "_A")) then try { sesame:resolve(substring-before($name,"_A"))/target } catch sesame:resolve { () } else ()
             return ( $local:cache-insert($name, $target), $target )
-    return if($target) then $target else error(xs:QName('error'), 'Unknown target', $name)
+    return if($target) then $target else error(xs:QName('error'), 'Unknown target - '|| $name, $name)
 };
 
 (:~
@@ -178,6 +181,7 @@ declare function local:metadata($observation as xs:string*) as node() {
         <target_name>{ $target-name }</target_name>,
         <datapi>{ $data-pi }</datapi>,
         <obs_collection>{ $local:collection }</obs_collection>,
+        <obs_creator_name>Theo ten Brummelaar</obs_creator_name>,
         <obs_id>{ $program }</obs_id>,
         <data_rights>proprietary</data_rights>, (: FIXME secure + obs_release_date? :)
         <access_url> -/- </access_url>, (: FIXME no file :)

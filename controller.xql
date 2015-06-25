@@ -21,7 +21,7 @@ declare variable $domain := "fr.jmmc.oidb.login";
 declare variable $login := function () {
     login:set-user($domain, (), false()),
     (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
-    let $user := request:get-attribute($domain || '.user')
+    let $user := (request:get-attribute($domain || '.user'), data(sm:id()//*:username))[1]
     return request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
 };
 
@@ -81,8 +81,17 @@ else if (starts-with($exist:path, '/restxq/oidb')) then
     let $location := 'modules/rest/' || $prefix || '.xqm'
     return if (util:binary-doc-available($config:app-root || '/' || $location)) then
         (
-            util:import-module($module-uri, $prefix, $location),
-            restxq:process($path, util:list-functions($module-uri))
+            if (starts-with($exist:path, "/restxq/oidb/user") and not(local:user-admin()))
+                then
+                (
+            response:set-status-code(403), (: Forbidden :)
+            <response>your are missing the superadmin permission</response>
+        )    
+            else 
+                (
+                    util:import-module($module-uri, $prefix, $location),
+                    restxq:process($path, util:list-functions($module-uri))
+                )
         )
     else
         (

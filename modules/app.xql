@@ -1133,7 +1133,7 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                         let $datapi-email := user:get-email($datapi)
                         let $datapi-link := if($datapi-email) then
                                 let $js :=  app:get-encoded-email-array($datapi-email)
-                                    return <a href="#" data-contarr="{$js}">{$datapi-email}&#160;<i class="glyphicon glyphicon-envelope"/></a>
+                                    return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
                                 else <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
                                 If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user maycontact the creator of the resource just below.</span>
                         return 
@@ -1515,15 +1515,7 @@ declare %private function app:granules($query as item()*) as node()* {
     let $votable := tap:execute(adql:build-query($query))
 
     (: select VOTable rows for page :)
-    let $rows :=
-        let $page  := number(substring-after($query[starts-with(., 'page=')], '='))
-        return subsequence($votable//votable:TR,
-            if (string($page) = 'NaN') then
-                1
-            else
-                let $perpage := number(substring-after($query[starts-with(., 'perpage=')], '='))
-                let $perpage := if (string($perpage) = 'NaN') then 25 else $perpage
-                return 1 + ($page - 1) * $perpage)
+    let $rows :=$votable//votable:TR
 
     (: transform the VOTable :)
     let $fields := data($votable//votable:FIELD/@name)

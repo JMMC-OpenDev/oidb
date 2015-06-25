@@ -43,6 +43,7 @@ declare variable $sesame:SCHEMA := doc('/db/apps/oidb/resources/schemas/sesame_4
  :)
 declare function sesame:resolve-sesame($names as xs:string+) as item()* {
     let $uri := concat($sesame:SESAME_URL, string-join(for $name in $names return encode-for-uri($name), '&amp;'))
+    let $log := util:log("info", "search sesame for "||$names)
     let $response := httpclient:get($uri, false(), <headers/>)
     
     return if ($response/@statusCode != 200 or $response/httpclient:body/@type != "xml") then
