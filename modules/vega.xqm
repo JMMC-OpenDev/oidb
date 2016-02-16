@@ -68,6 +68,7 @@ declare %private function vega:votable-observations($votable as node()) as node(
  :)
 declare %private function vega:get-observations-by-data-status($dataStatus as xs:string) as node()* {
     let $uri  := concat($vega:VEGAWS_URL, 'getObservationsVOTableByDataStatus', '?dataStatus=', $dataStatus)
+    let $log := util:log("info", "vega:get-observations-by-data-status("||$dataStatus||") at "||$uri)
     let $data := httpclient:get($uri, false(), <headers/>)//httpclient:body
     let $votable := util:parse(
         (: remove leading 'null', proper entity escape :)
