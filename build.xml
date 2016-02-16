@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="xar" name="oidb">
+  
     <xmlproperty file="expath-pkg.xml"/>
     <property name="project.version" value="${package(version)}"/>
+    <xmlproperty file="repo.xml"/>
+    <property name="project.status" value="${meta.status}"/>
     <property name="project.app" value="oidb"/>
     <property name="build.dir" value="build"/>
 
@@ -27,7 +30,7 @@
         <mkdir dir="${build.dir}"/>
         <delete dir="${build.dir}" includes="*.xar"/>
 
-        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}.xar">
+        <zip basedir="." destfile="${build.dir}/${project.app}-${project.version}-${project.status}.xar">
             <exclude name="${build.dir}/**"/>
             <exclude name="build.xml"/>
             <exclude name="pom.xml"/>
