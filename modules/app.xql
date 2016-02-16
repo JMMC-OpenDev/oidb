@@ -383,6 +383,7 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
     }
 };
 
+
 (:~
  : Build a map of user writable collections and put it in the model for templating.
  : 
@@ -396,17 +397,16 @@ declare
     %templates:wrap
 function app:user-collections-options($node as node(), $model as map(*), $calib_level as xs:integer?) as map(*) {
     let $data := tap:execute($app:collections-query)
-    let $ids := $data//*:TD/text()
+    let $ids := data($data//*:TD)
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
         'user-collections' := map:new(
-            for $id in $ids
-            return if ( exists($id) ) then
+            for $id in $ids[.=$collections/@id]
+            return 
                 let $col := $collections[@id=$id]
                 let $valid-level := if(exists($calib_level)) then if($calib_level>2) then exists($col//bibcode/text()) else empty($col//bibcode/text()) else true()
                 let $name := $col/name/text() || " - " || $col/datapi/text()
                 return if( $valid-level and collection:has-access($col, "w")  ) then map:entry($id, $name) else () (: TODO improve calib_level filtering :)
-                else ()
         )
     }
 };
