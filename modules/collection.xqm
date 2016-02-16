@@ -74,7 +74,7 @@ declare function collection:update($id as xs:string, $collection as node()) {
     let $old-collection := collection:retrieve($id)
     return if (empty($old-collection)) then
         (: also may not be available to current user :)
-        error(xs:QName('collection:error'), 'No such collection.')
+        error(xs:QName('collection:error'), 'No such collection.('||$id||')')
     else if (not(collection:has-access($old-collection, 'w'))) then
         error(xs:QName('collection:unauthorized'), 'Permission denied.')
     else
@@ -93,7 +93,7 @@ declare function collection:update($id as xs:string, $collection as node()) {
 declare function collection:delete($id as xs:string) {
     let $collection := collection:retrieve($id)
     return if (empty($collection)) then
-        error(xs:QName('collection:error'), 'No such collection.')
+        error(xs:QName('collection:error'), 'No such collection.('||$id||')')
     else if (not(collection:has-access($collection, 'w'))) then
         error(xs:QName('collection:unauthorized'), 'Permission denied.')
     else
@@ -175,7 +175,7 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
         else
             error(xs:QName('collection:error'), 'Bad collection id ' || $id-or-collection || '.')
     return if (empty($collection)) then
-        error(xs:QName('collection:error'), 'No such collection')
+        error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
     else
         (: check access to collection XML file :)
         let $path := document-uri(root($collection)) 
