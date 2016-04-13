@@ -120,7 +120,7 @@ $(function () {
                             var name = metadata['samp.name'];
                             $divider.after(
                                 dropdownMenuitem('Send to ' + name, 'share', '#')
-                                    .click(function () { sendMessage(id); }));
+                                    .click(function (event) { event.preventDefault(); sendMessage(id); }));
                         };
                     };
 
