@@ -26,7 +26,7 @@ declare %private function login:user-info() as node()? {
  :)
 declare function login:user-email() as xs:string? {
     (: using email to ask for the email! :)
-    login:user-info()//email
+    (login:user-info()//email)[last()]
 };
 
 (:~
