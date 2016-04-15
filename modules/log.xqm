@@ -34,7 +34,7 @@ declare function log:check-files() {
             let $error-msg := if ( $doc-available ) then () else
                 " missing file, please create ( xmldb:store( &quot;" || $col || "&quot;, &quot;"|| $doc || "&quot;, &lt;" || substring-before($doc,'.') || "/&gt;) )"
             let $class := if ($doc-available) then "success" else "danger"
-            let $stats := if ($doc-available) then <span> <i class="glyphicon glyphicon-ok"/>&#160;{count(doc($f)//success)} - <i class="glyphicon glyphicon-remove"/>&#160;{count(doc($f)//error)} </span> else ()
+            let $stats := if ($doc-available) then <span> <i class="glyphicon glyphicon-ok"/>&#160;{count(doc($f)//success)}&#160;-&#160;<i class="glyphicon glyphicon-remove"/>{count(doc($f)//error)}&#160;</span> else ()
             return 
                 <tr class="{$class}"><td><span rel="tooltip" title="{$f}">{$doc}</span></td><td>{$error-msg}</td> <td>{$stats}</td></tr>
     }
