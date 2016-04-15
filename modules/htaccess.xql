@@ -21,6 +21,10 @@ let $query := adql:build-query((
     'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date',
     'collection=' || $collection,
     'public=yes' ))
+
+let $query := adql:build-query((
+    'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date', 'col=datapi',
+    'collection=' || $collection ))
     
 (: hard code indexes to improve efficiency :)
 let $rows := tap:execute($query, -1) (: -1 avoids limit so we do loose and block records that should be made public :)
@@ -33,9 +37,10 @@ for $row at $pos in $rows//*:TR
     let $access_url := $data[1]
     let $data_rights := $data[2]
     let $obs_release_date := $data[3]
+    let $datapi := $data[4]
     return
     <p>
-# {$pos} obs_release_date:{ $obs_release_date } data_right:= { $data_rights }
+# {$pos} obs_release_date:{ $obs_release_date } data_right:{ $data_rights } datapi:{$datapi}
 &lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;
     Allow from all
     Satisfy any
