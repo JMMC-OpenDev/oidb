@@ -38,6 +38,18 @@ declare function backoffice:main-status($node as node(), $model as map(*)) as no
             <dd>{system:get-uptime()}</dd>
             <dt>Log files</dt>
             <dd>{log:check-files()}</dd>
+            <dt>Collections</dt>
+            <dd><div>
+                {
+                    let $data := tap:execute($app:collections-query)
+                    let $ids := $data//*:TD/text()
+                    let $collections := collection("/db/apps/oidb-data/collections")/collection
+                    let $rdbms-cnt := count($ids)
+                    let $xmldb-cnt := count($collections)
+                    return  if ($rdbms-cnt = $xmldb-cnt) then $rdbms-cnt
+                        else <span class="label label-danger"> { $rdbms-cnt || " in RDBMS =! " || $xmldb-cnt || " in xmlDB" } </span>
+                }
+            </div></dd>
             <dt>TAP service</dt>
             <dd><div>
                 {
@@ -45,7 +57,7 @@ declare function backoffice:main-status($node as node(), $model as map(*)) as no
                     let $status := tap:status()
                     let $icon := if ($status) then 'glyphicon-remove' else 'glyphicon-ok'
                     let $message := if ($status) then $status else 'OK'
-                    return <span><i class="glyphicon { $icon }"/>&#160;{ $message }</span>
+                    return <span><i class="glyphicon { $icon }"/>&#160;{ $message }&#160;</span>
                 }
                 <br/>
                 <em>TODO add link to services</em>
