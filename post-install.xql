@@ -31,14 +31,16 @@ declare function local:set-permissions($path as xs:string, $perms as item()*) as
     )
 };
 
-(: set of permissions to require oidb admin credentials :)
+(: set of permissions to require oidb or jmmc admin credentials :)
 let $oidb-credentials := ( false(), 'oidb', 'rwxr-x---' )
 
 (: set of permissions to require oidb admin credentials and execute as dba :)
 let $oidb-credentials-dba := ( 'admin', 'oidb', 'rwsr-x---' )
+let $jmmc-credentials-dba := ( 'admin', 'jmmc', 'rwsr-xr-x' )
 
 (: restrict execution of XQuery modules :)
 let $perms := map {
+    'modules/assert.xql'       := $jmmc-credentials-dba,
     'modules/schedule-job.xql' := $oidb-credentials-dba,
     'modules/update-doc.xql'   := $oidb-credentials,
     'modules/upload-chara.xql' := $oidb-credentials,
