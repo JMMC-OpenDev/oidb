@@ -94,7 +94,13 @@ declare function local:resolve-target($name as xs:string) {
         else
             (: miss, resolve by name and cache the results for next time :)
             let $target := try { sesame:resolve($name)/target } catch sesame:resolve { () }
-            let $target := if( $target ) then $target else if(ends-with($name, "_A")) then try { sesame:resolve(substring-before($name,"_A"))/target } catch sesame:resolve { () } else ()
+            let $target :=  if( $target ) then 
+                                $target 
+                            else if(ends-with($name, "_A")) then 
+                                try { sesame:resolve(substring-before($name,"_A"))/target } catch sesame:resolve { () } 
+                            else if(ends-with($name, "Ab")) then 
+                                try { sesame:resolve(substring-before($name,"Ab"))/target } catch sesame:resolve { () } 
+                            else ()
             return ( $local:cache-insert($name, $target), $target )
     return if($target) then $target else error(xs:QName('error'), 'Unknown target - '|| $name, $name)
 };
