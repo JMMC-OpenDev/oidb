@@ -36,6 +36,9 @@ declare %private function local:start-job($resource as xs:string, $name as xs:st
         for $key in map:keys($params)
         return <param name="{ $key }" value="{ map:get($params, $key) }"/>
     } </parameters>
+
+    let $log := util:log("info", "starting job : "|| $resource || " as " || $name )
+
     let $status := util:eval(xs:anyURI('schedule-job.xql'), false(), (
         xs:QName('resource'), $resource,
         xs:QName('name'),     $name,
