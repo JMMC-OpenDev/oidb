@@ -18,20 +18,16 @@ declare variable $exist:prefix external;
 declare variable $exist:root external;
 
 declare variable $domain := "fr.jmmc.oidb.login";
+(: call login function before any use of protected code         :)
+(: app:user-admin() and app:user-allowed() uses this attributes :)
+(: TODO check if we can move/hide it in app module :) 
 declare variable $login := function () {
-    login:set-user($domain, (), false()),
+    let $set-user := login:set-user($domain, (), false())
     (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
     let $user := (request:get-attribute($domain || '.user'), data(sm:id()//*:username))[1]
-    return request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
-};
-
-declare function local:user-allowed() as xs:boolean {
-    let $user := request:get-attribute($domain || '.user')
-    return $user and $user != "guest"
-};
-
-declare function local:user-admin() as xs:boolean {
-    request:get-attribute($domain || '.superuser')
+    let $superuser := request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
+    let $assert := util:eval(xs:anyURI('./modules/assert.xql'))
+    return ()
 };
 
 declare variable $cookie-agreement := 
@@ -81,7 +77,7 @@ else if (starts-with($exist:path, '/restxq/oidb')) then
     let $location := 'modules/rest/' || $prefix || '.xqm'
     return if (util:binary-doc-available($config:app-root || '/' || $location)) then
         (
-            if (starts-with($exist:path, "/restxq/oidb/user") and not(local:user-admin()))
+            if (starts-with($exist:path, "/restxq/oidb/user") and not(app:user-admin()))
                 then
                 (
             response:set-status-code(403), (: Forbidden :)
@@ -103,7 +99,7 @@ else if (starts-with($exist:path, '/restxq/oidb')) then
 else if ($exist:resource eq 'login') then
     let $login := $login()
     return <status> {
-        if (local:user-allowed()) then
+        if (app:user-allowed()) then
             'success'
         else
             ( response:set-status-code(401), 'fail' )
@@ -114,10 +110,10 @@ else if (ends-with($exist:resource, ".html")) then
         {
             $login(),
             if ($exist:path = ( '/submit.html', '/upload-vizier.html', '/upload.html', '/backoffice.html' )) then
-                if (not(local:user-allowed())) then
+                if (not(app:user-allowed())) then
                     (: unknown user, log in first :)
                     <forward url="{$exist:controller}/login.html"/>
-                else if ($exist:path = '/backoffice.html' and not(local:user-admin())) then
+                else if ($exist:path = '/backoffice.html' and not(app:user-admin())) then
                     (
                         (: no credentials for the page :)
                         flash:error(<span xmlns="http://www.w3.org/1999/xhtml"><strong>Access denied!</strong> You are not authorized to access the requested page.</span>),

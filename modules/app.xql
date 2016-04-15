@@ -37,12 +37,25 @@ declare function app:user-allowed() as xs:boolean {
     return $user and $user != "guest"
 };
 
+(:~
+ : Return the admin state.
+ : @return true() if the user is superuser else false()
+ :)
 declare function app:user-admin() as xs:boolean {
    request:get-attribute($app:domain || '.superuser') 
    or
    (: allow offline developpement :)
-   request:get-attribute($app:domain || '.user')=("guillaume.mella@obs.ujf-grenoble.fr")
+   matches( request:get-attribute($app:domain || '.user') , "guillaume.mella@")
 };
+
+(:~
+ : Return the login name.
+ : @return the user-name (login) if any
+ :)
+declare function app:user-name() as xs:string {
+    let $user := request:get-attribute($app:domain || '.user')
+    return $user
+}; 
 
 (:~
  : Return a selection of items from the data row as HTML5 data attributes.
@@ -382,7 +395,6 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
         )
     }
 };
-
 
 (:~
  : Build a map of user writable collections and put it in the model for templating.
