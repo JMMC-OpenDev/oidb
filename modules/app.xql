@@ -1267,7 +1267,7 @@ function app:homepage-header($node as node(), $model as map(*)) as map(*) {
     let $missings := $datapis[not(. = $peoples//alias)]
     return map {
         'n_facilities'  := $count(( 'distinct', 'col=facility_name' )),
-        'n_instruments' := $count(( 'distinct', 'col=instrument_name' )),
+        'n_instruments' := count(app:instruments($node,$model)('instruments')),
         'n_data_pis'    := count($persons) + count($missings),
         'n_collections' := $count(( 'distinct', 'col=obs_collection' )),
         'n_oifits'      := $count(( 'distinct', 'col=access_url' )) - 1,
