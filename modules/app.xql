@@ -1172,13 +1172,13 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
 declare function app:show-granule-externals($node as node(), $model as map(*), $key as xs:string)
 {
     let $granule := map:get($model, $key) 
-    let $obs_id := string($granule//td[@colname='obs_id'])    
+    let $prog_id := string($granule//td[@colname='progid'])    
     let $facility-name := string($granule//td[@colname='facility_name'])
  
-    let $res := if($facility-name="VLTI" and $obs_id!='') then 
-        let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($obs_id)
+    let $res := if($facility-name="VLTI" and $prog_id!='') then 
+        let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($prog_id)
         return 
-            <a href="{$url}">Jump to ESO archive for progid <em>{$obs_id}</em></a>
+            <a href="{$url}">Jump to ESO archive for progid <em>{$prog_id}</em></a>
         else 
             <a href="#">-</a>
     
