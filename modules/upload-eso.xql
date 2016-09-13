@@ -20,6 +20,8 @@ import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace sql="http://exist-db.org/xquery/sql";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
+import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
+
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
@@ -77,9 +79,10 @@ declare function local:metadata($row as node()) as node() {
     
     let $ut            := $values[ $idx-Obs ]
     let $t-min         := jmmc-dateutil:UTtoMJD($ut,())
-    let $tExp          := $values[ $idx-tExp ]
-    let $t-max         := try { $t-min + $tExp } catch * { $t-min }
-    let $release-date  := $values[ $idx-Rel_date ]
+    let $t-exp          := $values[ $idx-tExp ]
+    let $t-exp          := if(string-length($t-exp)>0) then $t-exp else 0
+    let $t-max         := try {jmmc-dateutil:UTtoMJD($ut + $t-exp ,())} catch * { $t-min }
+    let $release-date  := jmmc-dateutil:JDtoISO8601( $values[ $idx-Rel_date ] )
     
     let $facility-name := "VLTI"
     let $prog-id       := $values[ $idx-ProgID ]
@@ -115,7 +118,7 @@ declare function local:metadata($row as node()) as node() {
         <s_dec> { $dec } </s_dec>,
         <t_min> { $t-min } </t_min>,
         <t_max> { $t-max } </t_max>,
-        <t_exptime>0</t_exptime>, (: FIXME :)
+        <t_exptime>{ $t-exp }</t_exptime>, (: FIXME :)
         <em_min>{ $em-min }</em_min>,
         <em_max>{ $em-max }</em_max>,
         <em_res_power>-1</em_res_power>, (: FIXME :)
@@ -126,7 +129,7 @@ declare function local:metadata($row as node()) as node() {
         (: FIXME  below :)
         (: nb_vis, nb_vis2 and nb_t3 left empty :)
         <data_rights>public</data_rights>,
-        <access_url> -/- </access_url> (: FIXME no file :)
+        <access_url>-/-</access_url> (: FIXME no file :)
     } </metadata>
 };
 
@@ -155,8 +158,8 @@ let $response :=
     <response> {
         try {
             <success> {
+                let $check-access := if(collection:has-access($local:collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into '|| $local:collection ||'.')
                 let $new := doc("/db/ESOL0.xml")
-(:                let $h := config:get-db-connection():)
                 let $ids := <ids>{utils:within-transaction(local:upload(?, $new))}</ids>
                 let $duration := seconds-from-duration(util:system-time()-$stime)
                 return (<info>{count($ids/id) || " granules injected properly"}  in {$duration}sec, { count($ids/*) div $duration }req/sec</info>, $ids/warning)
