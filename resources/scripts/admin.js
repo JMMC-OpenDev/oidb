@@ -69,12 +69,15 @@ $(function () {
     });
 
     $('#add-user-modal-save-btn').click(function (event) {
-        var $button = $(this);
-        var $modal = $("#add-user-modal");
-        var aliasName = $modal.find("#add-user-modal-datapi").val();
-        var firstname = $modal.find('#add-user-modal-firstname').val();
-        var lastname =$modal.find('#add-user-modal-lastname').val();
-        var xml = '<person><firstname>'+firstname+'</firstname><lastname>'+lastname+'</lastname></person>'
+        var $button       = $(this);
+        var $modal        = $("#add-user-modal");
+        var aliasName     = $modal.find("#add-user-modal-datapi").val();
+        var firstname     = $modal.find('#add-user-modal-firstname').val();
+        var lastname      = $modal.find('#add-user-modal-lastname').val();
+        var email         = $modal.find('#add-user-modal-email').val();
+        var emailFragment = '';
+        if( email ) { emailFragment = '<email>' + email + '</email>' };
+        var xml = '<person><firstname>'+firstname+'</firstname><lastname>'+lastname+'</lastname>'+emailFragment+'</person>';
         $.ajax('restxq/oidb/user/'+encodeURIComponent(aliasName),
             { type: 'POST' , data : xml, contentType: 'application/xml', async:false}
         ).done(function( msg ) {

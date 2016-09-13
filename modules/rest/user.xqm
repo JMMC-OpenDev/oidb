@@ -84,7 +84,9 @@ function user:adduser($id as xs:string, $info as document-node()) {
                         let $names := tokenize($id, " ")
                         let $firstname := if(exists($info//firstname)) then $info//firstname else <firstname>{$names[1]}</firstname>
                         let $lastname := if(exists($info//lastname)) then $info//lastname else <lastname>{string-join($names[position()>1]," ")}</lastname>
-                        let $new-people := <person>{($firstname, $lastname)}<alias>{$id}</alias></person>
+                        let $valid-email := exists($info//email) and contains($info//email,'@')
+                        let $email := if(exists($valid-email)) then attribute {'email'} {data($info//email)} else ()
+                        let $new-people := <person>{($firstname, $lastname)}<alias>{$email}{$id}</alias></person>
                         let $create := update insert $new-people into $user:people-doc/*
                         return util:document-name($user:people-doc/*)
             let $update-email := user:check($id)
@@ -122,7 +124,8 @@ function user:check($name as xs:string?) {
             let $scan := for $p in $people[not(alias/@email)]
                 for $a in $p/alias
                     let $info := jmmc-auth:get-info($a)
-                    let $update := if(exists($info/email)) then update insert attribute {"email"} {$info/email} into $a else ()
+                    let $valid-email := exists($info/email) and contains($info/email,'@')
+                    let $update := if($valid-email) then update insert attribute {"email"} {$info/email} into $a else ()
                     return if(exists($info/email)) then <update>{$a}{$info/email}</update> else ()
             return 
             (200 (: OK :),$scan)

@@ -51,6 +51,8 @@
                 </td>
                 <div data-template="templates:if-attribute-set" data-template-attribute="fr.jmmc.oidb.login.superuser">
                     <td>
+<!--                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#set-user-email">-->
+<!--                                        <span class="glyphicon glyphicon-edit"/> Modify user.</button>-->
                         <span data-template="helpers:model-value" data-template-key="person.email"/>
                     </td>
                 </div>
@@ -100,8 +102,12 @@
                             <input type="text" class="form-control" id="add-user-modal-firstname"/>
                         </div>
                         <div class="form-group">
-                            <label for="add-user-modal-firstname">Last name</label>
+                            <label for="add-user-modal-lastname">Last name</label>
                             <input type="text" class="form-control" id="add-user-modal-lastname"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-user-modal-email">Email (optional)</label>
+                            <input type="text" class="form-control" id="add-user-modal-email"/>
                         </div>
                     </div>
                     <div class="modal-footer">
