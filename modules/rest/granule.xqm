@@ -92,14 +92,14 @@ declare %private function granule:sanitize($granule as node()) as node() {
  : element. In the first case, the message also contains the ids of the
  : saved granules as <id> elements.
  : 
- : @param $data the XML granules
+ : @param $granules the XML granules (may be empty for catalogues without oifits)
  : @return a <response/> document with status for uploaded granules.
  : @error see HTTP status code
  :)
 declare
     %rest:POST("{$granules}")
     %rest:path("/oidb/granule")
-function granule:save-granules($granules as document-node()) {
+function granule:save-granules($granules as document-node()?) {
     let $response :=
         <response> {
             try {
