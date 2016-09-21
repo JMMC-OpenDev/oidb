@@ -305,7 +305,7 @@ declare function app:fix-relative-url($url as xs:string) as xs:string {
  : @param $id the ID of the collection
  : @return an <a> element
  :)
-declare %private function app:format-collection-url($id as xs:string) {
+declare function app:format-collection-url($id as xs:string) {
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]/name/text()
     return (
         element { "a" } {
@@ -316,6 +316,21 @@ declare %private function app:format-collection-url($id as xs:string) {
             (",&#160;",<a href="{ app:vizcat-url($id) }">VizieR&#160;<span class="glyphicon glyphicon-new-window"></span></a>)
         else ()
     )
+};
+
+(:~
+ : Format a cell for the obs_collection column.
+ : 
+ : It builds an anchor element redirecting to the collection page.
+ : 
+  : @param $node
+ : @param $model the current model
+ : @param $key the entry name in model with collection id
+ : @return an <a> element
+ :)
+declare function app:format-collection-url($node as node(), $model as map(*), $key as xs:string) {
+    let $id := helpers:get($model, $key)
+    return app:format-collection-url($id)
 };
 
 (:~
