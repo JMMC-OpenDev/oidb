@@ -1583,6 +1583,7 @@ declare
     %templates:default("page", 1)
     %templates:default("perpage", 25)
 function app:collection-granules($node as node(), $model as map(*), $id as xs:string, $page as xs:integer, $perpage as xs:integer) as map(*) {
+    let $id := replace(request:get-parameter('id', '')," ","+") (: We have no space in our ids and received spaces probably comes from a CDS catalog ref with + sign... :)
     let $query := ( 'collection=' || $id, 'order=^access_url' )
     let $stats := app:stats($query)
     let $granules := app:granules(( $query, 'page=' || $page, 'perpage=' || $perpage ))
