@@ -162,10 +162,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                             let $id := $row/td[@colname='id']
                             let $data-rights := $row/td[@colname='data_rights']
                             let $obs-release-date := $row/td[@colname='obs_release_date']
-                            return if($data-rights and $obs-release-date) then
-                                app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
-                            else
-                                <a href="{ $access-url }"> { tokenize($access-url, "/")[last()]  ! xmldb:decode(.) }</a>
+                            return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
                     case "datapi"
                         return 
                             let $id := $row/td[@colname='id']
@@ -261,8 +258,8 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
  : @param $creator_name owner of the data
  : @return an <a> element
  :)
-declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string, $release_date as xs:string, $creator_name as xs:string?, $datapi as xs:string?) {
-    let $public := app:public-status($data_rights, $release_date)
+declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string?, $release_date as xs:string?, $creator_name as xs:string?, $datapi as xs:string?) {
+    let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
     let $c := if($creator_name) then <li>{$creator_name||" (data creator)"}</li> else ()
     let $d := if($datapi) then <li>{$datapi||" (data PI)"}</li> else ()
     let $contact := <span><b>Contact:</b><ul>{$c, $d}</ul></span>
@@ -1056,7 +1053,8 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                 {
                     for $th at $i in $data//th[@name!='id']
                     let $td := $data//td[position()=index-of($data//th, $th)]
-                    return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{data($th/@description)}"/> &#160; { $th/node() } </th> {app:td-cell($td, $data) } </tr>
+                    let $tr := $td/..
+                    return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{data($th/@description)}"/> &#160; { $th/node() } </th> {app:td-cell($td, $tr) } </tr>
                 }
                 </table>
             </div>
