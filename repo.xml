@@ -21,6 +21,7 @@
             <h3>V1.1 release</h3>
             <ul>
               <li>Handle synchronization with b/ESO observation log catalog through TAP VizieR</li>
+              <li>Use abstract section of readme for catalog submissions instead of description</li>
               <li>And many minor updates on web pages and processes</li>
             </ul>
         </change>
