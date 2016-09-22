@@ -1385,7 +1385,7 @@ declare function app:collections($node as node(), $model as map(*)) as map(*) {
  : @return a submodel with collection description
  :)
 declare function app:collection($node as node(), $model as map(*)) as map(*) {
-    let $id := request:get-parameter('id', '')
+    let $id := replace(request:get-parameter('id', '')," ","+") (: We have no space in our ids and received spaces probably comes from a CDS catalog ref with + sign... :)
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
     return map { 'collection' := $collection, 'document-name' :=  util:document-name($collection) }
 };
@@ -1545,11 +1545,16 @@ declare %private function app:granules($query as item()*) as node()* {
     (: transform the VOTable :)
     let $fields := data($votable//votable:FIELD/@name)
     let $url-pos := index-of($fields, 'access_url')
+    
+    let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;") (: leave header on a single line :)
+    let $first-row := $data//tr[td][1]
     return (
         (: group by source file (access_url) :)
         for $url in distinct-values($rows/votable:TD[position()=$url-pos])
         return <file> {
             <url>{ $url }</url>,
+            <url-link>{app:td-cell($first-row/td[@colname='access_url'], $first-row)/a }</url-link>,
+            
             for $tr in $rows
             where $tr/votable:TD[position()=$url-pos]/text() = $url
             return app:votable-row-to-granule($fields, $tr)
