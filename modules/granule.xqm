@@ -9,6 +9,7 @@ module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xqm";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 
@@ -78,8 +79,10 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
         if ($result/name() = "sql:exception") then
             error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement)
         else
-            (: return the id of the inserted row :)
-            $result//sql:field[@name='id'][1]
+            let $clear-cache :=  app:clear-cache()
+            return
+                (: return the id of the inserted row :)
+                $result//sql:field[@name='id'][1]
 };
 
 (:~
@@ -187,7 +190,7 @@ declare function granule:update($id as xs:integer, $data as node(), $handle as x
 
         return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
             (: row updated successfully :)
-            ()
+            app:clear-cache()
         else if ($result/name() = 'sql:exception') then
             error(xs:QName('granule:error'), 'Failed to update granule ' || $id || ': ' || $result//sql:message/text())
         else
@@ -232,7 +235,7 @@ declare function granule:delete($id as xs:integer, $handle as xs:long) as empty(
 
         return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
             (: row deleted successfully :)
-            ()
+            app:clear-cache()
         else if ($result/name() = 'sql:exception') then
             error(xs:QName('granule:error'), 'Failed to delete granule ' || $id || ': ' || $result//sql:message/text())
         else

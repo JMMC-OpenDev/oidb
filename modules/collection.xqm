@@ -139,7 +139,7 @@ declare function collection:delete-granules($collection-id as xs:string, $handle
 
         return if ($result/name() = 'sql:result' and $result/@updateCount >= 0) then
             (: rows deleted successfully :)
-            ()
+            app:clear-cache()
         else if ($result/name() = 'sql:exception') then
             error(xs:QName('collection:error'), 'Failed to delete granules for collection , sql:exception ' || $collection-id || ': ' || $result//sql:message/text())
         else

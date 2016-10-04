@@ -24,6 +24,7 @@ import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
 import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
@@ -72,6 +73,7 @@ declare variable $local:cache-destroy  := function() { true() (: xmldb:remove($c
  : @param $handle a database connection handle
  :)
 declare function local:delete-collection($handle as xs:long) {
+    app:clear-cache(),
     sql:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
 };
 

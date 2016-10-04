@@ -21,6 +21,8 @@ import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xq
 import module namespace sql="http://exist-db.org/xquery/sql";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
+
 
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
@@ -38,6 +40,7 @@ declare variable $local:collection := 'eso_vlti_import';
  : @param $handle a database connection handle
  :)
 declare function local:delete-collection($handle as xs:long) {
+    app:clear-cache(),
     sql:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
 };
 

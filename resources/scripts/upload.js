@@ -188,6 +188,15 @@ $(function () {
                 // set SAMP parameter to URL of the relevant OIFITS file
                 return { "url": $(this).siblings('a').attr('href') };
             });
+        // handle event for file deletion
+        $('.remove-granule').click(function () { 
+            var oifitstbody = $(this).parents("tbody");
+            // $.ajax('restxq/oidb/oifits', { data: { 'staging':'todo' , 'path':'todo'}, type:'DELETE' }).done(
+                // function() {
+                    oifitstbody.remove();
+                // }
+            // );
+        });
     }
 
     function processURL(url) {

@@ -6,17 +6,24 @@
                 <span data-template="oifits:basename" data-template-key="oifits.url"/>
             </a>
             &#160;
-            <a href="#" tabindex="0" data-toggle="checkreport" data-trigger="focus" data-template="helpers:model-value-attribute" data-template-key="oifits.report" data-template-name="data-report">
-                <span class="glyphicon glyphicon-info-sign"/>
-            </a>
-            &#160;
+            
             <span class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                     <span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/>
                 </a>
-                <ul class="dropdown-menu" role="menu"/>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <a class="remove-granule">
+                            <span class="glyphicon glyphicon-remove"/> Remove this file</a>
+                    </li>
+                </ul>
             </span>
             &#160;
+            <a href="#" tabindex="0" data-toggle="checkreport" data-trigger="focus" data-template="helpers:model-value-attribute" data-template-key="oifits.report" data-template-name="data-report">
+                <span class="glyphicon glyphicon-info-sign"/>
+            </a>
+            &#160;
+            <span data-template="helpers:model-content" data-template-key="oifits.warning"/>
             <div>
                 <label class="col-md-2 control-label" rel="tooltip" data-original-title="program id (optional)">Proposal ID</label>
                 <input name="progid" data-template="helpers:model-value-attribute" data-template-key="oifits.progid" data-template-name="value"/>

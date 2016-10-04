@@ -18,6 +18,8 @@ import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega
 import module namespace sql="http://exist-db.org/xquery/sql";
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
+
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
@@ -43,6 +45,7 @@ declare variable $local:cache-destroy  := function() { xmldb:remove($config:data
  : @param $handle a database connection handle
  :)
 declare function local:delete-collection($handle as xs:long) {
+    app:clear-cache(),
     sql:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
 };
 

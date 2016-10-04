@@ -396,7 +396,7 @@ declare variable $app:collections-query := adql:build-query(( 'col=obs_collectio
 declare
     %templates:wrap
 function app:collections-options($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:collections-query)
+    let $data := tap:retrieve-or-execute($app:collections-query)
     let $ids := $data//*:TD/text()
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
@@ -420,7 +420,7 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
 declare
     %templates:wrap
 function app:user-collections-options($node as node(), $model as map(*), $calib_level as xs:integer?) as map(*) {
-    let $data := tap:execute($app:collections-query)
+    let $data := tap:retrieve-or-execute($app:collections-query)
     let $ids := data($data//*:TD)
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
@@ -479,7 +479,7 @@ declare variable $app:instruments-query := adql:build-query(( 'col=instrument_na
 declare
     %templates:wrap
 function app:instruments($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:instruments-query)
+    let $data := tap:retrieve-or-execute($app:instruments-query)
     let $instruments := distinct-values(
         for $instrument-name in $data//*:TD/text()
         return tokenize($instrument-name, '[^A-Za-z0-9]')[1])
@@ -544,7 +544,7 @@ declare variable $app:facilities-query := adql:build-query(( 'col=facility_name'
 declare
     %templates:wrap
 function app:facilities($node as node(), $model as map(*)) as map(*) {
-    let $data := tap:execute($app:facilities-query)
+    let $data := tap:retrieve-or-execute($app:facilities-query)
     let $tap-facilities := distinct-values($data//*:TD/text())
     
     let $aspro-facilities := <table class="table table-striped table-bordered table-hover">
@@ -624,9 +624,9 @@ declare
     %templates:wrap
 function app:data-pis($node as node(), $model as map(*)) as map(*) {
     (: fill datapis with datapi and obs_creator_name entries :)
-    let $data := tap:execute($app:data-pis-query)
+    let $data := tap:retrieve-or-execute($app:data-pis-query)
     let $datapis := $data//*:TD/text()
-    let $data := tap:execute($app:obs-creator-names-query)
+    let $data := tap:retrieve-or-execute($app:obs-creator-names-query)
     let $datapis := distinct-values(($datapis, $data//*:TD/text()))
 
     let $persons := for $p in doc($config:data-root||"/people/people.xml")//person[alias=$datapis] 
@@ -1122,6 +1122,15 @@ declare function app:get-encoded-email-decoder() as xs:string {
     
 };
 
+
+(:~
+ : Clear cached data. MUST BE called after TAP datasource update. 
+ :)
+declare function app:clear-cache(){ 
+  $tap:cache-flush() 
+};
+
+
 (:~
  : Display the contact information for a given granule.
  : 
@@ -1246,7 +1255,7 @@ declare variable $app:latest-query := adql:build-query(( 'col=target_name', 'col
  : @return an HTML list
  :)
 declare function app:latest($node as node(), $model as map(*)) {
-    let $data := tap:execute($app:latest-query)
+    let $data := tap:retrieve-or-execute($app:latest-query)
 
     let $fields := data($data//votable:FIELD/@name)
     let $name-pos := index-of($fields, 'target_name')
@@ -1272,8 +1281,8 @@ declare
     %templates:wrap
 function app:homepage-header($node as node(), $model as map(*)) as map(*) {
     (: count rows and extract result from VOTable :)
-    let $count := function($q) { tap:execute('SELECT COUNT(*) FROM (' || adql:build-query($q) || ') AS e')//*:TD/text() }
-    let $data := tap:execute($app:data-pis-query)
+    let $count := function($q) { tap:retrieve-or-execute('SELECT COUNT(*) FROM (' || adql:build-query($q) || ') AS e')//*:TD/text() }
+    let $data := tap:retrieve-or-execute($app:data-pis-query)
     let $datapis := $data//*:TD/text()
     let $peoples := doc($config:data-root||"/people/people.xml")
     let $persons := $peoples//person[alias=$datapis]
@@ -1397,8 +1406,8 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
  : @return a map with counts of OIFITS, granules ( resp. n_oifits, n_granules) and from-date and to-date
  :)
 declare %private function app:stats($query as item()*) as map(*) {
-    let $count := function($q) { number(tap:execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, $query )) || ') AS e')//*:TD) }
-    let $tmin-tmax := tap:execute(' SELECT MIN(e.t_min), MAX(e.t_max) FROM (' || adql:build-query( $query ) || ') AS e')//*:TD/text()
+    let $count := function($q) { number(tap:retrieve-or-execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, $query )) || ') AS e')//*:TD) }
+    let $tmin-tmax := tap:retrieve-or-execute('SELECT MIN(e.t_min), MAX(e.t_max) FROM (' || adql:build-query( $query ) || ') AS e')//*:TD/text()
     let $tmin-tmax := for $mjd in $tmin-tmax return jmmc-dateutil:MJDtoISO8601($mjd)
 
     let $n_granules := $count(( 'caliblevel=1,2,3' ))
@@ -1816,7 +1825,7 @@ declare function app:random-vignette($node as node(), $model as map(*), $categor
 
 declare function app:rssItems($max as xs:integer) as node()* {
     let $latest-granules := adql:build-query(( 'order=subdate','order=^id', 'limit='||$max ))
-    let $votable         := tap:execute($latest-granules)
+    let $votable         := tap:retrieve-or-execute($latest-granules)
     let $data            := app:transform-votable($votable)
     
     let $granule-items :=

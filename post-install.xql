@@ -20,7 +20,7 @@ declare variable $target external;
  : @return empty
  :)
 declare function local:set-permissions($path as xs:string, $perms as item()*) as empty() {
-    let $uri := xs:anyURI($target || '/' || $path)
+    let $uri := xs:anyURI($path)
     return (
         let $user := $perms[1]
         return if ($user)  then sm:chown($uri, $user) else (),
@@ -37,14 +37,21 @@ let $oidb-credentials := ( false(), 'oidb', 'rwxr-x---' )
 (: set of permissions to require oidb admin credentials and execute as dba :)
 let $oidb-credentials-dba := ( 'admin', 'oidb', 'rwsr-x---' )
 let $jmmc-credentials-dba := ( 'admin', 'jmmc', 'rwsr-xr-x' )
+let $guest-credentials-rw := ( 'guest', 'oidb', 'rw-rw-rw-' )
+
+(: check some cache files :)
+let $doc := doc($target || '-data/tmp/tap-cache.xml')
+let $doc := if($doc/cache) then $doc else doc(xmldb:store($target|| '-data/tmp', 'tap-cache.xml', <cache/>))
 
 (: restrict execution of XQuery modules :)
+
 let $perms := map {
-    'modules/assert.xql'       := $jmmc-credentials-dba,
-    'modules/schedule-job.xql' := $oidb-credentials-dba,
-    'modules/update-doc.xql'   := $oidb-credentials,
-    'modules/upload-chara.xql' := $oidb-credentials,
-    'modules/upload-vega.xql'  := $oidb-credentials
+    $target || '/' || 'modules/assert.xql'       := $jmmc-credentials-dba,
+    $target || '/' || 'modules/schedule-job.xql' := $oidb-credentials-dba,
+    $target || '/' || 'modules/update-doc.xql'   := $oidb-credentials,
+    $target || '/' || 'modules/upload-chara.xql' := $oidb-credentials,
+    $target || '/' || 'modules/upload-vega.xql'  := $oidb-credentials,
+    $target || '-data/' || 'tmp/tap-cache.xml'  := $guest-credentials-rw
 }
 
 return map:for-each-entry($perms, local:set-permissions(?, ?))

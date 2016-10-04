@@ -86,12 +86,20 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
             let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
 
             let $report := $oifits/checkReport/text()
+            let $cnt-severe := count(tokenize($report,"SEVERE"))-1
+            let $cnt-warning := count(tokenize($report,"WARNING"))-1
+            let $warn-msg := if ($cnt-severe > 0 ) then $cnt-severe||" SEVERE" else if ($cnt-warning > 0) then $cnt-warning || " WARNING" else () 
+            
             let $reject-nonl3-severe := false() (: true rejects L1/L2 with SEVERE entry :)
             return map:new(( 
                 map:entry('report', $report),
+                if ($warn-msg) then
+                    map:entry('warning', <span class="text-danger">&#160; {$warn-msg} errors, please try to fix your file and resubmit it later.Please send feedback, if some SEVERE level are too strict. </span>)
+                else
+                    (),
                 (: TODO better tests on report, better report? :)
-                if ($reject-nonl3-severe and $calib_level<3 and matches($report, 'SEVERE')) then
-                    map:entry('message', 'Invalid OIFITS file, see report for details. Please send feedback, if some SEVERE level are too strict.')
+                if ($reject-nonl3-severe and $calib_level<3 and $cnt-severe>0) then
+                    map:entry('message', 'Invalid OIFITS file, no granule retained, see report for details. Please send feedback, if some SEVERE level are too strict.')
                 else
                     let $granules := oifits:prepare-granules($oifits, $url)
                     return map:entry('granules', $granules)))

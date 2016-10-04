@@ -1,12 +1,33 @@
 xquery version "3.0";
 
 (:~
+ : TAP module that forward requested to the endpoint and return votables.
+ : Some constant an highly repeated requests are cached until tap:cache-destroy() call
+ : app:clear-cache() MUST BE called by every part of code that modify the SQL database side.
+ : 
  :)
 module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
+
+
+(:  prepare a cache for some classical requests :)
+declare variable $tap:cache :=
+    try {
+        let $doc := doc($config:data-root || '/tmp/tap-cache.xml')
+        let $doc := if($doc/cache) then $doc else doc(xmldb:store($config:data-root || '/tmp', 'tap-cache.xml', <cache/>))
+        return $doc/cache
+    } catch * {
+        error(xs:QName('error'), 'Failed to create cache for tap-cache.xql: ' || $err:description, $err:value)
+    };
+declare variable $tap:cache-insert   := jmmc-cache:insert($tap:cache, ?, ?);
+declare variable $tap:cache-get      := jmmc-cache:get($tap:cache, ?);
+declare variable $tap:cache-contains := jmmc-cache:contains($tap:cache, ?);
+declare variable $tap:cache-flush  :=  jmmc-cache:flush($tap:cache,()); 
+
 
 (:~
  : Executes an ADQL statement against the database with TAP.
@@ -45,6 +66,40 @@ declare function tap:execute($adql-statement as xs:string, $maxrec as xs:integer
     else
         $data/votable:VOTABLE
 };
+
+
+(:~
+ : Executes an ADQL statement against the database with TAP and limit number of rows if not present in cache.
+ : 
+ : @param $adql-statement the ADQL statement
+ : @return a VOTABLE node as returned by the TAP service.
+ : @error bad response or problem reported by TAP server
+ :)
+declare function tap:retrieve-or-execute($adql-statement as xs:string) as node()? {
+   tap:retrieve-or-execute($adql-statement,())
+};
+
+(:~
+ : Executes an ADQL statement against the database with TAP and limit number of rows if not present in cache.
+ : 
+ : @param $adql-statement the ADQL statement
+ : @param $maxrec         the maximum number of table records to return
+ : @return a VOTABLE node as returned by the TAP service.
+ : @error bad response or problem reported by TAP server
+ :)
+declare function tap:retrieve-or-execute($adql-statement as xs:string, $maxrec as xs:integer?) as node()? {
+    let $key := if(empty($maxrec)) then $adql-statement else $adql-statement||$maxrec
+    let $cached := $tap:cache-get($key) 
+    
+    return 
+        if(exists($cached)) then 
+            $cached
+        else
+            let $log := util:log("info", "add new tap cache entry [count="||count($tap:cache/*)||"] for"||$key)
+            return
+                $tap:cache-insert($adql-statement, tap:execute($adql-statement, $maxrec))
+};
+
 
 (:~
  : Return whether the VOTable contains all available results.
