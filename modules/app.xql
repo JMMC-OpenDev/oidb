@@ -9,6 +9,7 @@ import module namespace math="http://www.w3.org/2005/xpath-functions/math";
 import module namespace xmath="http://exist-db.org/xquery/math";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
+import module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters" at "filters.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
 
