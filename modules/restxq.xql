@@ -437,14 +437,14 @@ declare %private function restxq:build-response($content as item()*) {
                 return ( response:redirect-to($action/text()), if (empty($body)) then ( util:declare-option("exist:serialize", "method=text"), <empty/> ) else $body )
             case "response"
                 return
-                    let $http-response := $action/http:response
+                    let $http-response := $action/*:response
                     return (
                         response:set-status-code($http-response/@status),
-                        for $header in $http-response/http:header
+                        for $header in $http-response/*:header
                         return response:set-header($header/@name, $header/@value),
                         (: TODO support for multipart :)
-                        if ($http-response/http:body) then
-                            $http-response/http:body/*
+                        if ($http-response/*:body) then
+                            $http-response/*:body/*
                         else if (empty($body)) then
                             (: the XQueryURLRewrite require that the controller return a node :)
                             (: an empty element + forced serialization to text => empty body :)
