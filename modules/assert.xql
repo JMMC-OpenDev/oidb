@@ -18,7 +18,7 @@ if(app:user-allowed()) then
 (:    assert that user has jmmc has primary group::)
 (:    help to workarround write permission in apps/oidb-data/oifits/staging:)
     let $op1 := sm:set-user-primary-group(app:user-name(), 'jmmc')
-    let $op2 := util:log("info", "fix user primary group")
+    let $op2 := util:log("info", "fix jmmc as primary group for "|| app:user-name())
     return ()
 else
     ()
