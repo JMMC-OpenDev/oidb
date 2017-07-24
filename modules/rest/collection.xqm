@@ -8,6 +8,7 @@ module namespace coll="http://apps.jmmc.fr/exist/apps/oidb/restxq/collection";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "../collection.xqm";
 
 declare namespace rest="http://exquery.org/ns/restxq";
+declare namespace http="http://expath.org/ns/http-client";
 
 (:~
  : Return a list of all existing collections.

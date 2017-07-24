@@ -10,7 +10,7 @@ xquery version "3.0";
  : 
  : It returns a <response> fragment with the status of the operation.
  :
- : TAP Vizier Query:
+ : TAP Vizier Query ( http://tapvizier.u-strasbg.fr/adql/?B/eso ) :
  : SELECT * FROM "B/eso/eso_arc" WHERE  "B/eso/eso_arc".ObsTech='INTERFEROMETRY'
  : Votable Must be uploaded to '/db/ESOL0.xml'
  :)

@@ -29,7 +29,8 @@ import module namespace user="http://apps.jmmc.fr/exist/apps/oidb/restxq/user" a
 import module namespace jmmc-about="http://exist.jmmc.fr/jmmc-resources/about";
 import module namespace jmmc-web="http://exist.jmmc.fr/jmmc-resources/web";
 
-declare option exist:serialize "method=html5 media-type=text/html enforce-xhtml=yes";
+(: our javascripts requires to get XHTML HTML5 is really a nightmare :)
+declare option exist:serialize "method=xhtml media-type=text/html omit-xml-declaration=yes indent=yes";
 
 let $config := map {
     $templates:CONFIG_APP_ROOT := $config:app-root,

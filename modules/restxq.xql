@@ -52,6 +52,7 @@ declare variable $restxq:TOO_MANY_ARGS := QName($restxq:NAMESPACE, "too-many-arg
 declare variable $restxq:TYPE_ERROR := QName($restxq:NAMESPACE, "type-error");
 declare variable $restxq:AMBIGUOUS := QName($restxq:NAMESPACE, "ambiguous");
 declare variable $restxq:UNKNOWN := QName($restxq:NAMESPACE, "unknown-annotation");
+declare variable $restxq:RESPONSE := QName($restxq:NAMESPACE, "response-error");
 
 declare variable $restxq:OUTPUT_MEDIA_TYPE := QName($restxq:OUTPUT_NAMESPACE, "media-type");
 declare variable $restxq:OUTPUT_METHOD := QName($restxq:OUTPUT_NAMESPACE, "method");
@@ -85,7 +86,8 @@ declare function restxq:process($path-info as xs:string?, $functions as function
             return (
                 restxq:set-serialization($meta),
                 util:log("DEBUG", "Calling function " || function-name($function)),
-                restxq:call-with-args($function, $arguments)
+                (: helper below builds a nice response at http level :)
+		restxq:build-response(restxq:call-with-args($function, $arguments))
             )
         })
 };
