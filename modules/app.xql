@@ -1128,7 +1128,7 @@ declare function app:get-encoded-email-decoder() as xs:string {
  : Clear cached data. MUST BE called after TAP datasource update. 
  :)
 declare function app:clear-cache(){ 
-  $tap:cache-flush() 
+  $tap:cache-flush
 };
 
 
