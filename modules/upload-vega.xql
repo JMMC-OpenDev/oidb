@@ -24,6 +24,10 @@ import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
+
+(: job name provided by scheduler :)
+declare variable $local:name external;
+
 (: the special collection name for VegaObs imports :)
 declare variable $local:collection := 'vegaobs_import';
 
@@ -148,7 +152,9 @@ declare function local:upload($handle as xs:long, $observations as node()*) as i
 let $response :=
     <response> {
         try {
-            <success> {
+            <success>
+                <method>{$local:name}</method>
+                {
                 let $new := vega:get-observations()
                 let $ids := utils:within-transaction(local:upload(?, $new))
                 return $ids

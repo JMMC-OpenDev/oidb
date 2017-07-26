@@ -11,6 +11,7 @@ import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "..
 import module namespace xmldb="http://exist-db.org/xquery/xmldb";
 
 declare namespace rest="http://exquery.org/ns/restxq";
+declare namespace http="http://expath.org/ns/http-client";
 declare namespace output="http://www.w3.org/2010/xslt-xquery-serialization";
 
 (: the resource path for comments :)

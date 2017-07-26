@@ -46,6 +46,8 @@ declare variable $local:T0_500nm := 14;
 
 (: path to the CSV file in database when running from scheduler (job parameter) :)
 declare variable $local:resource external;
+(: job name provided by scheduler :)
+declare variable $local:name external;
 
 (: the special collection name for CHARA imports :)
 declare variable $local:collection := 'chara_import';
@@ -293,7 +295,9 @@ let $data :=
         request:get-data()
 
 let $response :=
-    <response> {
+    <response>
+        <method>{$local:name}</method>
+        {
         try {
             let $ids := utils:within-transaction(local:upload(?, $data))
             return $ids

@@ -62,27 +62,71 @@
                     </form>
                 </div>
             </div>
+            <div class="panel panel-default" id="cache">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-book"/>&#160;Caches</h3>
+                </div>
+                <div class="panel-body">
+                    <ul>
+                    <li>
+                            <b>OIDB</b>: <span data-template="backoffice:cache-status"/>
+                        </li>
+                    <li>
+                            <b>ESO (programs)</b>: <span data-template="backoffice:eso-cache-status"/>
+                        </li>
+                    <li>
+                            <b>ADS (bibrecords)</b>: <span data-template="backoffice:ads-cache-status"/>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-6" id="chara">
-            <div class="panel panel-default">
+        <div class="col-md-7">
+            <div class="panel panel-default" id="eso">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        <i class="glyphicon glyphicon-upload"/>&#160;Climb/Classic</h3>
+                        <i class="glyphicon glyphicon-upload"/>&#160;VLTI L0</h3>
+                </div>
+                <div class="panel-body">
+                    <form action="modules/backoffice-job.xql" enctype="multipart/form-data" method="post" class="form-inline" role="form">
+                        <input type="file" name="file" placeholder="VOTable from TAP vizier with observation logs"/>
+                        <button type="submit" name="do" value="eso-update" class="btn btn-default">Update ESO</button>
+                        <div class="form-group">
+                            <b>Last update</b>: <span data-template="backoffice:eso-status"/>
+                        </div>
+                    </form>
+                    <ul>
+                        <li> Visit <a href="http://tapvizier.u-strasbg.fr/adql/?B/eso">TAP Vizier</a>
+                        </li>
+                        <li> Select:  Max records : <b>ALL</b>, Output format : <b>VOTABLE</b>
+                        </li>
+                        <li> Perform following query <br/>
+                            <code>SELECT * FROM "B/eso/eso_arc" WHERE  "B/eso/eso_arc".ObsTech='INTERFEROMETRY'</code>
+                        </li>
+                        <li>Dowload the result on your disk and upload it using this form!</li>
+                    </ul>
+                </div>
+            </div>
+            </div>
+        <div class="col-md-5">
+            <div class="panel panel-default" id="chara">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-upload"/>&#160;Climb/Classic L0</h3>
                 </div>
                 <div class="panel-body">
                     <form action="modules/backoffice-job.xql" enctype="multipart/form-data" method="post" class="form-inline" role="form">
                         <input type="file" name="file" placeholder="CSV file with Climb/Classic observation logs"/>
-                        <button type="submit" name="do" value="chara-update" class="btn btn-default">Update Climb/Classic</button>
+                        <button type="submit" name="do" value="chara-update" class="btn btn-default">Upload Climb/Classic CSV record</button>
                         <div class="form-group">
                             <b>Last update</b>: <span data-template="backoffice:chara-status"/>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
             <div class="panel panel-default" id="vega">
                 <div class="panel-heading">
                     <h3 class="panel-title">

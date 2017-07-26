@@ -126,3 +126,10 @@ declare function tap:status() as xs:string?
     else
         ()
 };
+
+(:~
+ : clear the cache associated to hardcoded TAP queries
+ :)
+declare function tap:clear-cache(){
+    jmmc-cache:flush($tap:cache,())
+};

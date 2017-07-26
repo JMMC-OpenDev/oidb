@@ -17,6 +17,7 @@ import module namespace scheduler="http://exist-db.org/xquery/scheduler";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
 import module namespace backoffice="http://apps.jmmc.fr/exist/apps/oidb/backoffice" at "backoffice.xql";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
 (:~
  : Start a job in the background through the scheduler with parameters.
@@ -56,12 +57,42 @@ declare %private function local:update-doc() {
 };
 
 (:~
+ : Clear cache.
+ : 
+ : @return always returns true().
+ :)
+declare %private function local:cache-flush() {
+    let $clear := app:clear-cache()
+        return true()
+};
+
+
+(:~
+ : Start a new ESO update job in background from an uploaded file.
+ : 
+ : @param $resource the path to the uploaded file with observations.
+ : @return false() if it failed to schedule the job or there is already another job running.
+ :)
+declare %private function local:update-eso() {
+    try {
+        let $data := request:get-uploaded-file-data('file')
+        let $path := xmldb:store('/db/apps/oidb-data/tmp', 'upload-eso.xml', $data)
+
+        return local:start-job($config:app-root || '/modules/upload-eso.xql', $backoffice:update-eso, map { 'resource' := $path, 'name' := $backoffice:update-eso })
+    } catch * {
+        let $log := util:log("error", "Can't store data into /db/apps/oidb-data/tmp/upload-eso.xml : "||$err:description)
+
+        return false()
+    }
+};
+
+(:~
  : Start a new VEGA update job from VegaObs in background.
  : 
  : @return false() if it failed to schedule the job or there is already another job running.
  :)
 declare %private function local:update-vega() {
-    local:start-job($config:app-root || '/modules/upload-vega.xql', $backoffice:update-vega, map {})
+    local:start-job($config:app-root || '/modules/upload-vega.xql', $backoffice:update-vega, map {'name' := $backoffice:update-vega})
 };
 
 (:~
@@ -74,7 +105,7 @@ declare %private function local:update-chara() {
     let $data := request:get-uploaded-file-data('file')
     let $path := xmldb:store('/db/apps/oidb-data/tmp', 'upload-chara.dat', $data, 'text/csv')
 
-    return local:start-job($config:app-root || '/modules/upload-chara.xql', $backoffice:update-chara, map { 'resource' := $path })
+    return local:start-job($config:app-root || '/modules/upload-chara.xql', $backoffice:update-chara, map { 'resource' := $path, 'name' := $backoffice:update-chara })
 };
 
 (: 
@@ -100,17 +131,29 @@ declare %private function local:error($msg as item()*) {
 let $action := request:get-parameter('do', '')
 return (
     switch ($action)
+        case "cache-flush" return
+            if(local:cache-flush()) then
+                local:info(<span xmlns="http://www.w3.org/1999/xhtml">Cache is being flushed.</span>)
+            else
+                local:error(<span xmlns="http://www.w3.org/1999/xhtml">Error flushing cache. See log for details.</span>)
+
         case "doc-update" return
             if(local:update-doc()) then
                 local:info(<span xmlns="http://www.w3.org/1999/xhtml"><a href="doc.html">Main documentation</a> is being updated from the <a href="{$config:maindoc-twiki-url}">twiki page</a>.</span>)
             else
                 local:error(<span xmlns="http://www.w3.org/1999/xhtml"><a href="doc.html">Main documentation</a> failed to be properly updated. Can't find remote source <a href="{$config:maindoc-twiki-url}">twiki page</a>. See log for details.</span>)
     
-       case "vega-update" return
+        case "vega-update" return
             if(local:update-vega()) then
                 local:info(<span xmlns="http://www.w3.org/1999/xhtml">VEGA observation logs are being updated from <a href="http://vegaobs-ws.oca.eu/">VegaObs</a>.</span>)
             else
                 local:error(<span xmlns="http://www.w3.org/1999/xhtml">VEGA observation logs is already running or failed to be properly updated. See log for details.</span>)
+
+        case "eso-update" return
+            if(local:update-eso()) then
+                local:info(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs are being updated from file.</span>)
+            else
+                local:error(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs is already running or failed to be properly updated. See log for details.</span>)
     
         case "chara-update" return
             if(local:update-chara()) then

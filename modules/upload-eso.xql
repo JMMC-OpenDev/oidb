@@ -9,10 +9,6 @@ xquery version "3.0";
  : transaction: if any failure occurs, the database is left unchanged.
  : 
  : It returns a <response> fragment with the status of the operation.
- :
- : TAP Vizier Query ( http://tapvizier.u-strasbg.fr/adql/?B/eso ) :
- : SELECT * FROM "B/eso/eso_arc" WHERE  "B/eso/eso_arc".ObsTech='INTERFEROMETRY'
- : Votable Must be uploaded to '/db/ESOL0.xml'
  :)
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
@@ -30,6 +26,11 @@ import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
 
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
+
+(: path to the VOTABLE file in database when running from scheduler (job parameter) :)
+declare variable $local:resource external;
+(: job name :)
+declare variable $local:name external;
 
 (: the special collection name for ESO/VLTI imports :)
 declare variable $local:collection := 'eso_vlti_import';
@@ -51,54 +52,55 @@ declare function local:delete-collection($handle as xs:long) {
  : @param $row an observation 
  : @return a 'metadata' element for the observation
  :)
-declare function local:metadata($row as node()) as node() {
-    let $idx-DEJ2000:=1 (:  :)
-    let $idx-ObsName:=2 (: Observation name (3) :)
-    let $idx-Rel_date:=3 (: Release date of data :)
-    let $idx-tExp:=4 (:  Exposure time :)
-    let $idx-Filter:=5 (: Filter Path (4) :)
-    let $idx-Slit:=6 (: Slit Path (4) :)
-    let $idx-InstrID:=7 (: Instrument identification :)
-    let $idx-Obs:=8 (: Observation start date (UT) :)
-    let $idx-naxis2:=9 (:  Detector size in Y direction :)
-    let $idx-naxis1:=10 (:  Detector size in X direction :)
-    let $idx-ProgID:=11 (: Program identification :)
-    let $idx-recno:=12 (: Record number assigned by the VizieR team. Should Not be used for identification. :)
-    let $idx-InstMode:=13 (: Instrument mode (4) :)
-    let $idx-Grism:=14 (: Grism Path (4) :)
-    let $idx-Target:=15 (: Target name (3) :)
-    let $idx-Grating:=16 (: Grating Path (4) :)
-    let $idx-TelID:=17 (: Code which refers to the ESO telescope (\aW{_340x600}{\glutag{Cat.file,u B/eso/eso-tel.htx}}{list of the codes}) :)
-    let $idx-AirMass:=18 (: AirMass :)
-    let $idx-ObsTech:=19 (: Observation technique (2) :)
-    let $idx-DataID:=20 (: Dataset identification :)
-    let $idx-RAJ2000:=21 (:  :)
+declare function local:metadata($row as node(), $col-indexes as map(xs:string, xs:integer)) as node() {
+(:    let $idx-DEJ2000:=1 (:  :):)
+(:    let $idx-ObsName:=2 (: Observation name (3) :):)
+(:    let $idx-Rel_date:=3 (: Release date of data :):)
+(:    let $idx-tExp:=4 (:  Exposure time :):)
+(:    let $idx-Filter:=5 (: Filter Path (4) :):)
+(:    let $idx-Slit:=6 (: Slit Path (4) :):)
+(:    let $idx-InstrID:=7 (: Instrument identification :):)
+(:    let $idx-Obs:=8 (: Observation start date (UT) :):)
+(:    let $idx-naxis2:=9 (:  Detector size in Y direction :):)
+(:    let $idx-naxis1:=10 (:  Detector size in X direction :):)
+(:    let $idx-ProgID:=11 (: Program identification :):)
+(:    let $idx-recno:=12 (: Record number assigned by the VizieR team. Should Not be used for identification. :):)
+(:    let $idx-InstMode:=13 (: Instrument mode (4) :):)
+(:    let $idx-Grism:=14 (: Grism Path (4) :):)
+(:    let $idx-Target:=15 (: Target name (3) :):)
+(:    let $idx-Grating:=16 (: Grating Path (4) :):)
+(:    let $idx-TelID:=17 (: Code which refers to the ESO telescope (\aW{_340x600}{\glutag{Cat.file,u B/eso/eso-tel.htx}}{list of the codes}) :):)
+(:    let $idx-AirMass:=18 (: AirMass :):)
+(:    let $idx-ObsTech:=19 (: Observation technique (2) :):)
+(:    let $idx-DataID:=20 (: Dataset identification :):)
+(:    let $idx-RAJ2000:=21 (:  :):)
     
+
     let $values := $row/*
 
-    let $target-name   := $values[ $idx-Target  ]
-    let $ra            := $values[ $idx-RAJ2000 ]
-    let $dec           := $values[ $idx-DEJ2000 ]
+    let $target-name   := $values[ map:get($col-indexes,"Target")  ]
+    let $ra            := $values[ map:get($col-indexes,"RAJ2000") ]
+    let $dec           := $values[ map:get($col-indexes,"DEJ2000") ]
     
-    let $ut            := $values[ $idx-Obs ]
+    let $ut            := $values[ map:get($col-indexes,"Obs") ]
     let $t-min         := jmmc-dateutil:UTtoMJD($ut,())
-    let $t-exp          := $values[ $idx-tExp ]
+    let $t-exp          := $values[ map:get($col-indexes,"tExp") ]
     let $t-exp          := if(string-length($t-exp)>0) then $t-exp else 0
     let $t-max         := try {jmmc-dateutil:UTtoMJD($ut + $t-exp ,())} catch * { $t-min }
-    let $release-date  := jmmc-dateutil:JDtoISO8601( $values[ $idx-Rel_date ] )
+    let $release-date  := jmmc-dateutil:JDtoISO8601( $values[ map:get($col-indexes,"Rel_date") ] )
     
     let $facility-name := "VLTI"
-    let $prog-id       := $values[ $idx-ProgID ]
-    let $obs-id        := $values[ $idx-DataID ]
+    let $prog-id       := $values[ map:get($col-indexes,"ProgID") ]
+    let $obs-id        := $values[ map:get($col-indexes,"DataID") ]
     let $obs-creator   := "ESO"
     
     let $data-pi       := if( exists($prog-id)) then jmmc-eso:get-pi-from-progid($prog-id) else ()
     
     
-    let $ins-name      := $values[ $idx-InstrID ]
+    let $ins-name      := $values[ map:get($col-indexes,"InstrID") ]
 (:    let $tel-conf    := "NOT USED in ObsCore schema" (: We could resolv TelId :):)
     
-    let $ins-mode      :=  $values[ $idx-InstMode ]
+    let $ins-mode      :=  $values[ map:get($col-indexes,"InstMode") ]
     let $nb-channels   := -1 (: get it from InstMode x AsprocConf + Filter :)
     let $em-min        := 0 
     let $em-max        := 0
@@ -146,11 +148,14 @@ declare function local:metadata($row as node()) as node() {
 declare function local:upload($handle as xs:long, $votable as node()*) as item()* {
     (: remove old data from db :)
     let $delete := local:delete-collection($handle)
+    
+    let $col-indexes := map:new(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
+ 
     (: insert new granules in db :)
 (:    for $tr at $pos in subsequence($votable//votable:TR,1,10) :)
     for $tr at $pos in $votable//votable:TR
     return try {
-        <id>{ granule:create(local:metadata($tr), $handle) }</id>
+        <id>{ granule:create(local:metadata($tr, $col-indexes), $handle) }</id>
     } catch * {
         <warning>Failed to convert observation log to granule (row[{$pos}]:{  serialize($tr) }): { $err:description } { $err:value }</warning>
     }
@@ -162,10 +167,11 @@ let $response :=
         try {
             <success> {
                 let $check-access := if(collection:has-access($local:collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into '|| $local:collection ||'.')
-                let $new := doc("/db/ESOL0.xml")
-                let $ids := <ids>{utils:within-transaction(local:upload(?, $new))}</ids>
+                let $new := doc($local:resource)
+                let $ids := <ids>{utils:within-transaction(local:upload(?, $new))}</ids> 
+(:                let $ids := <ids></ids>:)
                 let $duration := seconds-from-duration(util:system-time()-$stime)
-                return (<info>{count($ids/id) || " granules injected properly"}  in {$duration}sec, { count($ids/*) div $duration }req/sec</info>, $ids/warning)
+                return (<info>{count($ids/id) || " granules injected properly"}  in {$duration}sec, { count($ids/*) div $duration }req/sec</info>, $ids/warning, <granuleOkCount>{count($ids/id)}</granuleOkCount>, <method>{$local:name}</method>)
 (:                return $ids:)
             } </success>
         } catch * {

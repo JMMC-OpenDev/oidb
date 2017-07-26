@@ -12,7 +12,13 @@ import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xq
 import module namespace scheduler="http://exist-db.org/xquery/scheduler";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
+import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
+import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
+
+
+
 declare variable $backoffice:update-doc := "OiDB doc updater";
+declare variable $backoffice:update-eso := "OiDB ESO updater";
 declare variable $backoffice:update-vega := "OiDB VEGA updater";
 declare variable $backoffice:update-chara := "OiDB CHARA updater";
 
@@ -91,6 +97,66 @@ declare function backoffice:doc-status($node as node(), $model as map(*)) as nod
     else
         (: no imported documentation found :)
         <span>No yet present. Visit twiki page {$twiki-link}</span>
+};
+
+(:~
+ : Template helper to display the cache status.
+ : 
+ : @param $node
+ : @param $model
+ : @return a form with information 
+ :)
+declare function backoffice:cache-status($node as node(), $model as map(*)) as node()* {
+        if ($tap:cache/cached) then
+            (<span>oldest record :&#160; { data($tap:cache/cached[1]/@date) } &#160; </span>,
+            <form action="modules/backoffice-job.xql" method="post" class="form-inline" role="form">
+                <button type="submit" name="do" value="cache-flush" class="btn btn-default">Clear cache</button>
+            </form>)
+        else
+            <span>cache empty</span>
+};
+
+(:~
+ : Template helper to display the eso-cache status.
+ : 
+ : @param $node
+ : @param $model
+ : @return a form with information 
+ :)
+declare function backoffice:eso-cache-status($node as node(), $model as map(*)) as node() {
+    <span>{
+        count($jmmc-eso:cache/*)
+    } record(s)</span>
+};
+
+(:~
+ : Template helper to display the ads-cache status.
+ : 
+ : @param $node
+ : @param $model
+ : @return a form with information 
+ :)
+declare function backoffice:ads-cache-status($node as node(), $model as map(*)) as node() {
+    <span>{
+        count($jmmc-ads:cache/*)
+    } record(s)</span>
+};
+
+(:~
+ : Template helper to display the status of the ESO update.
+ : 
+ : @param $node
+ : @param $model
+ : @return
+ :)
+declare function backoffice:eso-status($node as node(), $model as map(*)) as xs:string {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-eso]
+    return if ($job) then
+        (: currently executing :)
+        'Running...'
+    else
+        (: TODO :)
+        '-'
 };
 
 (:~

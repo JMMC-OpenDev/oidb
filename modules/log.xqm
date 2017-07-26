@@ -168,13 +168,14 @@ declare %private function log:report-submits($max as xs:integer, $successful as 
     let $items := subsequence(reverse($submits),1,$max)
     let $trs := for $item in $items
         let $time := data($item/@time)
+        let $time := if($item//info) then  <span>{$time} <br/>({data($item//info)})</span> else $time 
         let $errors := count($item//error)
         let $warnings := count($item//warning)
         let $success := ($errors+$warnings) = 0
         let $class := if( $success ) then "success" else if( $item//warning) then "warning" else "danger"
         let $by := if ($item/@user) then jmmc-auth:get-obfuscated-email($item/@user) else ''
-        let $granulesOk := count($item//id)
-        let $method := if($item//file) then "xml" else if ($item//urls) then "Oifits uploads" else "VizieR"
+        let $granulesOk := count($item//id) + (xs:int($item//granuleOkCount),0)[1] 
+        let $method := if($item//method) then data($item//method) else if($item//file) then "xml" else if ($item//urls) then "Oifits uploads" else "VizieR"
         return (
             <tr class="{$class}"> <td>{$time}</td> <td>{$granulesOk} / {$errors} errors / {$warnings} warnings</td> <td>{$method}</td> <td>{$by}</td> </tr>,
             if($success) then ()  else <tr class="{$class}"> <td colspan="{$nbCols}"> 

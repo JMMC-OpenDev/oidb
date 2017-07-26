@@ -23,6 +23,7 @@
               <li>Handle synchronization with b/ESO observation log catalog through TAP VizieR.</li>
               <li>Submission process enhanced for invalid files: errors are more higlighted, wrong files can be deleted before submission.</li>
               <li>Use abstract section of readme for catalog submissions instead of description.</li>
+              <li>Cache regular TAP requests to get response faster.</li>
               <li>And many minor updates on web pages and processes.</li>
             </ul>
         </change>
