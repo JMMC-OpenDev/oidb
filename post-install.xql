@@ -51,6 +51,7 @@ let $perms := map {
     $target || '/' || 'modules/update-doc.xql'   := $oidb-credentials,
     $target || '/' || 'modules/upload-chara.xql' := $oidb-credentials,
     $target || '/' || 'modules/upload-vega.xql'  := $oidb-credentials,
+    $target || '/' || 'modules/upload-eso.xql'  := $oidb-credentials,
     $target || '-data/' || 'tmp/tap-cache.xml'  := $guest-credentials-rw
 }
 
