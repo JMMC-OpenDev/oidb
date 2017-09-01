@@ -450,7 +450,10 @@ declare %private function restxq:build-response($content as item()*) {
                         else if (empty($body)) then
                             (: the XQueryURLRewrite require that the controller return a node :)
                             (: an empty element + forced serialization to text => empty body :)
-                            ( util:declare-option("exist:serialize", "method=text"), <empty/> )
+                            (: And Content-Type header must be forced ( was not the case in existdb V2 ) :)
+                            ( util:declare-option("exist:serialize", "method=text"), <empty/>,
+                            response:set-header("Content-Type","application/text") 
+                            )
                         else
                             $body
                     )
