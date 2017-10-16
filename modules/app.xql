@@ -19,6 +19,8 @@ import module namespace user="http://apps.jmmc.fr/exist/apps/oidb/restxq/user" a
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
+import module namespace jmmc-simbad="http://exist.jmmc.fr/jmmc-resources/simbad";
+
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql";
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
 import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
@@ -862,9 +864,15 @@ function app:search($node as node(), $model as map(*),
     } catch filters:error {
         (: add log request with error :)
         let $log := log:search(<error code="{$err:code}">{$err:description}</error>)
-        return 
-        map {
-            'flash' := 'Unable to build a query from search form data: ' || $err:description
+        
+        (: try to provide suggestion if search by name fails :)
+        let $cs-tokens := tokenize(request:get-parameter('conesearch', ''), ',')
+        let $cs-position := if (count($cs-tokens) = 4) then $cs-tokens[1] else ()
+        let $suggestion := if ($cs-position) then let $uri := request:get-query-string() return <span><br/>You may try <ul class="list-inline">{ for $li in jmmc-simbad:search-names($cs-position, ()) let $href:= replace($uri, "conesearch="||$cs-position, "conesearch="||$li) return <li><a href="?{$href}">{$li}</a></li>} </ul></span> else ()
+        
+        return map {
+(:            'flash' := 'Unable to build a query from search form data: ' || $err:description:) 
+              'flash' := <span>Unable to build a query from search form data : <b><em>{$err:description}</em></b>{$suggestion}</span>
         }
     } catch tap:error {
         let $message := if ($err:value) then ' (' || $err:value || ')' else ''
@@ -1397,7 +1405,11 @@ declare function app:collections($node as node(), $model as map(*)) as map(*) {
 declare function app:collection($node as node(), $model as map(*)) as map(*) {
     let $id := replace(request:get-parameter('id', '')," ","+") (: We have no space in our ids and received spaces probably comes from a CDS catalog ref with + sign... :)
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
-    return map { 'collection' := $collection, 'document-name' :=  util:document-name($collection) }
+    return if ($collection)
+        then 
+            map { 'collection' := $collection, 'document-name' :=  util:document-name($collection) }
+        else 
+            ()
 };
 
 (:~
