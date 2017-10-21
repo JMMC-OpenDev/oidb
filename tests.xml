@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tests>
+  <!-- this file can stay here to be fed with test data ( first used by tests.xql ) -->
+  <!-- post-install.xql set proper permissions -->
+
+</tests>
