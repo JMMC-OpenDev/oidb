@@ -313,7 +313,7 @@ as node()
                             <session>
                                 <visit>{count($visit)}</visit>
                                 <duration>{
-                                if(count($visit)>1)  then  minutes-from-duration(xs:dateTime($visit[last()]/@time) - xs:dateTime($visit[1]/@time ))
+                                if(count($visit[@time])>1)  then  minutes-from-duration(xs:dateTime($visit[last()]/@time) - xs:dateTime($visit[1]/@time ))
                                 else 0
                                 }</duration>
                             </session>
