@@ -49,5 +49,6 @@
                 <globmapper from="*" to="modules/*"/>
             </mappedresources>
         </zip>
+        <delete file="${build.dir}/config.xqm" />
     </target>
 </project>
