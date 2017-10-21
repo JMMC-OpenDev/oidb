@@ -23,6 +23,7 @@ import module namespace jmmc-simbad="http://exist.jmmc.fr/jmmc-resources/simbad"
 
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql";
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
+import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
 import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
@@ -1561,26 +1562,27 @@ declare %private function app:granules($query as item()*) as node()* {
     (: search for granules matching query :)
     let $votable := tap:execute(adql:build-query($query))
 
-    (: select VOTable rows for page :)
-    let $rows :=$votable//votable:TR
-
     (: transform the VOTable :)
-    let $fields := data($votable//votable:FIELD/@name)
-    let $url-pos := index-of($fields, 'access_url')
-    
     let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;") (: leave header on a single line :)
-    let $first-row := $data//tr[td][1]
+
     return (
         (: group by source file (access_url) :)
-        for $url in distinct-values($rows/votable:TD[position()=$url-pos])
-        return <file> {
-            <url>{ $url }</url>,
-            <url-link>{app:td-cell($first-row/td[@colname='access_url'], $first-row)/a }</url-link>,
-            
+        for $rows in $data//tr[td] group by $url := $rows/td[@colname='access_url']
+        return <file> 
+            <url>{ $url }</url>
+            <url-link>{app:td-cell($rows[1]//td[@colname='access_url'], $rows[1])/a }</url-link>
+            {
             for $tr in $rows
-            where $tr/votable:TD[position()=$url-pos]/text() = $url
-            return app:votable-row-to-granule($fields, $tr)
-        } </file>,
+                return 
+                    <granule> {
+                    (: turn each cell into child element whose name is the respective column name :)
+                    for $td in $tr/td
+                      
+                      return element { data($td/@colname) } { data($td) }
+                    } 
+                  </granule>
+            } 
+        </file>,
         (: potentially report result overflow :)
         if (tap:overflowed($votable)) then <overflow/> else ()
     )
@@ -1685,6 +1687,25 @@ function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $le
     else
         $text
 };
+
+(:~
+ : provide an ads link for given bibcode.
+ : TODO: move to templates-helpers
+ : 
+ : @param $node the placeholder for the ellipsized text
+ : @param $model
+ : @param $key the key to lookup in the model for source text
+ : @param $length the maximum size of text returned
+ : @return a ellipsized text if too long
+ :)
+declare 
+    %templates:wrap
+function app:ads-link($node as node(), $model as map(*), $key as xs:string) as node() {
+    let $bibcode := helpers:get($model, $key)
+    return jmmc-ads:get-link($bibcode, ())
+};
+
+
 
 (:~
  : wrap jmmc-auth function for templating.
