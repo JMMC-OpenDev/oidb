@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>beta</status>
+    <status>stable</status><!-- one of alpha beta stable -->
     <license/>
     <copyright>true</copyright>
     <type>application</type>
@@ -24,7 +24,8 @@
               <li>Submission process enhanced for invalid files: errors are more higlighted, wrong files can be deleted before submission.</li>
               <li>Use abstract section of readme for catalog submissions instead of description.</li>
               <li>Data Management Plan link put in the help menu.</li>
-              <li>Cache regular TAP requests to get response faster.</li>
+              <li>Cache main requests to get faster responses.</li>
+              <!-- robots.txt added -->
             </ul>
         </change>
         <change xmlns="" version="1.0">
