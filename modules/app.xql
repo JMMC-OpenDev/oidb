@@ -1204,7 +1204,9 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
 declare function app:show-granule-externals($node as node(), $model as map(*), $key as xs:string)
 {
     let $granule := map:get($model, $key) 
-    let $prog_id := string($granule//td[@colname='progid'])    
+    let $prog_id := string($granule//td[@colname='progid'])
+    (: add a fallback using obs_id to retrieve PIONIER collection's granules :)
+    let $prog_id := if ($prog_id!='') then $prog_id else string($granule//td[@colname='obs_id'])
     let $facility-name := string($granule//td[@colname='facility_name'])
  
     let $res := if($facility-name="VLTI" and $prog_id!='') then 
