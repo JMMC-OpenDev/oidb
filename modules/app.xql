@@ -834,11 +834,12 @@ function app:search($node as node(), $model as map(*),
         let $columns :=
             for $name in $column-names
             let $th := $data//th[@name=$name]
+            let $unit := if($th/@unit) then " [" || $th/@unit || "]" else ()
             return map {
                 'name'    := $name,
 (:                'ucd'     := $th/a/text(),:)
 (:                'ucd-url' := data($th/a/@href),:)
-                'description' := data($th/@description),
+                'description' := data($th/@description) || $unit,
                 'label'   := switch ($name)
                     case "em_min" return "wlen_min"
                     case "em_max" return "wlen_max"
@@ -1064,7 +1065,9 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     for $th at $i in $data//th[@name!='id']
                     let $td := $data//td[position()=index-of($data//th, $th)]
                     let $tr := $td/..
-                    return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{data($th/@description)}"/> &#160; { $th/node() } </th> {app:td-cell($td, $tr) } </tr>
+                    let $tt := data($th/@description)
+                    let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
+                    return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> {app:td-cell($td, $tr) } </tr>
                 }
                 </table>
             </div>
@@ -1517,6 +1520,7 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
         return <th>
             { $field/@name }
             { attribute {"description"} {data($field/votable:DESCRIPTION)} }
+            { $field/@unit }
             { data($field/@name) }
             { if($field/@ucd and exists($ucd-separator))  then ($ucd-separator, <a href="{ concat($app:UCD_URL,data($field/@ucd)) }"> { data($field/@ucd) } </a>) else () }
             <!-- { if($field/@unit) then ( <br/>, <span> [ { data($field/@unit) } ] </span> ) else () } -->
