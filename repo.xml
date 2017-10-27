@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>stable</status><!-- one of alpha beta stable -->
+    <status>alpha</status><!-- one of alpha beta stable -->
     <license/>
     <copyright>true</copyright>
     <type>application</type>
@@ -17,6 +17,13 @@
     using a given property file (see build.xml for detail)
     </note>
     <changelog>
+        <change xmlns="" version="1.2">
+           <h3>V1.2 release</h3>
+            <ul>
+              <li>TODO provides additional data: quickplots and PIONIER's pdf </li>
+              <!-- robots.txt added -->
+            </ul>
+        </change>
         <change xmlns="" version="1.1">
             <h3>V1.1 release</h3>
             <ul>
