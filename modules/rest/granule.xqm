@@ -58,6 +58,7 @@ function granule:put-granule($id as xs:integer, $granule-doc as document-node())
 
 (:~
  : Sanitise the given granule.
+ : TODO move this code to gran-create
  : <ul>
  :    <li>ESO case : if datapi is not present and obs_id is provided, retrieve PI from ESO archive and add new datapi element</li>    
  :    <li>TODO handle other rules if any</li>
