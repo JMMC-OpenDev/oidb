@@ -122,6 +122,7 @@ declare function config:get-db-connection() as xs:long{
  : The table in the database where to save the metadata.
  :)
 declare variable $config:sql-table := "@sql-table@";
+declare variable $config:sql-datalink-table := "oidb_datalink";
 
 (:~
  : TAP request URLs

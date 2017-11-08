@@ -16,6 +16,7 @@ import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collecti
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace user="http://apps.jmmc.fr/exist/apps/oidb/restxq/user" at "rest/user.xqm";
+import module namespace datalink="http://apps.jmmc.fr/exist/apps/oidb/restxq/datalink" at "rest/datalink.xqm";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
@@ -1019,9 +1020,34 @@ declare function app:serialize-query-string() as xs:string* {
     )
 };
 
+
+
+(:~
+ : Put datalink elements for a given id into model for templating.
+ : Not yet used by show because of non templated app:show
+ : It takes the granule ID from a 'id' HTTP parameter in the request.
+ : 
+ : @param $node
+ : @param $model the current model
+ : @return a submodel with datalink elements i.e a transformed votable 
+ :)
+declare function app:datalink($node as node(), $model as map(*)) as map(*) {
+    let $id := request:get-parameter('id', '')
+    (: which elements has the model inside ? :)
+    (: we could get the id but the collection, target ... :)
+    let $datalink:= datalink:datalink($id)
+    (: TO BE CONTINUED ... :)
+    return if ($datalink)
+        then 
+            map { 'datalink' := $datalink }
+        else 
+            ()
+};
+
+
 (:~
  : Display all columns from the selected row.
- : 
+ :  
  : A query with the identifier for the row is passed to the TAP service and the
  : returned VOTable is formatted as an HTML table.
  : TODO refactor using templating and td-cells()
@@ -1066,7 +1092,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     let $td := $data//td[position()=index-of($data//th, $th)]
                     let $tr := $td/..
                     let $tt := data($th/@description)
-                    let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
+                    let $tt := if($th/@unit) then $tt || " co[" || $th/@unit || "]" else $tt
                     return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> {app:td-cell($td, $tr) } </tr>
                 }
                 </table>
@@ -1207,23 +1233,40 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
 declare function app:show-granule-externals($node as node(), $model as map(*), $key as xs:string)
 {
     let $granule := map:get($model, $key) 
-    let $prog_id := string($granule//td[@colname='progid'])
-    (: add a fallback using obs_id to retrieve PIONIER collection's granules :)
-    let $prog_id := if ($prog_id!='') then $prog_id else string($granule//td[@colname='obs_id'])
+    let $granule_id := xs:integer($granule//td[@colname='id'])
     let $facility-name := string($granule//td[@colname='facility_name'])
  
+    let $prog_id := string($granule//td[@colname='progid'])
+    (: add a fallback using obs_id to retrieve PIONIER collection's granules :)
+    (: would be good to change the db content, isn't it ? :)
+    let $prog_id := if ($prog_id!='') then $prog_id else string($granule//td[@colname='obs_id'])
+    
     let $res := if($facility-name="VLTI" and $prog_id!='') then 
         let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($prog_id)
         return 
             <a href="{$url}">Jump to ESO archive for progid <em>{$prog_id}</em></a>
         else 
             <a href="#">-</a>
+            
+    let $datalink-vot := app:transform-votable( datalink:datalink($granule_id) )
+    let $content_length_unit := data($datalink-vot//th[@name='content_length']/@unit)
+    let $content_length_desc := data($datalink-vot//th[@name='content_length']/@description)
+    let $datalink-res := for $tr in $datalink-vot//tr[td]
+        let $url                 := data($tr/td[@colname='access_url'])
+        let $filename            := tokenize($url, '/')[last()]
+        let $description         := data($tr/td[@colname='description'])
+        let $description         := if($description) then $description else $url
+        let $content_length      := data($tr/td[@colname='content_length'])
+        let $title := if($content_length) then $content_length_desc||": ["||$content_length||"] "||$content_length_unit else ()
+        let $title := $filename || ":" || $title
+        return
+            <a href="{$url}" title="{$title} ">{$description}</a>
     
     return 
         <div id="external_resources">
             <h2><i class="glyphicon glyphicon-new-window"/> External resources</h2>
             <table class="table table-striped table-bordered table-hover">
-                <tr><th>{$res}</th></tr>
+                { for $e in ($res, $datalink-res) return <tr><th>{$e}</th></tr> }
             </table>
         </div>
            
@@ -1403,7 +1446,7 @@ declare function app:collections($node as node(), $model as map(*)) as map(*) {
  : Put collection details into model for templating.
  : 
  : It takes the collection ID from a 'id' HTTP parameter in the request.
- : 
+ :  
  : @param $node
  : @param $model the current model
  : @return a submodel with collection description
@@ -1439,7 +1482,6 @@ declare %private function app:stats($query as item()*) as map(*) {
         'to-date'    :=$tmin-tmax[2]
     }
 };
-
 
 declare function app:date-multiline($node as node(), $model as map(*), $key as xs:string) as node()*{
     let $date := xs:date(map:get($model, $key))

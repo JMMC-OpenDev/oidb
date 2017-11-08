@@ -34,14 +34,41 @@ declare %private function granule:insert-statement($data as node()*) {
                                     </obs_release_date>
                                 else
                                     () (: TODO check that this empty case is normal :)
-    (: filter out the empty fields: keep default value for them :)
-    let $nodes := ( $data[./node()], $obs_release_date )
+    (: filter out the empty fields and datalink(s): keep default value for them :)
+    let $nodes := ( $data[./node() and not(name()='datalink')], $obs_release_date )
     let $columns := for $x in $nodes return name($x)
     let $values  := for $x in $nodes return "'" || utils:escape($x) || "'"
     return
         concat(
             "INSERT INTO ",
             $config:sql-table,
+            " ( " || string-join($columns, ', ') || " ) ",
+            "VALUES",
+            " ( " || string-join($values,  ', ') || " ) ",
+            (: Note: PostgreSQL extension :)
+            "RETURNING id")
+};
+
+
+(:~
+ : Format a SQL INSERT statement for saving a datalink for a given granule id.
+ : 
+ : The name of each node in input data is turned into a column name. The text 
+ : of each node is taken as the new value for the field.
+ : 
+ : @param $id granule id
+ : @param $data a sequence of nodes with row values
+ : @return a SQL INSERT statement
+ :)
+declare %private function granule:insert-datalink-statement($id as xs:integer, $data as node()*) {
+    (: filter out the empty fields: keep default value for them :)
+    let $nodes := ( $data[./node()] )
+    let $columns := ( 'ID' , for $x in $nodes return name($x) )
+    let $values  := ( $id , for $x in $nodes return "'" || utils:escape($x) || "'" )
+    return
+        concat(
+            "INSERT INTO ",
+            $config:sql-datalink-table,
             " ( " || string-join($columns, ', ') || " ) ",
             "VALUES",
             " ( " || string-join($values,  ', ') || " ) ",
@@ -75,14 +102,26 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
     
     let $statement := granule:insert-statement($granule/*)
     let $result := sql:execute($handle, $statement, false())
-    return
-        if ($result/name() = "sql:exception") then
+    let $id := if ($result/name() = "sql:exception") 
+        then
             error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement)
         else
             let $clear-cache :=  app:clear-cache()
             return
                 (: return the id of the inserted row :)
                 $result//sql:field[@name='id'][1]
+    
+    let $datalinks := for $datalink in $granule/datalink
+            let $statement := granule:insert-datalink-statement($id, $datalink/*)
+            let $result := sql:execute($handle, $statement, false())
+            return 
+                if ($result/name() = "sql:exception") then
+                    error(xs:QName('granule:error'), 'Failed to upload datalink: ' || $result//sql:message/text() || ', query: ' || $statement)
+                else 
+                    ()
+    
+    
+    return $id
 };
 
 (:~
@@ -154,6 +193,7 @@ declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node
 declare %private function granule:update-statement($id as xs:integer, $data as node()*) as xs:string {
     let $columns := for $x in $data return name($x)
     let $values  := for $x in $data return if ($x/node()) then "'" || utils:escape($x) || "'" else "NULL"
+    (: TODO we could check that subdate is updated - or maybe add an additional column for that :)
     return string-join((
         "UPDATE", $config:sql-table,
         "SET", string-join(map-pairs(function ($c, $v) { $c || '=' || $v }, $columns, $values), ', '),
