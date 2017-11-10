@@ -76,6 +76,23 @@ declare %private function granule:insert-datalink-statement($id as xs:integer, $
             "RETURNING id")
 };
 
+
+declare function granule:add-datalink($id as xs:integer, $datalink as node(), $handle as xs:long) {
+    if (granule:has-access($id, 'w')) then
+        let $statement := granule:insert-datalink-statement($id, $datalink/*)
+        let $result := sql:execute($handle, $statement, false())
+
+        return if ($result/name() = 'sql:result') then
+            (: row updated successfully :)
+            ()
+        else if ($result/name() = 'sql:exception') then
+            error(xs:QName('granule:error'), 'Failed to update granule ' || $id || ': ' || $result//sql:message/text())
+        else
+            error(xs:QName('granule:error'), 'Failed to update granule ' || $id || '.')
+    else
+        error(xs:QName('granule:unauthorized'), 'Permission denied.')
+};
+
 (:~
  : Save a new granule in the SQL database and return the ID of the row.
  : 
