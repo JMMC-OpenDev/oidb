@@ -179,5 +179,5 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
     else
         (: check access to collection XML file :)
         let $path := document-uri(root($collection)) 
-        return if(exists($path)) then  sm:has-access($path , $mode) or app:user-admin() else false()
+        return app:user-admin() or  ( if(exists($path)) then  sm:has-access($path , $mode) else false() )
 };
