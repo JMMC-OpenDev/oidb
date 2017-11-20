@@ -552,10 +552,10 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
     let $data := tap:retrieve-or-execute($app:facilities-query)
     let $tap-facilities := distinct-values($data//*:TD/text())
     
-    let $aspro-facilities := <table class="table table-striped table-bordered table-hover">
+    let $aspro-table := <table class="table table-striped table-bordered table-hover">
     <tr><th>Name</th><th>Description</th><th>X,Y,Z coordinates</th><th>Lat,Lon approximation </th><th>records in the database</th></tr>
         {
-            for $facility in collection($config:data-root)//*:interferometerSetting   
+            for $facility in collection($config:aspro-conf-root)/*:interferometerSetting
                 let $name := data($facility/*:description/*:name)
                 let $desc := data($facility/*:description/*:description)
                 (: http://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates :)
@@ -577,7 +577,7 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
                     </tr>
         }
         {
-            let $aspro-facilities := data(collection($config:data-root)//*:interferometerSetting/*:description/*:name)
+            let $aspro-facilities := distinct-values(data(collection($config:aspro-conf-root)/*:interferometerSetting/*:description/*:name))
             for $facility in $tap-facilities
                 where  not( $facility = $aspro-facilities )
                 return
@@ -586,8 +586,8 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
                     </tr>
         }
         </table>
-    
-    return map { 'tap-facilities' := $tap-facilities , 'facilities' := $aspro-facilities }
+
+    return map { 'tap-facilities' := $tap-facilities , 'facilities' := $aspro-table }
 };
 
 declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));
@@ -1257,18 +1257,26 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
         let $description         := data($tr/td[@colname='description'])
         let $description         := if($description) then $description else $url
         let $content_length      := data($tr/td[@colname='content_length'])
+        let $content_type      := data($tr/td[@colname='content_type'])
         let $title := if($content_length) then $content_length_desc||": ["||$content_length||"] "||$content_length_unit else ()
         let $title := $filename || ":" || $title
+        let $thumbnail := if (contains($content_type, 'png')) then <a href="{$url}" title="{$title} "><img src="{$url}" width="100"/></a> else ()
         return
-            <a href="{$url}" title="{$title} ">{$description}</a>
+            <tr><th><a href="{$url}" title="{$title} ">{$description}</a></th><th> {$thumbnail}</th></tr>
     
-    return 
+    return
+        (<div id="quicklook_plots">
+            <h2><i class="glyphicon glyphicon-eye-open"/> Quicklook plots</h2>
+            <table class="table table-striped table-bordered table-hover">
+                { $datalink-res }
+            </table>
+        </div>,
         <div id="external_resources">
             <h2><i class="glyphicon glyphicon-new-window"/> External resources</h2>
             <table class="table table-striped table-bordered table-hover">
-                { for $e in ($res, $datalink-res) return <tr><th>{$e}</th></tr> }
+                { for $e in $res return <tr><th>{$e}</th></tr> }
             </table>
-        </div>
+        </div>)
            
 };
 
