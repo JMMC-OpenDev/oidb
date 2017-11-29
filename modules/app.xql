@@ -535,6 +535,45 @@ declare function app:instrument-stats($node as node(), $model as map(*), $key as
     return app:stats(( 'instrument=' || $id ))
 };
 
+(:~
+ : Add general statistics to the model .
+ : 
+ : @param $node
+ : @param $model the current model
+ : @return a submodel with stats
+ :)
+declare function app:statistics($node as node(), $model as map(*)) as map(*) {
+    let $key:="granules-stats"
+    let $cached := $tap:cache-get($key) 
+    
+    let $ret := 
+        if(exists($cached)) then 
+            $cached
+        else
+            let $vot       := tap:retrieve-or-execute(adql:build-query( 'caliblevel=1,2,3' ))
+            let $granules := app:votable-rows-to-granules(data($vot//votable:FIELD/@name), $vot//votable:TABLEDATA/votable:TR) 
+            let $rows := $granules//granule
+            let $statistics:=
+            <dev>nb_granules for calib_level >=1 :{count($rows)}<br/>
+            <table class="table table-striped table-bordered table-hover">
+            <tr><th>nb</th><th>instrument_name</th><th>nb_vis(mean)</th><th>nb_vis2(mean)</th><th>nb_t3(mean)</th><th>min(em_res_power)</th><th>max(em_res_power)</th><th>res threshold</th><th>LR</th><th>MR/HR</th></tr>
+            {
+                for $granule in $rows group by $instrument_name := data($granule/instrument_name)
+                let $nb := count($granule)
+                let $nb_vis := sum($granule//nb_vis) div $nb
+                let $nb_vis2 := sum($granule//nb_vis2) div $nb
+                let $nb_t3 := sum($granule//nb_t3) div $nb
+                let $em_res_power_min := min($granule//em_res_power)
+                let $em_res_power_max := max($granule//em_res_power)
+                return <tr><td>{$nb}</td><td>{$instrument_name}</td><td>{$nb_vis}</td><td>{$nb_vis2}</td><td>{$nb_t3}</td><td>{$em_res_power_min}</td><td>{$em_res_power_max}</td><td>TBD</td><td>#?</td><td>#?</td></tr>
+            }   
+            </table>
+            </dev>
+                return $tap:cache-insert($key, $statistics)
+    
+    return map {  'statistics' := $ret }
+};
+
 declare variable $app:facilities-query := adql:build-query(( 'col=facility_name', 'distinct' ));
 
 (:~
@@ -1603,6 +1642,23 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
         for $td at $i in $row/votable:TD
         return element { $fields[$i] } { $td/text() }
     } </granule>
+};
+
+(:~
+ : Convert rows of a granules from a VOTable to XML granules.
+ : 
+ : @param $fields the VOTable column names
+ : @param $rows    the VOTable rows
+ : @return the XML granules
+ :)
+declare %private function app:votable-rows-to-granules($fields as xs:string*, $rows as element(votable:TR)*) as element(granules){
+    <granules>{for $row in $rows
+    return <granule> {
+        (: turn each cell into child element whose name is the respective column name :)
+        for $td at $i in $row/votable:TD
+        return element { $fields[$i] } { $td/text() }
+    } </granule>
+    }</granules>
 };
 
 (:~
