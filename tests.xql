@@ -9,7 +9,7 @@ let $test := <test><name>read-write-db</name>
 { 
   try {
     let $insert := if($doc//last) then () else update insert element last {"hello"} into $doc/*
-      let $op := update replace $doc//last/text() with $date
+      let $op := update value $doc//last with $date
       return 
       <ok/>
   } catch * {
