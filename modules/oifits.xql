@@ -61,6 +61,16 @@ declare %private function oifits:prepare-granules($oifits as node(), $url as xs:
     }
 };
 
+declare function oifits:format-validation($validation as node()) as node()*{
+  let $styles := <styles><s><t>INFO</t><c>text-info</c></s><s><t>WARNING</t><c>text-warning</c></s><s><t>SEVERE</t><c>text-danger</c></s></styles>
+  let $els := for $m in $validation//message
+                    let $class:= data($styles//s[t=$m/@level]/c)
+                    return <li class="{$class}">{data($m)}</li>
+(:  let $counters := <li>{$validation/@warn ||" warnings, "|| $validation/@error ||" errors"}</li> more efficient but requires a small bugfix:)
+  let $counters := <li>{count($validation/message[@level="WARNING"]) ||" warnings, "|| count($validation/message[@level="SEVERE"]) ||" errors"}</li>
+  return <ul class="list-unstyled">{$els, $counters}</ul>
+};
+
 (:~
  : Extract granules from OIFITS file and put granule in model for templating.
  : 
@@ -85,12 +95,25 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
         try {
             let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
 
-            let $report := $oifits/checkReport/text()
-            let $cnt-severe := count(tokenize($report,"SEVERE"))-1
-            let $cnt-warning := count(tokenize($report,"WARNING"))-1
+            let $validation := $oifits/validation
+            let $uuid := util:uuid()
+            
+            let $cnt-severe := count($validation/message[@level="SEVERE"])
+            let $cnt-warning := count($validation/message[@level="WARNING"])
             let $warn-msg := if ($cnt-severe > 0 ) then $cnt-severe||" SEVERE" else if ($cnt-warning > 0) then $cnt-warning || " WARNING" else () 
             
             let $reject-nonl3-severe := false() (: true rejects L1/L2 with SEVERE entry :)
+            
+            let $report :=
+            <div><span class="text-danger">&#160; {$warn-msg} errors, please try to fix your file and resubmit it later.Please send feedback, if some SEVERE level are too strict. </span> 
+                <a class="btn btn-primary" role="button" data-toggle="collapse" href="#p-{$uuid}" aria-expanded="false" aria-controls="collapseExample">Validation report ... </a>
+                <div class="collapse" id="p-{$uuid}">
+                  <div class="wella">
+                    {oifits:format-validation($validation)}
+                  </div>
+                </div>
+            </div>
+            
             return map:new(( 
                 map:entry('report', $report),
                 if ($warn-msg) then
