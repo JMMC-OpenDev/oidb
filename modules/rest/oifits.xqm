@@ -11,6 +11,7 @@ import module namespace jmmc-oiexplorer="http://exist.jmmc.fr/jmmc-resources/oie
 
 import module namespace compression="http://exist-db.org/xquery/compression";
 
+declare namespace http="http://expath.org/ns/http-client";
 
 declare namespace rest="http://exquery.org/ns/restxq";
 
