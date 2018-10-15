@@ -11,6 +11,7 @@ import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "
 import  module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql";
 
 declare namespace rest="http://exquery.org/ns/restxq";
+declare namespace http="http://expath.org/ns/http-client";
 
 declare variable $user:people-doc := doc($config:data-root||"/people/people.xml");
 
