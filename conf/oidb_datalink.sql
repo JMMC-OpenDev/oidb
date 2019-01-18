@@ -14,7 +14,7 @@ CREATE SEQUENCE oidb_datalink_id_seq
 -- oidb_datalink table = ObsCore + extensions
 CREATE TABLE oidb_datalink (
     -- Datalink model: 
-    ID                text NOT NULL,
+    id                bigint NOT NULL,
     -- 
     access_url        text,
     service_def       text,
