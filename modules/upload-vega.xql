@@ -41,7 +41,7 @@ declare variable $local:cache :=
 declare variable $local:cache-insert   := jmmc-cache:insert($local:cache, ?, ?);
 declare variable $local:cache-get      := jmmc-cache:get($local:cache, ?);
 declare variable $local:cache-contains := jmmc-cache:contains($local:cache, ?);
-declare variable $local:cache-destroy  := function() { xmldb:remove($config:data-root || '/tmp', 'upload-vega.xml') };
+declare variable $local:cache-destroy  := function() { () (: xmldb:remove($config:data-root || '/tmp', 'upload-vega.xml')  TMPGM:) };
 
 (:~
  : Remove all Vega records from a previous import.
@@ -141,11 +141,16 @@ declare function local:upload($handle as xs:long, $observations as node()*) as i
     (: remove old data from db :)
     let $delete := local:delete-collection($handle)
     (: insert new granules in db :)
+    
     for $o in $observations
     return try {
         <id>{ granule:create(local:metadata($o), $handle) }</id>
     } catch * {
-        <warning>Failed to convert observation log to granule (VegaObs ID { $o/ID/text() }): { $err:description } { $err:value }</warning>
+        (
+	<warning>Failed to convert observation log to granule (VegaObs ID { $o/ID/text() }): { $err:description } { $err:value }</warning>
+        ,
+	util:log("error", serialize(<warning>Failed to convert observation log to granule (VegaObs ID { $o/ID/text() }): { $err:description } { $err:value }</warning>))
+	)
     }
 };
 
