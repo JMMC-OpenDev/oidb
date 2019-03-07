@@ -30,7 +30,7 @@ let $rows := tap:execute($query, -1) (: -1 avoids limit so we do loose and block
 
 return (
 <p># request performed on {current-dateTime()} for collection={$collection}&#10;</p>,
-<p># {count($rows//*:TR)} url need to be released to public&#10;&#10;</p>,
+<p># {count($rows//*:TR)} url under ambargo need to be released for datapi &#10;&#10;</p>,
 for $row at $pos in $rows//*:TR
     let $data := $row/*:TD
     let $access_url := $data[1]
