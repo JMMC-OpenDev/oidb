@@ -24,6 +24,13 @@
             <div class="col-md-2">
             From <span data-template="app:date-multiline" data-template-key="from-date"/> to
             <span data-template="app:date-multiline" data-template-key="to-date"/>
+            <br/>
+            Instruments:
+            <ul class="list-inline">
+                <li data-template="helpers:each" data-template-from="instruments" data-template-to="instrument" class="label label-default">
+                    <span data-template="helpers:model-value" data-template-key="instrument"/>
+                </li>
+            </ul>
             </div>
         </div>
     </div>
