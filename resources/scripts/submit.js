@@ -6,9 +6,7 @@ $(function () {
         $('<div class="alert" role="alert"/>')
             .addClass('alert-' + level)
             .append(message)
-            .insertAfter($form)
-            .delay(4000)
-            .slideUp(function() { $(this).alert('close'); });
+            .insertAfter($form);
     }
 
     // the handler for the form submitting from an XML granule file
