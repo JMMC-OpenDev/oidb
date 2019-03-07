@@ -6,6 +6,7 @@ xquery version "3.0";
  : It outputs a .htaccess file that would allow access to public files of the
  : collection when this file is saved to the directory of the machine serving
  : the files.
+ : It opens released oifits and associated 
  :)
 
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
@@ -22,16 +23,31 @@ let $query := adql:build-query((
     'collection=' || $collection,
     'public=yes' ))
 
-let $query := adql:build-query((
-    'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date', 'col=datapi',
-    'collection=' || $collection ))
-    
-(: hard code indexes to improve efficiency :)
-let $rows := tap:execute($query, -1) (: -1 avoids limit so we do loose and block records that should be made public :)
+let $rows := tap:execute($query, -1) 
+
+let $datalink-query := 'SELECT distinct(d.access_url) FROM oidb_datalink as d, ' || substring-after($query, "FROM ") || ' AND d.id=t.id' 
+let $datalink-rows := tap:execute($datalink-query, -1) 
 
 return (
 <p># request performed on {current-dateTime()} for collection={$collection}&#10;</p>,
-<p># {count($rows//*:TR)} url need to be released to public&#10;&#10;</p>,
+<p># {count($datalink-rows//*:TR)} url need to be released for public datalinks&#10;&#10;</p>,
+<p># {$datalink-query}&#10;&#10;</p>,
+<p># {count($rows//*:TR)} url need to be released for public granules&#10;&#10;</p>,
+<p># {$query}&#10;&#10;</p>,
+for $row at $pos in $datalink-rows//*:TR
+    let $data := $row/*:TD
+    let $access_url := $data[1]
+(:    let $data_rights := $data[2]:)
+(:    let $obs_release_date := $data[3]:)
+(:    let $datapi := $data[4]:)
+    return
+    <p>
+# {$pos} datalink
+&lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;
+    Allow from all
+    Satisfy any
+&lt;/Files&gt;
+    </p>,
 for $row at $pos in $rows//*:TR
     let $data := $row/*:TD
     let $access_url := $data[1]
@@ -45,6 +61,5 @@ for $row at $pos in $rows//*:TR
     Allow from all
     Satisfy any
 &lt;/Files&gt;
-
     </p>
 )
