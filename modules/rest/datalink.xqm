@@ -87,6 +87,47 @@ function datalink:add-datalink($id as xs:int, $datalinks-doc as document-node())
 };
 
 (:~
+ : Add datalinks record from given document
+ : 
+ : @return a <response/> document with status for uploaded datalink.
+ :)
+declare
+    %rest:POST("{$datalinks-doc}")
+    %rest:path("/oidb/datalink")
+function datalink:add-datalinks($datalinks-doc as document-node()) {
+    let $datalinks := $datalinks-doc//datalink
+    let $nb-datalinks := count($datalinks)
+    let $response :=
+        <response> {
+            try {
+                (: abort on error and roll back :)
+                utils:within-transaction(
+                    function($handle as xs:long) as element(id)* {
+                        for $datalink at $pos in $datalinks
+                            let $log := if ( ( $pos mod 100 ) = 0 ) then util:log("info", "add new datalink ("|| $pos || "/" || $nb-datalinks || ")") else ()
+                            let $id := $datalink/@id
+                            return gran:add-datalink($id,$datalink, $handle)
+                    }),
+                    <success>Successfully uploaded ({count($datalinks)}) datalinks </success>
+            } catch gran:error {
+                response:set-status-code(400), (: Bad Request :)
+                <error>{ $err:description } { $err:value }</error>
+            } catch gran:unauthorized {
+                response:set-status-code(401), (: Unauthorized :)
+                <error>{ $err:description } { $err:value }</error>
+            } catch exerr:EXXQDY0002 {
+                (: data is not a valid XML document :)
+                response:set-status-code(400), (: Bad Request :)
+                <error>Failed to parse input file: { $err:description } { $err:value }.</error>
+            } catch * {
+                response:set-status-code(500), (: Internal Server Error :)
+                <error>{ $err:description } { $err:value }</error>
+            }
+        } </response>
+    return ( log:submit($response), $response )
+};
+
+(:~
  : Return datalink capabilities
  : TODO finish implementation
  : @return 
@@ -94,7 +135,7 @@ function datalink:add-datalink($id as xs:int, $datalinks-doc as document-node())
 declare
     %rest:GET
     %rest:path("/oidb/datalink/capabilities")
-function datalink:datalink() {
+function datalink:capabilities() {
     <capabilities>TBD - copy tap's one</capabilities>
 };
 
@@ -106,6 +147,6 @@ function datalink:datalink() {
 declare
     %rest:GET
     %rest:path("/oidb/datalink/availability")
-function datalink:datalink() {
+function datalink:availability() {
     <availability>TBD - copy tap's one</availability>
 };
