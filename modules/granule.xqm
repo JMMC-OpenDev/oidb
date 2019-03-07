@@ -12,6 +12,8 @@ import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collecti
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xqm";
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
+import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
+
 
 (:~
  : Format a SQL INSERT statement for saving granule.
@@ -23,6 +25,11 @@ import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateu
  : @return a SQL INSERT statement
  :)
 declare %private function granule:insert-statement($data as node()*) {
+    
+    (: filter out the empty fields and datalink(s): keep default value for them :)
+    let $nodes := ( $data[./node() and not(name()='datalink')] )
+    
+    
     let $obs_release_date :=    if($data/self::obs_release_date) then
                                     () (: node is already in metadata :)
                                 else if($data/self::data_rights="secure") then
@@ -34,8 +41,32 @@ declare %private function granule:insert-statement($data as node()*) {
                                     </obs_release_date>
                                 else
                                     () (: TODO check that this empty case is normal :)
-    (: filter out the empty fields and datalink(s): keep default value for them :)
-    let $nodes := ( $data[./node() and not(name()='datalink')], $obs_release_date )
+   
+   (: fix obs_release_date with default 1Y embargo period :)
+    let $nodes := ( $nodes, $obs_release_date )
+    
+    (: add fail over for HMS DMS format even if obscore ask for deg values :)
+    (: http://www.ivoa.net/documents/ObsCore/20170509/REC-ObsCore-v1.1-20170509.pdf  :)  
+    (: s_ra                   ,deg,double,Central right ascension, ICRS    :)
+    (: s_dec                  ,deg,double,Central declination, ICRS        :)
+    let $sexa-markers := (" ", ":")
+    let $s_ra := normalize-space($data/self::s_ra)
+    let $s_ra := element s_ra { if(contains($s_ra,$sexa-markers)) then jmmc-astro:from-hms($s_ra) else $s_ra }
+    let $s_dec := normalize-space($data/self::s_dec)
+    let $s_dec := element s_dec { if(contains($s_dec,$sexa-markers)) then jmmc-astro:from-dms($s_dec) else $s_dec}
+    
+    let $nodes := ( $nodes[not(name() = ("s_ra", "s_dec"))], $s_ra, $s_dec )
+
+    (: and nb_vis/nb_t3  we encountered N.0 in CHARA data :)
+    
+    let $el-names := ("nb_vis","nb_vis2","nb_t3") 
+    let $nb-els := for $elname in $el-names return 
+                    let $value := $data[name()=$elname]
+                    return
+                        if( $value ) then element {$elname} {number($value)} else ()
+    
+    let $nodes := ( $nodes[not(name() = $el-names)], $nb-els )
+
     let $columns := for $x in $nodes return name($x)
     let $values  := for $x in $nodes return "'" || utils:escape($x) || "'"
     return
@@ -78,7 +109,7 @@ declare %private function granule:insert-datalink-statement($id as xs:integer, $
 
 
 declare function granule:add-datalink($id as xs:integer, $datalink as node(), $handle as xs:long) {
-    if (granule:has-access($id, 'w')) then
+    if (granule:has-access($id, 'w', $handle)) then
         let $statement := granule:insert-datalink-statement($id, $datalink/*)
         let $result := sql:execute($handle, $statement, false())
 
@@ -86,7 +117,7 @@ declare function granule:add-datalink($id as xs:integer, $datalink as node(), $h
             (: row updated successfully :)
             ()
         else if ($result/name() = 'sql:exception') then
-            error(xs:QName('granule:error'), 'Failed to update granule ' || $id || ': ' || $result//sql:message/text())
+            error(xs:QName('granule:error'), 'Failed to update granule ' || $id || ': ' || $result//sql:message/text() )
         else
             error(xs:QName('granule:error'), 'Failed to update granule ' || $id || '.')
     else
@@ -115,19 +146,19 @@ declare function granule:create($granule as node()) as xs:integer {
 declare function granule:create($granule as node(), $handle as xs:long) as xs:integer {
     let $collection := xs:string($granule/obs_collection/text())
     let $check-collection := if(exists($collection)) then true() else error(xs:QName('granule:error'), 'obs_collection is not present in given granule.')
-    let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into '|| $collection ||'.')
-    
+    let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into " || $collection ||".')
     let $statement := granule:insert-statement($granule/*)
     let $result := sql:execute($handle, $statement, false())
     let $id := if ($result/name() = "sql:exception") 
         then
-            error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement)
+            let $info :=  string-join( ("", "granule metadata where:", for $e in $granule/* return name($e)||"="||$e, ""), "&#10;")
+            return 
+            error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement || $info)
         else
             let $clear-cache :=  app:clear-cache()
             return
                 (: return the id of the inserted row :)
                 $result//sql:field[@name='id'][1]
-    
     let $datalinks := for $datalink in $granule/datalink
             let $statement := granule:insert-datalink-statement($id, $datalink/*)
             let $result := sql:execute($handle, $statement, false())
@@ -136,7 +167,6 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
                     error(xs:QName('granule:error'), 'Failed to upload datalink: ' || $result//sql:message/text() || ', query: ' || $statement)
                 else 
                     ()
-    
     
     return $id
 };
@@ -240,7 +270,7 @@ declare function granule:update($id as xs:integer, $data as node()) as empty() {
  : @error failed to update granule, unauthorized
  :)
 declare function granule:update($id as xs:integer, $data as node(), $handle as xs:long) as empty() {
-    if (granule:has-access($id, 'w')) then
+    if (granule:has-access($id, 'w', $handle)) then
         (: protect the id column :)
         let $statement := granule:update-statement($id, $data/*[name() != 'id'])
         let $result := sql:execute($handle, $statement, false())
@@ -286,7 +316,7 @@ declare function granule:delete($id as xs:integer) as empty() {
  : @error failed to delete, unauthorized
  :)
 declare function granule:delete($id as xs:integer, $handle as xs:long) as empty() {
-    if (granule:has-access($id, 'w')) then
+    if (granule:has-access($id, 'w', $handle)) then
         let $statement := granule:delete-statement($id)
         let $result := sql:execute($handle, $statement, false())
 
@@ -306,14 +336,15 @@ declare function granule:delete($id as xs:integer, $handle as xs:long) as empty(
  : 
  : @param $id-or-granule the id of the granule to test or the granule as XML fragment
  : @param $mode the partial mode to check against the granule e.g. 'rwx'
+ : @param $handle the SQL database handle
  : @return true() if current user has access to granule for the mode
  :)
-declare function granule:has-access($id-or-granule as item(), $mode as xs:string) {
+declare function granule:has-access($id-or-granule as item(), $mode as xs:string, $handle as xs:long) {
     let $granule :=
         if ($id-or-granule instance of node()) then
             $id-or-granule
         else if ($id-or-granule instance of xs:integer) then
-            granule:retrieve($id-or-granule)
+            granule:retrieve($id-or-granule, $handle)
         else
             error(xs:QName('granule:error'), 'Bad granule id ' || $id-or-granule || '.')
     return
