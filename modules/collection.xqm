@@ -8,6 +8,7 @@ module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
+import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 
 (: Root directory where collections are stored :)
 declare variable $collection:collections-uri := $config:data-root || '/collections';
@@ -114,7 +115,36 @@ declare %private function collection:delete-granules-statement($collection-id as
     "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $collection-id || "'"
 };
 
+
 (:~
+ : Get the granules associated to the given collection ID.
+ : 
+ : @param @param $collection-id the id of the collection to list
+ : @return granules element
+ :)
+declare function collection:get-granules($collection-id as xs:string) as empty() {
+    collection:get-granules($collection-id, config:get-db-connection())
+};
+
+(:~
+ : Get the granules associated to the given collection ID.
+ : 
+ : @param @param $collection-id the id of the collection to list
+ : @param $handle the SQL database handle
+ : @return granules element
+ :)
+declare function collection:get-granules($collection-id as xs:string, $handle as xs:long) as empty() {
+        let $statement := adql:build-query(("obs_collection="||$collection-id))
+        let $result := sql:execute($handle, $statement, false())
+
+        return if ($result/name() = 'sql:result' and $result/@updateCount >= 0) then ()
+        else if ($result/name() = 'sql:exception') then
+            error(xs:QName('collection:error'), 'Failed to get granules for collection , sql:exception ' || $collection-id || ': ' || $result//sql:message/text())
+        else
+            error(xs:QName('collection:error'), 'Failed to get granules for collection ' || $collection-id || ': ' || serialize($result))
+};
+
+ (:~
  : Remove the granules associated to the given collection ID.
  : 
  : @param @param $collection-id the id of the collection to delete
