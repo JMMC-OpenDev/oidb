@@ -35,8 +35,7 @@ let $response :=
                 )
                 (: run the ADQL SELECT :)
                 let $data := tap:execute($query)
-
-                return string-join((
+                let $lines := (
                     '# Use this file as a config file for curl to retrieve data from the OiDB portal.',
                     '# Example       : curl --config <file>',
                     '#',
@@ -61,22 +60,21 @@ let $response :=
                     for $row in $data//*:TR
                     (: get only first url of the group and force it to be a string to avoid empty param :)
                     let $url := app:fix-relative-url(string(($row/*:TD[$access-url-idx])[1]))
-                    where starts-with($url, 'http')
+                    where starts-with($url[1], 'http')
                     group by $url-group:=$url
                     return (
                         (: grouped tuples so there may be more than a single row, pick first for now:)
                         let $row := $row[1]
-                        let $public := app:public-status(
-                            $row/*:TD[$data-rights-idx],
-                            $row/*:TD[$obs-release-date])
+(:                        let $public := app:public-status( ($row/*:TD[$data-rights-idx])[1][1], ($row/*:TD[$obs-release-date])[1][1]):)
+                        let $public := app:public-status( "public", ())
                         return if ($public) then 
                             ()
                         else
                             '# Note: the following file is not public, contact ' || $row/*:TD[$obs-creator-name] || ' for availability',
-                        concat('url = "', $url-group),
+                        concat('url = ', $url-group),
                         'remote-name'
-                    )
-                ), '&#xa;')
+                    ))
+                return string-join($lines, '&#xa;')
             } catch * {
                 '# Sorry an error occured: ' || $err:description || "&#10;#&#10;#&#10;# Please contact the user support"
             }
