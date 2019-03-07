@@ -111,7 +111,7 @@ function granule:save-granules($granules as document-node()?) {
                         let $id := gran:create(granule:sanitize($granule), $handle)
                         return <id>{ $id }</id>
                     }),
-                    <success>Successfully uploaded granule(s)</success>
+                    <success>Successfully uploaded {count($granules//granule)} granule(s)</success>
             } catch granule:error {
                 response:set-status-code(400), (: Bad Request :)
                 <error>{ $err:description } { $err:value }</error>
