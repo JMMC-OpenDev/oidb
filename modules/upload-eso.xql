@@ -94,7 +94,10 @@ declare function local:metadata($row as node(), $col-indexes as map(xs:string, x
     let $obs-id        := $values[ map:get($col-indexes,"DataID") ]
     let $obs-creator   := "ESO"
     
-    let $data-pi       := if( exists($prog-id)) then jmmc-eso:get-pi-from-progid($prog-id) else ()
+    (:    let $data-pi       := if( exists($prog-id)) then jmmc-eso:get-pi-from-progid($prog-id) else ():)
+    (: decided to be left blank on 2018-dec with XH :)
+    let $data-pi       := ""
+    let $bib-ref       := "" (: if( exists($prog-id)) then http://telbib.eso.org/api.php?programid= :)
     
     
     let $ins-name      := $values[ map:get($col-indexes,"InstrID") ]
@@ -105,9 +108,6 @@ declare function local:metadata($row as node(), $col-indexes as map(xs:string, x
     let $em-min        := 0 
     let $em-max        := 0
     
-    (: TODO :)
-    
-    let $bib-ref     := "TBD" (: if( exists($prog-id)) then http://telbib.eso.org/api.php?programid= :)
     
     return <metadata> {
         (: all entries are L0 :)
@@ -151,10 +151,16 @@ declare function local:upload($handle as xs:long, $votable as node()*) as item()
     
     let $col-indexes := map:new(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
  
+    let $rows := $votable//votable:TR
+    
+    let $nb-rows := count($rows)
+    
     (: insert new granules in db :)
 (:    for $tr at $pos in subsequence($votable//votable:TR,1,10) :)
-    for $tr at $pos in $votable//votable:TR
+    for $tr at $pos in $rows
     return try {
+        let $log := if ( ( $pos mod 100 ) = 0 ) then util:log("info", "add new meta for eso ("|| $pos || "/" || $nb-rows || ")") else ()
+        return 
         <id>{ granule:create(local:metadata($tr, $col-indexes), $handle) }</id>
     } catch * {
         <warning>Failed to convert observation log to granule (row[{$pos}]:{  serialize($tr) }): { $err:description } { $err:value }</warning>
