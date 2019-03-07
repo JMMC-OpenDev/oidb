@@ -171,7 +171,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                             let $id := $row/td[@colname='id']
                             let $data-rights := $row/td[@colname='data_rights']
                             let $obs-release-date := $row/td[@colname='obs_release_date']
-                            return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'])
+                            return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'], $row/td[@colname='calib_level'])
                     case "datapi"
                         return 
                             let $id := $row/td[@colname='id']
@@ -219,7 +219,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
 
 (:~
  : Given curation data, check if data is public or not.
- : 
+ : # TODO check that secure and () return false 
  : @param $data_rights availability of the dataset (public/secure/proprietaty)
  : @param $release_date date of public_release
  : @return a boolean, public or not
@@ -267,7 +267,7 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
  : @param $creator_name owner of the data
  : @return an <a> element
  :)
-declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string?, $release_date as xs:string?, $creator_name as xs:string?, $datapi as xs:string?) {
+declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string?, $release_date as xs:string?, $creator_name as xs:string?, $datapi as xs:string?, $calib_level as xs:integer ?) {
     let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
     let $c := if($creator_name) then <li>{$creator_name||" (data creator)"}</li> else ()
     let $d := if($datapi) then <li>{$datapi||" (data PI)"}</li> else ()
@@ -276,8 +276,13 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
     return 
         element {"a"} {
         attribute { "href" } { if(exists($id)) then "get-data.html?id="||$id else $url }, 
-        if ($public or $creator_name = '') then
-            ()
+        if ( not ( $calib_level < 1 ) and string-length($url)>3 and ( $public or $creator_name = '' )) then
+            (
+                attribute { "rel" }                 { "tooltip" },
+(:                attribute { "data-placement"}       { "right" },:)
+                attribute { "data-original-title" } { "&lt;div&gt;"||$contact||serialize(<img src="/DATALINKS/{$data_rights}/granule_{$id}.png" width="400%"/>)||"&lt;/div&gt;" },
+                attribute { "data-html" } { "true" }
+            )
           else 
             (
                 attribute { "rel" }                 { "tooltip" },
@@ -1117,10 +1122,11 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                 <h1> Granule {$data//td[@colname='id']/text()}</h1>
                 {()(: app:show-granule-summary($node,  map {'granule' := app:granules($query) }, "granule") :)}
                 <div class="row">
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                     {app:show-granule-summary($node,  map {'granule' := $data }, "granule")}
+                    {if ($data//td[@colname='calib_level'] = '0' ) then () else app:show-granule-siblings($node,  map {'granule' := $data }, "granule")}
                     </div>
-                    <div class="col-md-5 col-md-offset-2">
+                    <div class="col-md-6 acol-md-offset-1">
                     {app:show-granule-contact($node,  map {'granule' := $data }, "granule")}
                     {app:show-granule-externals($node,  map {'granule' := $data }, "granule")}
                     </div>
@@ -1163,6 +1169,38 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
                 }
                 </table>
             </div>
+};
+
+
+(:~
+ : Display the summary information for a given granule.
+ : 
+ : @param $node
+ : @param $model
+ : @return a <table> filled with data from the raw row
+ :)
+declare function app:show-granule-siblings($node as node(), $model as map(*), $key as xs:string)
+{
+    let $granule := map:get($model, $key) 
+    
+   
+    let $query := "SELECT id FROM " || $config:sql-table || " AS t WHERE t.access_url='" || $granule//td[@colname='access_url'] || "'"
+    (: send query by TAP :)
+    let $votable := tap:execute($query)
+    let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
+    let $nb-granules := count($data//tr[td])
+    where $nb-granules >= 2
+    return 
+        <div id="external_resources">
+            <h2>Granules in the same OIFITS</h2>
+            <table class="table table-striped table-bordered table-hover">
+                { 
+                    for $row in $data//tr[td] return 
+                    <tr>{app:td-cell($row//td, $row)}</tr>
+                }
+            </table>
+        </div>
+    
 };
 
 
@@ -1251,7 +1289,7 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                                 let $js :=  app:get-encoded-email-array($datapi-email)
                                     return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
                                 else <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
-                                If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user maycontact the creator of the resource just below.</span>
+                                If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user may contact the creator of the resource just below.</span>
                         return 
                         <address>
                             <strong>Data PI</strong><br/>
@@ -1284,42 +1322,55 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     (: would be good to change the db content, isn't it ? :)
     let $prog_id := if ($prog_id!='') then $prog_id else string($granule//td[@colname='obs_id'])
     
-    let $res := if($facility-name="VLTI" and $prog_id!='') then 
+    let $data_rights := $granule//td[@colname='data_rights']
+    let $release_date := $granule//td[@colname='obs_release_date']
+    
+    let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
+    
+    let $ext-res := if($facility-name="VLTI" and $prog_id!='') then 
         let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($prog_id)
         return 
             <a href="{$url}">Jump to ESO archive for progid <em>{$prog_id}</em></a>
         else 
-            <a href="#">-</a>
+            ()
             
-    let $datalink-vot := app:transform-votable( datalink:datalink($granule_id) )
-    let $content_length_unit := data($datalink-vot//th[@name='content_length']/@unit)
-    let $content_length_desc := data($datalink-vot//th[@name='content_length']/@description)
-    let $datalink-res := for $tr in $datalink-vot//tr[td]
-        let $url                 := data($tr/td[@colname='access_url'])
-        let $filename            := tokenize($url, '/')[last()]
-        let $description         := data($tr/td[@colname='description'])
-        let $description         := if($description) then $description else $url
-        let $content_length      := data($tr/td[@colname='content_length'])
-        let $content_type      := data($tr/td[@colname='content_type'])
-        let $title := if($content_length) then $content_length_desc||": ["||$content_length||"] "||$content_length_unit else ()
-        let $title := $filename || ":" || $title
-        let $thumbnail := if (contains($content_type, 'png')) then <a href="{$url}" title="{$title} "><img src="{$url}" width="100"/></a> else ()
-        return
-            <tr><th><a href="{$url}" title="{$title} ">{$description}</a></th><th> {$thumbnail}</th></tr>
+    let $datalink-res := 
+        let $datalink-vot := app:transform-votable( datalink:datalink($granule_id) )
+        let $content_length_unit := data($datalink-vot//th[@name='content_length']/@unit)
+        let $content_length_desc := data($datalink-vot//th[@name='content_length']/@description)
+        return 
+            for $tr in $datalink-vot//tr[td]
+            let $url                 := data($tr/td[@colname='access_url'])
+            let $filename            := tokenize($url, '/')[last()]
+            let $description         := data($tr/td[@colname='description'])
+            let $description         := if($description) then $description else $url
+            let $content_length      := data($tr/td[@colname='content_length'])
+            let $content_type      := data($tr/td[@colname='content_type'])
+            let $title := if($content_length) then $content_length_desc||": ["||$content_length||"] "||$content_length_unit else ()
+            let $title := $filename || ":" || $title
+            (: hide thunbnail if private ( could be shown to datapi ? ) :)
+            let $thumbnail := if ($public) then 
+                if(contains($content_type, 'png')) then <a href="{$url}" title="{$title} "><img src="{$url}" width="60%"/></a> else ()
+                else <i class="glyphicon glyphicon-lock"/> 
+            return
+                <tr><th><a href="{$url}" title="{$title} ">{$description}</a>{$thumbnail}</th></tr>
     
     return
-        (<div id="quicklook_plots">
-            <h2><i class="glyphicon glyphicon-eye-open"/> Quicklook plots</h2>
-            <table class="table table-striped table-bordered table-hover">
-                { $datalink-res }
-            </table>
-        </div>,
+        (if(empty($datalink-res)) then () else
+            <div id="quicklook_plots">
+                <h2><i class="glyphicon glyphicon-eye-open"/> Quicklook plots </h2>
+                <table class="table table-striped table-bordered table-hover">
+                    { $datalink-res }
+                </table>
+            </div>,
+        if (empty($ext-res)) then () else
         <div id="external_resources">
             <h2><i class="glyphicon glyphicon-new-window"/> External resources</h2>
             <table class="table table-striped table-bordered table-hover">
-                { for $e in $res return <tr><th>{$e}</th></tr> }
+                { for $e in $ext-res return <tr><th>{$e}</th></tr> }
             </table>
-        </div>)
+        </div>
+        )
            
 };
 
@@ -1520,6 +1571,7 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
  :)
 declare %private function app:stats($query as item()*) as map(*) {
     let $count := function($q) { number(tap:retrieve-or-execute('SELECT COUNT(*) FROM (' || adql:build-query(( $q, $query )) || ') AS e')//*:TD) }
+    let $instruments := tap:retrieve-or-execute('SELECT DISTINCT(e.instrument_name) FROM (' || adql:build-query( $query ) || ') AS e')//*:TD/text()
     let $tmin-tmax := tap:retrieve-or-execute('SELECT MIN(e.t_min), MAX(e.t_max) FROM (' || adql:build-query( $query ) || ') AS e')//*:TD/text()
     let $tmin-tmax := for $mjd in $tmin-tmax return jmmc-dateutil:MJDtoISO8601($mjd)
 
@@ -1529,6 +1581,7 @@ declare %private function app:stats($query as item()*) as map(*) {
         'n_oifits'   := $n_oifits,
         'n_granules' := $n_granules,
         'n_obs_logs' := $count(( 'caliblevel=0' )),
+        'instruments' := $instruments,
         'from-date'  :=$tmin-tmax[1],
         'to-date'    :=$tmin-tmax[2]
     }
@@ -1674,7 +1727,7 @@ declare %private function app:votable-rows-to-granules($fields as xs:string*, $r
  : @param $query the description of the ADQL query
  : @return a sequence of granule grouped by source
  :)
-declare %private function app:granules($query as item()*) as node()* {
+declare function app:granules($query as item()*) as node()* {
     (: search for granules matching query :)
     let $votable := tap:execute(adql:build-query($query))
 
