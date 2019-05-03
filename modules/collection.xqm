@@ -122,7 +122,7 @@ declare %private function collection:delete-granules-statement($collection-id as
  : @param @param $collection-id the id of the collection to list
  : @return granules element
  :)
-declare function collection:get-granules($collection-id as xs:string) as empty() {
+declare function collection:get-granules($collection-id as xs:string)  {
     collection:get-granules($collection-id, config:get-db-connection())
 };
 
@@ -133,7 +133,7 @@ declare function collection:get-granules($collection-id as xs:string) as empty()
  : @param $handle the SQL database handle
  : @return granules element
  :)
-declare function collection:get-granules($collection-id as xs:string, $handle as xs:long) as empty() {
+declare function collection:get-granules($collection-id as xs:string, $handle as xs:long)  {
         let $statement := adql:build-query(("obs_collection="||$collection-id))
         let $result := sql:execute($handle, $statement, false())
 
@@ -151,7 +151,7 @@ declare function collection:get-granules($collection-id as xs:string, $handle as
  : @return empty
  : @error failed to delete
  :)
-declare function collection:delete-granules($collection-id as xs:string) as empty() {
+declare function collection:delete-granules($collection-id as xs:string)  {
     collection:delete-granules($collection-id, config:get-db-connection())
 };
 
@@ -163,7 +163,7 @@ declare function collection:delete-granules($collection-id as xs:string) as empt
  : @return empty
  : @error failed to delete
  :)
-declare function collection:delete-granules($collection-id as xs:string, $handle as xs:long) as empty() {
+declare function collection:delete-granules($collection-id as xs:string, $handle as xs:long)  {
         let $statement := collection:delete-granules-statement($collection-id)
         let $result := sql:execute($handle, $statement, false())
 

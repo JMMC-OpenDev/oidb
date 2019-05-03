@@ -1991,7 +1991,7 @@ declare function app:upload-check-calib-level($node as node(), $model as map(*),
  : @param $model
  : @return empty
  :)
-declare function app:log($node as node(), $model as map(*)) as empty() {
+declare function app:log($node as node(), $model as map(*)){
     log:visit()
 };
 

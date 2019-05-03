@@ -114,7 +114,7 @@ declare %private function local:update-chara() {
  : @param $msg the rest of the message.
  : @return empty
  :)
-declare %private function local:info($msg as item()*) as empty() {
+declare %private function local:info($msg as item()*)  {
     flash:info((<strong xmlns="http://www.w3.org/1999/xhtml">Action started !</strong>, ' ', $msg))
 };
 

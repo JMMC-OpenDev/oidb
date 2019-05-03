@@ -127,7 +127,7 @@ declare function log:search($info as node()*) {
  : 
  : @return empty
  :)
-declare function log:visit() as empty() {
+declare function log:visit()  {
     let $message := <visit path="{ request:get-attribute("exist:path") }"> {
             log:serialize-request(),
             let $error := request:get-attribute("org.exist.forward.error")

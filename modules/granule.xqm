@@ -256,7 +256,7 @@ declare %private function granule:update-statement($id as xs:integer, $data as n
  : @return empty
  : @error failed to update granule, unauthorized
  :)
-declare function granule:update($id as xs:integer, $data as node()) as empty() {
+declare function granule:update($id as xs:integer, $data as node())  {
     granule:update($id, $data, config:get-db-connection())
 };
 
@@ -269,7 +269,7 @@ declare function granule:update($id as xs:integer, $data as node()) as empty() {
  : @return empty
  : @error failed to update granule, unauthorized
  :)
-declare function granule:update($id as xs:integer, $data as node(), $handle as xs:long) as empty() {
+declare function granule:update($id as xs:integer, $data as node(), $handle as xs:long)  {
     if (granule:has-access($id, 'w', $handle)) then
         (: protect the id column :)
         let $statement := granule:update-statement($id, $data/*[name() != 'id'])
@@ -303,7 +303,7 @@ declare %private function granule:delete-statement($id as xs:integer) as xs:stri
  : @return empty
  : @error failed to delete, unauthorized
  :)
-declare function granule:delete($id as xs:integer) as empty() {
+declare function granule:delete($id as xs:integer)  {
     granule:delete($id, config:get-db-connection())
 };
 
@@ -315,7 +315,7 @@ declare function granule:delete($id as xs:integer) as empty() {
  : @return empty
  : @error failed to delete, unauthorized
  :)
-declare function granule:delete($id as xs:integer, $handle as xs:long) as empty() {
+declare function granule:delete($id as xs:integer, $handle as xs:long)  {
     if (granule:has-access($id, 'w', $handle)) then
         let $statement := granule:delete-statement($id)
         let $result := sql:execute($handle, $statement, false())

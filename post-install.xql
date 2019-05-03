@@ -19,7 +19,7 @@ declare variable $target external;
  : @param $perms a sequence of user, group and mods to set
  : @return empty
  :)
-declare function local:set-permissions($path as xs:string, $perms as item()*) as empty() {
+declare function local:set-permissions($path as xs:string, $perms as item()*)  {
     let $uri := xs:anyURI($path)
     return (
         let $user := $perms[1]
