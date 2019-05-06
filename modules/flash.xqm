@@ -76,7 +76,7 @@ declare %private function flash:flash-contextual-class($level as xs:string) as x
  : @return a templatized node for each flash message.
  :)
 declare function flash:flash($node as node(), $model as map(*)) as node()* {
-    for $flash in ( session:get-attribute('flash'), session:remove-attribute('flash') )
+    for $flash in ( if (session:exists())  then ( session:get-attribute('flash'), session:remove-attribute('flash') ) else ())
     let $level := $flash/name()
     (: reuse current node as template for flash :)
     return element { $node/name() } {

@@ -19,6 +19,7 @@ import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
 
 declare variable $backoffice:update-doc := "OiDB doc updater";
 declare variable $backoffice:update-eso := "OiDB ESO updater";
+declare variable $backoffice:update-eso-inc := "OiDB ESO incremental updater";
 declare variable $backoffice:update-vega := "OiDB VEGA updater";
 declare variable $backoffice:update-chara := "OiDB CHARA updater";
 
@@ -150,6 +151,23 @@ declare function backoffice:ads-cache-status($node as node(), $model as map(*)) 
  : @return
  :)
 declare function backoffice:eso-status($node as node(), $model as map(*)) as xs:string {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-eso]
+    return if ($job) then
+        (: currently executing :)
+        'Running...'
+    else
+        (: TODO :)
+        '-'
+};
+
+(:~
+ : Template helper to display the status of the incremental ESO update .
+ : 
+ : @param $node
+ : @param $model
+ : @return
+ :)
+declare function backoffice:eso-status-inc($node as node(), $model as map(*)) as xs:string {
     let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-eso]
     return if ($job) then
         (: currently executing :)

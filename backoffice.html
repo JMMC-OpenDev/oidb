@@ -93,7 +93,7 @@
                 <div class="panel-body">
                     <form action="modules/backoffice-job.xql" enctype="multipart/form-data" method="post" class="form-inline" role="form">
                         <input type="file" name="file" placeholder="VOTable from TAP vizier with observation logs"/>
-                        <button type="submit" name="do" value="eso-update" class="btn btn-default">Update ESO</button>
+                        <button type="submit" name="do" value="eso-update" class="btn btn-default">Reset ESO</button>
                         <div class="form-group">
                             <b>Last update</b>: <span data-template="backoffice:eso-status"/>
                         </div>
@@ -104,10 +104,19 @@
                         <li> Select:  Max records : <b>ALL</b>, Output format : <b>VOTABLE</b>
                         </li>
                         <li> Perform following query <br/>
-                            <code>SELECT * FROM "B/eso/eso_arc" WHERE  "B/eso/eso_arc".ObsTech='INTERFEROMETRY'</code>
+                            <code>SELECT * FROM "B/eso/eso_arc" as e WHERE  e.ObsTech LIKE '%INTERFEROMETRY%'</code>
                         </li>
                         <li>Dowload the result on your disk and upload it using this form!</li>
                     </ul>
+                    
+                    or just launch manually the automatic process : OiDB perform a TAP request for records from last recno
+                    
+                    <form action="modules/backoffice-job.xql" enctype="multipart/form-data" method="post" class="form-inline" role="form">
+                        <button type="submit" name="do" value="eso-update-inc" class="btn btn-default">Update ESO</button>
+                        <div class="form-group">
+                            <b>Last update</b>: <span data-template="backoffice:eso-status-inc"/>
+                        </div>
+                    </form>
                 </div>
             </div>
             </div>

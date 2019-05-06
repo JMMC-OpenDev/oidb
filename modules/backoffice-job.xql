@@ -86,6 +86,16 @@ declare %private function local:update-eso() {
     }
 };
 
+
+(:~
+ : Start a new ESO update job in background for incremental update.
+ : 
+ : @return false() if it failed to schedule the job or there is already another job running.
+ :)
+declare %private function local:update-eso-inc() {
+    local:start-job($config:app-root || '/modules/sync-l0-eso.xql', $backoffice:update-eso-inc, map { 'name' := $backoffice:update-eso-inc })
+};
+
 (:~
  : Start a new VEGA update job from VegaObs in background.
  : 
@@ -154,6 +164,12 @@ return (
                 local:info(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs are being updated from file.</span>)
             else
                 local:error(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs is already running or failed to be properly updated. See log for details.</span>)
+        
+        case "eso-update-inc" return
+            if(local:update-eso-inc()) then
+                local:info(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs (incremental mode) are being updated from vizier B/ESO.</span>)
+            else
+                local:error(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs (incremental mode) is already running or failed to be properly updated. See log for details.</span>)
     
         case "chara-update" return
             if(local:update-chara()) then

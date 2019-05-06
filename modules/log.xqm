@@ -61,6 +61,7 @@ declare %private function log:log($log as xs:string, $message as element()) {
         if (request:exists()) then
             (: HTTP interaction, extract data from request object if missing from message :)
             (
+                if (session:exists()) then () else session:create(), 
                 if ($message/@session)   then () else attribute { 'session' }   { session:get-id() },
                 if ($message/@user)   then () else attribute { 'user' }   { 
                     let $user := request:get-attribute('fr.jmmc.oidb.login.user')
