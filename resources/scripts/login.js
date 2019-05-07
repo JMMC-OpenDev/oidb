@@ -12,7 +12,7 @@ $(function () {
                 e.preventDefault();
 
                 // try authenticate with username and password from form
-                $.ajax('login', { data: $form.serialize() })
+                $.ajax('login', { type: 'PUT', data: $form.serialize() })
                     .done(function () {
                         // successfully logged in
                         $modal.modal('hide');
