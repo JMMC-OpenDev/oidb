@@ -43,7 +43,7 @@ declare function app:user-allowed() as xs:boolean {
 };
 
 (:~
- : Return the admin state.
+ : Return the admin state (from central JMMC user account system or local existdb admin).
  : @return true() if the user is superuser else false()
  :)
 declare function app:user-admin() as xs:boolean {
@@ -51,7 +51,7 @@ declare function app:user-admin() as xs:boolean {
     request:get-attribute($app:domain || '.superuser') 
     or
     (: allow offline developpement :)
-    matches( request:get-attribute($app:domain || '.user') , "guillaume.mella@")
+    exists ( ("guillaume.mella@","admin")[matches( request:get-attribute($app:domain || '.user') , .)] )
     }catch *{
         false()
     }
