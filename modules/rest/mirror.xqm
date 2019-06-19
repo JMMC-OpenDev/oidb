@@ -10,9 +10,6 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 (:import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log.xqm";:)
 (:import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";:)
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "../app.xql";
-/home/mellag/tmp/backup-oidb-beta/db/apps/oidb/modules/sync-l0-eso.xql
-
-
 
 declare namespace rest="http://exquery.org/ns/restxq";
 
