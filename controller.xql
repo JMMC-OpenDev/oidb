@@ -44,6 +44,10 @@ declare variable $cookie-agreement :=
         else 
             ();
             
+(: we use following variable to simplifiy double proxy case (traefik on top of haproxy)... :)
+let $exist-path := replace($exist:path, "//", "/")
+            
+            
 let $store-res-name := request:set-attribute("exist:path", $exist:path)
 return 
 if($exist:path eq '') then
@@ -55,9 +59,18 @@ else if($exist:path eq '/rss') then
         <forward url="rss.xql"/>
     </dispatch>
 else if ($exist:path eq "/") then
-    (: forward root path to index.xql :)
+    (: redirect root path to index.html :)
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="index.html"/>
+    </dispatch>
+else if ($exist:path eq '//') then
+    (: Special case for two level proxies :)
+    (: forward root path to /index.html :)
+    <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
+        <forward url="{$exist:controller}/index.html"/>
+        <view>
+            <forward url="{$exist:controller}/modules/view.xql"/>
+        </view>
     </dispatch>
 else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
     (: interception of POST requests from search page :)
@@ -69,15 +82,15 @@ else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
         response:set-header('Location', $location)
     )
 
-else if (starts-with($exist:path, '/restxq/oidb')) then
+else if (starts-with($exist-path, '/restxq/oidb')) then
     let $login := $login()
-    let $path := substring-after($exist:path, '/restxq')
-    let $prefix := tokenize($exist:path, '[^a-zA-Z]')[4]
+    let $path := substring-after($exist-path, '/restxq')
+    let $prefix := tokenize($exist-path, '[^a-zA-Z]')[4]
     let $module-uri := 'http://apps.jmmc.fr/exist/apps/oidb/restxq/' || $prefix
     let $location := 'modules/rest/' || $prefix || '.xqm'
     return if (util:binary-doc-available($config:app-root || '/' || $location)) then
         (
-            if (starts-with($exist:path, "/restxq/oidb/user") and not(app:user-admin()))
+            if (starts-with($exist-path, "/restxq/oidb/user") and not(app:user-admin()))
                 then
                 (
             response:set-status-code(403), (: Forbidden :)
@@ -154,6 +167,14 @@ else if (contains($exist:path, "/$shared/")) then
     </dispatch>
 else
     (: everything else is passed through :)
+    (
+        response:set-header("debug-resource", $exist:resource),
+        response:set-header("debug-path", $exist:path),
+        response:set-header("debug-controller", $exist:controller),
+        response:set-header("debug-uri", request:get-uri()),
+        
+        
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <cache-control cache="yes"/>
     </dispatch>
+    )
