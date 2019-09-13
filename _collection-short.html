@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<a xmlns="http://www.w3.org/1999/xhtml" class="list-group-item" data-template="helpers:model-value-attribute" data-template-key="collection.url" data-template-name="href">
-    <div data-template="app:collection-stats" data-template-key="collection.id">
-        <div class="row">
+<div class="row list-group-item">
+        <div data-template="app:collection-stats" data-template-key="collection.id">
             <div class="col-md-10">
+            <a xmlns="http://www.w3.org/1999/xhtml" data-template="helpers:model-value-attribute" data-template-key="collection.url" data-template-name="href" class="list-group-item">
                 <h4 class="list-group-item-heading">
                     <div data-template="templates:if-attribute-set" data-template-attribute="fr.jmmc.oidb.login.superuser">
                         <button type="button" class="btn btn-default" data-template="helpers:model-value-attribute" data-template-key="collection.id" data-template-name="data-colref">
-                            <span class="glyphicon glyphicon-trash"/> Remove whole collection</button>&#160;
+                            <span class="glyphicon glyphicon-trash"/> Remove whole collection </button> 
                     </div>
-                    &#160; <span data-template="helpers:model-value" data-template-key="collection.name"/> - <span data-template="helpers:model-value" data-template-key="collection.title"/>
+                      <span data-template="helpers:model-value" data-template-key="collection.name"/> - <span data-template="helpers:model-value" data-template-key="collection.title"/>
                 </h4>
                 <div class="list-group-item-text">
                     <p style="white-space: pre-wrap;">
@@ -20,10 +20,16 @@
                     <span data-template="helpers:model-value" data-template-key="n_oifits"/> OIFITS files.
                 </em>
                 </div>
+            </a>
             </div>
+            
             <div class="col-md-2">
             From <span data-template="app:date-multiline" data-template-key="from-date"/> to
             <span data-template="app:date-multiline" data-template-key="to-date"/>
+            <br/>
+            Type: <a data-template="helpers:model-value-attribute" data-template-key="collection.coltypeurl" data-template-name="href">
+                <span data-template="helpers:model-value" data-template-key="collection.coltype"/>
+            </a>
             <br/>
             Instruments:
             <ul class="list-inline">
@@ -34,4 +40,3 @@
             </div>
         </div>
     </div>
-</a>

@@ -460,18 +460,23 @@ function app:user-collections-options($node as node(), $model as map(*), $calib_
  :)
 declare
     %templates:wrap
-function app:collection-form($node as node(), $model as map(*), $id as xs:string?) as map(*) {
+function app:collection-form($node as node(), $model as map(*), $id as xs:string?, $calib_level as xs:integer?) as map(*) {
+    let $map1 :=
     if(empty($id)) then $model else
         let $collection := collection($config:data-root)//collection[@id=$id]
-        return if(empty($collection)) then $model else 
+        return if(empty($collection)) then $model else
         map {
-        'id' := $id
-        ,'name' := $collection/name/text()
-        ,'title' := $collection/title/text()
-        ,'description' := $collection/description/text()
-        ,'keywords' := ($collection//keyword/text())
-        ,'bibcodes' := ($collection//bibcode/text())
+        'id' : $id
+        ,'ask_coltype' : $calib_level!=3
+        , 'coltype' :$collection/coltype/text()
+        ,'name' : $collection/name/text()
+        ,'title' : $collection/title/text()
+        ,'description' : $collection/description/text()
+        ,'keywords' : ($collection//keyword/text())
+        ,'bibcodes' : ($collection//bibcode/text())
          }
+    
+    return map:merge(($map1, if($calib_level != 3) then map {'ask_coltype' : "yes" } else () ))
 };
 
 
@@ -1528,17 +1533,22 @@ declare %private function app:vizier-collection($c as element(collection)) as xs
  : @param $model
  : @return a new submodel with collections
  :)
-declare function app:collections($node as node(), $model as map(*)) as map(*) {
+declare function app:collections($node as node(), $model as map(*), $type as xs:string?) as map(*) {
     let $collections :=
         for $collection in collection("/db/apps/oidb-data/collections")/collection
         (: open up collection and add link to full description page :)
+        let $coltype := collection:get-type($collection)
+        where not($coltype != $type)
         return <collection> {
             $collection/@*,
             $collection/node(),
-            <url>{ 'collection.html?id=' || encode-for-uri($collection/@id) }</url>
+            <url>{ 'collection.html?id=' || encode-for-uri($collection/@id) }</url>,
+            if($collection/coltype) then () else <coltype>{$coltype}</coltype>,
+            <coltypeurl>{ '?type=' || $coltype }</coltypeurl>
         } </collection>
     let $vizier-collections := $collections[app:vizier-collection(.)]
     return map {
+        'type' : $type,
         'vizier-collections' := $vizier-collections,
         'other-collections'  := $collections[not(.=$vizier-collections)]
     }
@@ -1556,9 +1566,12 @@ declare function app:collections($node as node(), $model as map(*)) as map(*) {
 declare function app:collection($node as node(), $model as map(*)) as map(*) {
     let $id := replace(request:get-parameter('id', '')," ","+") (: We have no space in our ids and received spaces probably comes from a CDS catalog ref with + sign... :)
     let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]
+    let $coltype := collection:get-type($collection)
+    let $embargo := collection:get-embargo($collection)
     return if ($collection)
         then 
-            map { 'collection' := $collection, 'document-name' :=  util:document-name($collection) }
+            map { 'collection' := $collection, 'document-name' :=  util:document-name($collection) 
+             , "embargo" : $embargo, "coltype" : $coltype}
         else 
             ()
 };
