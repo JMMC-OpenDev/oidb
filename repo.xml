@@ -17,6 +17,14 @@
     using a given property file (see build.xml for detail)
     </note>
     <changelog>
+        <change xmlns="" version="1.4">
+           <h3>V1.4 release</h3>
+            <ul>
+              <li>Handle private collection for <a href="//www.jmmc.fr/suv">SUV</a></li>
+              <li>Change: fix uploaded filename to avoid some non reliable escaping (":" replaced by "_")</li>
+              <li>BugFix: fix cache handling of tap requests</li>
+            </ul>
+        </change>
         <change xmlns="" version="1.3">
            <h3>V1.3 release</h3>
             <ul>
