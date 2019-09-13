@@ -36,9 +36,11 @@ declare function collection:create($id as xs:string?, $collection as node()) as 
         else
             util:uuid()
     (: build the collection from passed data :)
+    let $owner := data(sm:id()//*:real/*:username)
     let $collection := <collection> {
         attribute { "id" }      { $id },
         attribute { "created" } { current-dateTime() },
+        attribute { "owner" } {$owner},
         $collection/*
     } </collection>
     return xmldb:store($collection:collections-uri, (), $collection)
@@ -211,3 +213,37 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
         let $path := document-uri(root($collection)) 
         return app:user-admin() or  ( if(exists($path)) then  sm:has-access($path , $mode) else false() )
 };
+
+(:~
+ : Get collection type.
+ : @param $id-or-collection the id of the collection to test or the collection as XML fragment
+ : @return the value of coltype element or 'public' if not present
+ :)
+declare function collection:get-type($id-or-collection as item()) as xs:string {
+    let $collection :=
+        if ($id-or-collection instance of xs:string) then
+            collection:retrieve($id-or-collection)
+        else if ($id-or-collection instance of node()) then
+             $id-or-collection
+        else
+            error(xs:QName('collection:error'), 'Bad collection id ' || $id-or-collection || '.')
+    return if (empty($collection)) then
+        error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
+    else
+        let $type := $collection/coltype
+        let $type := if ($type) then $type else "public"
+        return $type[1]
+};
+
+(:~
+ : Get collection embargo period.
+ : @param $id-or-collection the id of the collection to test or the collection as XML fragment
+ : @return the duration of embargo or empty when collection is public 
+ :)
+declare function collection:get-embargo($id-or-collection as item()) as xs:duration {
+    switch (collection:get-type($id-or-collection))
+        case "suv" return xs:yearMonthDuration('P2Y')
+        case "pionier" return xs:yearMonthDuration('P1Y')
+        default return ()
+};
+
