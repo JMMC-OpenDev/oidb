@@ -26,7 +26,7 @@ declare %private function oifits:normalise-resource-path($path as xs:string) as 
 {
     (: <space> " # % : < > ? [ \ ] ^ ` { | }:) 
 	(: take care of the first % replacement that MUST occur at the begining of replace sequence :)
-    $path ! replace(.,"%","%25") ! replace(.,' ',"%20")! replace(.,'"',"%22") ! replace(.,"#","%23")  ! replace(.,":","%3A")  ! replace(.,"<","%3C")  ! replace(.,">","%3E")  ! replace(.,"\?","%3F")  ! replace(.,"\[","%5B")  ! replace(.,"\\","%5C")  ! replace(.,"\]","%5D")  ! replace(.,"\^","%5E")  ! replace(.,"`","%60")  ! replace(.,"\{","%7B")  ! replace(.,"\|","%7C")  ! replace(.,"\}","%7D")
+    $path ! replace(.,"%","%25") ! replace(.,' ',"%20")! replace(.,'"',"%22") ! replace(.,"#","%23")  ! replace(.,":","_")  ! replace(.,"<","%3C")  ! replace(.,">","%3E")  ! replace(.,"\?","%3F")  ! replace(.,"\[","%5B")  ! replace(.,"\\","%5C")  ! replace(.,"\]","%5D")  ! replace(.,"\^","%5E")  ! replace(.,"`","%60")  ! replace(.,"\{","%7B")  ! replace(.,"\|","%7C")  ! replace(.,"\}","%7D")
 };
 (:~
  : Strip last component from filename
