@@ -301,7 +301,7 @@ $(function () {
     $('#create-collection-btn').click(function (e) {
         var $btn = $(this);
         $btn.button('loading');
-        $.get('_collection-form.html')
+        $.get('_collection-form.html', { calib_level : RegExp('[\?&]calib_level=([^&#]*)').exec(window.location.href)[1]})
             .done(function (data) {
                 var $collection = $(data);
                 setupCollectionFieldset($collection);
@@ -324,6 +324,7 @@ $(function () {
                 $collection.hide().replaceAll($btn.closest('.row')).slideDown('slow');
                 $btn.button('reset').remove();
                 $form_div.find(":input").prop("readonly", true);
+                $form_div.find(":input").prop("disabled", true);
                 // prevent multiple bibcodes
                  $('.add-article-button').remove();
             });
@@ -354,7 +355,7 @@ $(function () {
     function serializeCollection($collection) {
         // Turn form into XML collection
         var collection = (new DOMParser()).parseFromString('<collection/>', 'text/xml');
-        $(':input', $collection)
+        $(':input', $collection).not(':radio:not(:checked)')
             .filter('[name="id"]').each(function (index, element) {
                 var id = $(element).val();
                 collection.documentElement.setAttribute("id", id); 
@@ -473,7 +474,7 @@ $(function () {
             $error_list.append($("<li>You must create or select a collection in step 2 section</li>"));
         }else{
             if ( ! ( $(':input[name="name"]',$collection_fs).val() && $(':input[name="title"]',$collection_fs).val() ) ) {
-                $error_list.append($("<li>You must setup the <b>name</b> and <b>title</b> of your collection in step 2 section</li>"));
+                $error_list.append($("<li>You must create a new collection with appropriate <b>name</b> and <b>title</b> of your collection in step 2 section</li><li>If present, you can also select an existing collection and click <b>Append to</b>.</li>"));
             }
         }
         if( $error_list.has( "li" ).length ){
