@@ -29,22 +29,6 @@ declare %private function granule:insert-statement($data as node()*) {
     (: filter out the empty fields and datalink(s): keep default value for them :)
     let $nodes := ( $data[./node() and not(name()='datalink')] )
     
-    
-    let $obs_release_date :=    if($data/self::obs_release_date) then
-                                    () (: node is already in metadata :)
-                                else if($data/self::data_rights="secure") then
-                                    (: compute obs_release_date with t_max + embargo duration 
-                                       TODO put this constant out and make it adjustable by user before submission if consensus 
-                                    :)
-                                    <obs_release_date>
-                                        {substring(string(jmmc-dateutil:MJDtoISO8601($data/self::t_max) + xs:yearMonthDuration('P1Y')) , 0, 22) }
-                                    </obs_release_date>
-                                else
-                                    () (: TODO check that this empty case is normal :)
-   
-   (: fix obs_release_date with default 1Y embargo period :)
-    let $nodes := ( $nodes, $obs_release_date )
-    
     (: add fail over for HMS DMS format even if obscore ask for deg values :)
     (: http://www.ivoa.net/documents/ObsCore/20170509/REC-ObsCore-v1.1-20170509.pdf  :)  
     (: s_ra                   ,deg,double,Central right ascension, ICRS    :)
@@ -147,7 +131,55 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
     let $collection := xs:string($granule/obs_collection/text())
     let $check-collection := if(exists($collection)) then true() else error(xs:QName('granule:error'), 'obs_collection is not present in given granule.')
     let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into " || $collection ||".')
-    let $statement := granule:insert-statement($granule/*)
+    
+
+(:  
+ :  if coltype != 'public' then 
+ :  1/    set data_rights to 'secure'
+ :        get appropriate release_date with embargo (may be in the past) : PIONIER->1Y, suv->2Y      
+ :        if release_date is in the future and oifits are local files:
+ :           limit permissions to the owner
+ :           schedule a timer to open data access
+ :  TODO :
+ :  2/   handle group access
+ :)
+   
+    let $embargo := collection:get-embargo ($collection)
+    let $coltype := collection:get-type($collection)
+    
+    let $data_rights :=         if( $granule/data_rights ) then
+                                    () (: keep verbatim metadata  :)
+                                else if(exists($embargo)) then 
+                                    <data_rights>secure</data_rights>
+                                else
+                                    ()
+    
+    let $obs_release_date :=    if( $granule/obs_release_date ) then
+                                    () (: keep verbatim metadata  :)
+                                else if( $data_rights="secure" ) then
+                                    <obs_release_date>
+                                        {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
+                                    </obs_release_date>
+                                else
+                                    () (: TODO check that this empty case is normal :)
+
+    let $manage-local-data :=   if( starts-with($granule/access_url,"/") and exists($obs_release_date) ) then 
+                                    let $in-future :=   ( xs:dateTime($obs_release_date) - fn:current-dateTime() ) > xs:dayTimeDuration("P0D")  
+                                    return if ($in-future) then        
+                                        let $oifits-path := xs:anyURI(replace($granule/access_url, "/exist/apps/oidb-data/", "/db/apps/oidb-data/"))
+                                        let $fix-oifits-perm := sm:chmod($oifits-path, "rwx------")
+                                        let $log := util:log('info', 'perm restricted for '|| $oifits-path || ' for collection type '||$coltype)
+                                        let $todo := util:log('info',"TODO : register a timer for " || $oifits-path)
+                                        return 
+                                            ()
+                                    else
+                                        let $log := util:log('info', 'perm leaved public for '|| $granule/access_url || ' in collection type '||$coltype|| ' : release_date in past')
+                                        return 
+                                            ()
+                                else
+                                    ()
+    
+    let $statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date))
     let $result := sql:execute($handle, $statement, false())
     let $id := if ($result/name() = "sql:exception") 
         then
