@@ -35,7 +35,7 @@ declare function backoffice:main-status($node as node(), $model as map(*)) as no
         <dl class="dl-horizontal">
             {
                 if(app:user-admin()) then 
-                    (<dt><span class="glyphicon glyphicon-warning-sign"/>&#160;Warning</dt>, <dd><span class="label label-danger">you are superuser</span></dd>)
+                    (<dt><span class="glyphicon glyphicon-warning-sign"/>&#160;Warning</dt>, <dd><span class="label label-danger">you are superuser({sm:id()//*:username})</span></dd>)
                 else
                     ()
             }
@@ -57,6 +57,8 @@ declare function backoffice:main-status($node as node(), $model as map(*)) as no
                         else <span class="label label-danger"> { $rdbms-cnt || " in RDBMS =! " || $xmldb-cnt || " in xmlDB" } </span>
                 }
             </div></dd>
+            <dt>DB Permissions</dt>
+            <dd>{backoffice:check-permissions($config:data-root)}</dd>
             <dt>TAP service</dt>
             <dd><div>
                 {
@@ -266,3 +268,78 @@ declare
 function backoffice:visit-status($node as node(), $model as map(*), $maxVisits as xs:integer?) as node()* {
     log:report-visits($maxVisits)
 };
+
+(:~
+ : Apply set of permissions to a resource.
+ : 
+ : If any of the permission items is false or unspecified, the respective 
+ : permission of the resource is not modified.
+ : 
+ : @param $path the path to the resource to modify (relative to package root)
+ : @param $perms a sequence of user, group and mods to set
+ : @return empty
+ :)
+declare function backoffice:set-permissions($path as xs:string, $perms as item()*)  {
+    let $uri := xs:anyURI($path)
+    let $cperm := sm:get-permissions($uri)/*
+    return (
+        let $user := $perms[1]
+        return if ($user and $user != $cperm/@owner)  then sm:chown($uri, $user) else (),
+        let $group := $perms[2]
+        return if ($group and $group != $cperm/@group) then sm:chgrp($uri, $group) else (),
+        let $mod := $perms[3]
+        return if ($mod and $mod != $cperm/@mode)   then sm:chmod($uri, $mod) else ()
+    )
+};
+
+(: create directory tree and set permissions :)
+
+(:~
+ : Check of xml db storage permissions.
+ : 
+ : @param $target root path of data ($config:da)
+ : @return an entry per checked point
+ :)
+declare function backoffice:check-permissions($target as xs:string)  {
+    try {
+        let $check := (
+            (: People :)
+             backoffice:set-permissions($target||"/people", (false(), 'oidb', 'r-xr-x--x')),
+             backoffice:set-permissions($target||"/people/people.xml", (false(), 'oidb', 'rw-rw-r--')),
+        
+            (: COLLECTIONS :)
+            let $collections := $target||'/collections'
+            return (
+                backoffice:set-permissions($collections, ( false(), 'jmmc', 'rwxrwxr-x' )),
+                (: set permissions of any static collection :)
+                for $r in xmldb:get-child-resources($collections)
+                return backoffice:set-permissions(concat($collections, '/', $r), ( false(), 'oidb', 'rw-rw-r--'))
+                ),
+        
+            (: TMP :)
+            let $tmp := $target|| '/tmp'
+            return backoffice:set-permissions($tmp, ( false(), false(), 'rwxrwxrwx' )),
+        
+        
+            (: LOG FILES :)
+            let $dir := $target || "/log"
+            let $logs := ( 'downloads', 'searches', 'submits', 'visits' )
+            return
+                for $l in $logs
+                return backoffice:set-permissions($dir||"/"||$l||".xml", ( false(), false(), 'rw-rw-rw-' )),
+        
+            (: OIFITS STAGING :)
+            let $staging := $target || '/oifits/staging'
+            return backoffice:set-permissions($staging, ( false(), 'jmmc', 'rwxrwxr-x' )),
+        
+            (: COMMENTS :)
+            let $comments := $target || '/comments/comments.xml'
+            return backoffice:set-permissions($comments, ( false(), 'jmmc', 'rw-rw-r--' ))    
+        )
+        return
+        <span>Permissions OK</span>
+    } catch * {
+        <span>Error checking permissions : please ask admin to run backoffice:check-permissions("{$target}")</span>
+    }
+};
+
