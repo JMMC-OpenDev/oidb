@@ -93,7 +93,7 @@ declare function tap:retrieve-or-execute($adql-statement as xs:string, $maxrec a
     
     return 
         if(exists($cached)) then 
-            $cached
+            $cached[1]
         else
             let $log := util:log("info", "add new tap cache entry [count="||count($tap:cache/*)||"] for"||$key)
             return
