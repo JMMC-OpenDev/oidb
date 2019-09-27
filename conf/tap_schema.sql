@@ -12,23 +12,24 @@ SET client_encoding = 'UTF8';
 -- Drop Schema first --
 --
 
-ALTER TABLE ONLY "TAP_SCHEMA"."key_columns" DROP CONSTRAINT "key_columns_fkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_pkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_fkey_from";
-ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_fkey_target";
-ALTER TABLE ONLY "TAP_SCHEMA"."columns" DROP CONSTRAINT "columns_pkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."columns" DROP CONSTRAINT "columns_fkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."tables" DROP CONSTRAINT "tables_pkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."tables" DROP CONSTRAINT "tables_fkey";
-ALTER TABLE ONLY "TAP_SCHEMA"."schemas" DROP CONSTRAINT "schemas_pkey";
-
-DROP TABLE "TAP_SCHEMA"."key_columns";
-DROP TABLE "TAP_SCHEMA"."keys";
-DROP TABLE "TAP_SCHEMA"."columns";
-DROP TABLE "TAP_SCHEMA"."tables";
-DROP TABLE "TAP_SCHEMA"."schemas";
-DROP SCHEMA "TAP_SCHEMA";
-
+-- GM: is that really useful ? leave in comments .. could use IF EXISTS...
+--ALTER TABLE ONLY "TAP_SCHEMA"."key_columns" DROP CONSTRAINT "key_columns_fkey";
+--ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_pkey";
+--ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_fkey_from";
+--ALTER TABLE ONLY "TAP_SCHEMA"."keys" DROP CONSTRAINT "keys_fkey_target";
+--ALTER TABLE ONLY "TAP_SCHEMA"."columns" DROP CONSTRAINT "columns_pkey";
+--ALTER TABLE ONLY "TAP_SCHEMA"."columns" DROP CONSTRAINT "columns_fkey";
+--ALTER TABLE ONLY "TAP_SCHEMA"."tables" DROP CONSTRAINT "tables_pkey";
+--ALTER TABLE ONLY "TAP_SCHEMA"."tables" DROP CONSTRAINT "tables_fkey";
+--ALTER TABLE ONLY "TAP_SCHEMA"."schemas" DROP CONSTRAINT "schemas_pkey";
+--
+--DROP TABLE "TAP_SCHEMA"."key_columns";
+--DROP TABLE "TAP_SCHEMA"."keys";
+--DROP TABLE "TAP_SCHEMA"."columns";
+--DROP TABLE "TAP_SCHEMA"."tables";
+--DROP TABLE "TAP_SCHEMA"."schemas";
+--DROP SCHEMA "TAP_SCHEMA";
+--
 
 --
 -- Create Schema with tables
