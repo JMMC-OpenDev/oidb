@@ -73,7 +73,7 @@ declare variable $restxq:ERROR_IF_AMBIGUOUS := false();
  :)
 declare function restxq:process($path-info as xs:string?, $functions as function(*)+) {
     let $params := map {
-        "$restxq:path" :=
+        "$restxq:path" :
             if (exists($path-info)) then
                 $path-info
             else
@@ -114,9 +114,9 @@ declare %private function restxq:function-by-annotation($functions as function(*
                         ()
                     else
                         map {
-                            "function" := $function,
-                            "meta" := $meta,
-                            "params" := $params
+                            "function" : $function,
+                            "meta" : $meta,
+                            "params" : $params
                         }
     return
         (: More than one function found: throw an error :)
@@ -275,7 +275,7 @@ declare %private function restxq:match-path($params as map(*), $input as xs:stri
             return
                 map:merge((
                     $params,
-                    map-pairs(function($group, $varExpr) {
+                    fn:for-each-pair(function($group, $varExpr) {
                         let $var := replace($varExpr, "\{\$([^\}]+)\}", "$1")
                         return
                             map:entry($var, $group)

@@ -1686,7 +1686,7 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
         } </tr> {
         for $row in $votable//votable:TABLEDATA/votable:TR[position() >= $start and position() < $start + $length]
         return <tr> {
-            map-pairs(function ($header, $cell) {
+            fn:for-each-pair(function ($header, $cell) {
                 (: compare value against the null for the column :)
                 let $value := if ($cell = $header/votable:VALUES/@null) then '' else $cell/text()
                 return element { 'td' } {
