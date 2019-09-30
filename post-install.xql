@@ -46,14 +46,14 @@ let $doc := if($doc/cache) then $doc else doc(xmldb:store($target|| '-data/tmp',
 (: restrict execution of XQuery modules :)
 
 let $perms := map {
-    $target || '/' || 'modules/assert.xql'       := $jmmc-credentials-dba,
-    $target || '/' || 'modules/schedule-job.xql' := $oidb-credentials-dba,
-    $target || '/' || 'modules/update-doc.xql'   := $oidb-credentials,
-    $target || '/' || 'modules/upload-chara.xql' := $oidb-credentials,
-    $target || '/' || 'modules/upload-vega.xql'  := $oidb-credentials,
-    $target || '/' || 'modules/upload-eso.xql'  := $oidb-credentials,
-    $target || '/' || 'tests.xml'  := $guest-credentials-rw,
-    $target || '-data/' || 'tmp/tap-cache.xml'  := $guest-credentials-rw
+    $target || '/' || 'modules/assert.xql'       : $jmmc-credentials-dba,
+    $target || '/' || 'modules/schedule-job.xql' : $oidb-credentials-dba,
+    $target || '/' || 'modules/update-doc.xql'   : $oidb-credentials,
+    $target || '/' || 'modules/upload-chara.xql' : $oidb-credentials,
+    $target || '/' || 'modules/upload-vega.xql'  : $oidb-credentials,
+    $target || '/' || 'modules/upload-eso.xql'  : $oidb-credentials,
+    $target || '/' || 'tests.xml'  : $guest-credentials-rw,
+    $target || '-data/' || 'tmp/tap-cache.xml'  : $guest-credentials-rw
 }
 
-return map:for-each-entry($perms, local:set-permissions(?, ?))
+return map:for-each($perms, local:set-permissions(?, ?))
