@@ -25,7 +25,7 @@ declare variable $comments:comments := $config:data-root || '/comments/comments.
  : @return a new model with comments for the granule
  :)
 declare function comments:comments($node as node(), $model as map(*), $id as xs:integer) as map(*) {
-    map { 'comments' := doc($comments:comments)/comments/comment[@granule-id=$id] }
+    map { 'comments' : doc($comments:comments)/comments/comment[@granule-id=$id] }
 };
 
 (:~
@@ -40,7 +40,7 @@ declare
 %templates:wrap
 %templates:default("maxComments", 10)
 function comments:last-comments($node as node(), $model as map(*), $maxComments as xs:integer) as map(*) {
-    map { 'comments' := comments:last-comments($maxComments) }
+    map { 'comments' : comments:last-comments($maxComments) }
 };
 
 (:~
@@ -79,7 +79,7 @@ declare function comments:comment($node as node(), $model as map(*)) as node() {
         element { node-name($node) } {
             $node/@* except $node/@id,
             attribute { 'id' } { $comment/@id },
-            templates:process($node/node(), map:new(( $model , map:entry('comment', $comment) )))
+            templates:process($node/node(), map:merge(( $model , map:entry('comment', $comment) )))
         }
 };
 

@@ -66,7 +66,7 @@ declare %private function log:log($log as xs:string, $message as element()) {
                 if ($message/@user)   then () else attribute { 'user' }   { 
                     let $user := request:get-attribute('fr.jmmc.oidb.login.user')
                     (: throw a NPE (fixed on git but not released) let $user := if($user) then $user else data(sm:id()//*:real/*:username)  sm:id is use for scheduled jobs with setuid :)
-                    let $user := if($user) then $user else xmldb:get-current-user()
+                    let $user := if($user) then $user else sm:id()
                     return $user
                     },
                 (: prefer XFF because ProxyPass makes request:get-remote-host() always returns localhost :)
@@ -133,7 +133,7 @@ declare function log:visit()  {
             log:serialize-request(),
             let $error := request:get-attribute("org.exist.forward.error")
             return if ($error) then
-                <error>{ try { util:parse($error)//message/string() } catch * { $error } } </error>
+                <error>{ try { fn:parse-xml($error)//message/string() } catch * { $error } } </error>
             else
                 <success/>
         } </visit>

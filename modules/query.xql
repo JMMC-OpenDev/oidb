@@ -44,13 +44,13 @@ function query:run($node as node(), $model as map(*),
         let $columns :=
             for $th in $data//th
             return map { (: TODO merge with app.xql common code :)
-                'name'    := data($th/@name),
-		'label'   := switch ($th/@name)
+                'name'    : data($th/@name),
+		'label'   : switch ($th/@name)
                     case "em_min" return "wlen_min"
                     case "em_max" return "wlen_max"
                     default return $th/@name,
-                'ucd'     := $th/a/text(),
-                'ucd-url' := data($th/a/@href)
+                'ucd'     : $th/a/text(),
+                'ucd-url' : data($th/a/@href)
             }
         (: limit rows to page - skip row of headers :)
         let $rows := $data//tr[position()!=1]
@@ -58,15 +58,15 @@ function query:run($node as node(), $model as map(*),
 
         return
             map {
-                'columns' :=    $columns,
-                'rows' :=       $rows,
-                'overflow' :=   if ($overflow) then true() else (),
-                'pagination' := map { 'page' := $page, 'npages' := ceiling($nrows div $perpage) }
+                'columns' :    $columns,
+                'rows' :       $rows,
+                'overflow' :   if ($overflow) then true() else (),
+                'pagination' : map { 'page' : $page, 'npages' : ceiling($nrows div $perpage) }
             }
     } catch tap:error {
         let $message := if ($err:value) then ' (' || $err:value || ')' else ''
         return map {
-            'flash' := $err:description || $message
+            'flash' : $err:description || $message
         }
     }
 };

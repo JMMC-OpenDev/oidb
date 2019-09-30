@@ -42,7 +42,7 @@ declare variable $local:collection := 'eso_vlti_import';
  : @return a list of the ids of the new granules
  :)
 declare function local:upload($handle as xs:long, $votable as node()*) as item()* {
-    let $col-indexes := map:new(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
+    let $col-indexes := map:merge(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
     let $rows := $votable//votable:TR
     let $nb-rows := count($rows)
     
@@ -66,7 +66,7 @@ declare function local:get-max-recno() as xs:integer{
 
 declare function local:update-max-recno($votable as node()) as xs:integer{
     let $eso-collection := collection:retrieve($local:collection)
-    let $col-indexes := map:new(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
+    let $col-indexes := map:merge(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
     let $recno-index := map:get($col-indexes,"recno")
     let $recnos := max( $votable//votable:TR/votable:TD[ $recno-index ] ) (: not sure that is is typed as number :)
     let $update := update replace $eso-collection//recno/text() with $recnos
@@ -89,7 +89,7 @@ declare function local:get-votable($max-recno){
 declare function local:upload($handle as xs:long, $votable as node()) as item()* {
     let $log := util:log("info", "update eso L0 with given votable")
 
-    let $col-indexes := map:new(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
+    let $col-indexes := map:merge(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
     let $rows := $votable//votable:TR
     let $nb-rows := count($rows)
     

@@ -25,7 +25,7 @@ function vizier:assert-empty-collection($node as node(), $model as map(*), $cata
             response:redirect-to(xs:anyURI('submit.html'))
         )
     else
-        map:new()
+        map:merge()
 };
 
 (:~

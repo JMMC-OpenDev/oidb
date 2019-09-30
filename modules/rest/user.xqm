@@ -146,5 +146,5 @@ declare function user:get-email($name as xs:string){
 };
 
 declare function user:check($node as node(), $model as map(*)) as map(*) {
-    map:new(($model, map:entry('updated', user:check(()))))
+    map:merge(($model, map:entry('updated', user:check(()))))
 };

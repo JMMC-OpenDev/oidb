@@ -80,7 +80,7 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
     let $data := oifits:get-data($model)
     let $url := $data[1]
     let $map := map { 
-        'oifits' := map:new((
+        'oifits' : map:merge((
         map:entry('url', $url),
         try {
             let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
@@ -91,7 +91,7 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
             let $warn-msg := if ($cnt-severe > 0 ) then $cnt-severe||" SEVERE" else if ($cnt-warning > 0) then $cnt-warning || " WARNING" else () 
             
             let $reject-nonl3-severe := false() (: true rejects L1/L2 with SEVERE entry :)
-            return map:new(( 
+            return map:merge(( 
                 map:entry('report', $report),
                 if ($warn-msg) then
                     map:entry('warning', <span class="text-danger">&#160; {$warn-msg} errors, please try to fix your file and resubmit it later.Please send feedback, if some SEVERE level are too strict. </span>)
@@ -104,12 +104,12 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
                     let $granules := oifits:prepare-granules($oifits, $url)
                     return map:entry('granules', $granules)))
         } catch * {
-            map { 'message' := 'error parsing the OIFITS file at ' || $url || '. '||string-join(($err:code, $err:description, $err:value), ":") }
+            map { 'message' : 'error parsing the OIFITS file at ' || $url || '. '||string-join(($err:code, $err:description, $err:value), ":") }
         }))
     }
     let $s1-map := if ($calib_level=3) then map:entry('skip-quality-level-selector', true()) else ()
     let $s2-map := if ( $calib_level=2 and count(map:get(map:get($map,'oifits'),'granules'))>1) then () else map:entry('skip-oifits-quality-level-selector', true()) 
-    return map:new(($map, $s1-map, $s2-map))
+    return map:merge(($map, $s1-map, $s2-map))
 };
 
 (:~

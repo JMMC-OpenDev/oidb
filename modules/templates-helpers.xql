@@ -81,7 +81,7 @@ declare function helpers:render($node as node(), $model as map(*), $partial as x
         "/", $partial))
     (: repeat for each item of value :)
     for $item in helpers:get($model, $key)
-    return templates:process($partial/node(), map:new(( $model, map:entry($as, $item) )))
+    return templates:process($partial/node(), map:merge(( $model, map:entry($as, $item) )))
 };
 
 (:~
@@ -98,7 +98,7 @@ declare function helpers:each($node as node(), $model as map(*), $from as xs:str
     return
         element { node-name($node) } {
             $node/@*,
-            templates:process($node/node(), map:new(($model, map:entry($to, $item))))
+            templates:process($node/node(), map:merge(($model, map:entry($to, $item))))
         }
 };
 

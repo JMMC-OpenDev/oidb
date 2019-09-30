@@ -386,11 +386,11 @@ declare function granule:has-access($id-or-granule as item(), $mode as xs:string
             return collection:has-access($collection, $mode)
         (: authorize dba :)
         (: FIXME stick with old API until fix for upstream bug #388 is released :)
-        else if (xmldb:is-admin-user(xmldb:get-current-user())) then
+        else if (sm:is-dba(sm:id())) then
             true()
         (: authorize the application admins :)
         (: FIXME use sm:id() instead when fix for upstream bug #388 is released :)
-        else if (sm:get-user-groups(xmldb:get-current-user()) = 'oidb') then
+        else if (sm:get-user-groups(sm:id()) = 'oidb') then
             true()
         else
             (: TODO check datapi column and current user? store owner? :)

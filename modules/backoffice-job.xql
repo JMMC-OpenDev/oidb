@@ -78,7 +78,7 @@ declare %private function local:update-eso() {
         let $data := request:get-uploaded-file-data('file')
         let $path := xmldb:store('/db/apps/oidb-data/tmp', 'upload-eso.xml', $data)
 
-        return local:start-job($config:app-root || '/modules/upload-eso.xql', $backoffice:update-eso, map { 'resource' := $path, 'name' := $backoffice:update-eso })
+        return local:start-job($config:app-root || '/modules/upload-eso.xql', $backoffice:update-eso, map { 'resource' : $path, 'name' : $backoffice:update-eso })
     } catch * {
         let $log := util:log("error", "Can't store data into /db/apps/oidb-data/tmp/upload-eso.xml : "||$err:description)
 
@@ -93,7 +93,7 @@ declare %private function local:update-eso() {
  : @return false() if it failed to schedule the job or there is already another job running.
  :)
 declare %private function local:update-eso-inc() {
-    local:start-job($config:app-root || '/modules/sync-l0-eso.xql', $backoffice:update-eso-inc, map { 'name' := $backoffice:update-eso-inc })
+    local:start-job($config:app-root || '/modules/sync-l0-eso.xql', $backoffice:update-eso-inc, map { 'name' : $backoffice:update-eso-inc })
 };
 
 (:~
@@ -102,7 +102,7 @@ declare %private function local:update-eso-inc() {
  : @return false() if it failed to schedule the job or there is already another job running.
  :)
 declare %private function local:update-vega() {
-    local:start-job($config:app-root || '/modules/upload-vega.xql', $backoffice:update-vega, map {'name' := $backoffice:update-vega})
+    local:start-job($config:app-root || '/modules/upload-vega.xql', $backoffice:update-vega, map {'name' : $backoffice:update-vega})
 };
 
 (:~
@@ -115,7 +115,7 @@ declare %private function local:update-chara() {
     let $data := request:get-uploaded-file-data('file')
     let $path := xmldb:store('/db/apps/oidb-data/tmp', 'upload-chara.dat', $data, 'text/csv')
 
-    return local:start-job($config:app-root || '/modules/upload-chara.xql', $backoffice:update-chara, map { 'resource' := $path, 'name' := $backoffice:update-chara })
+    return local:start-job($config:app-root || '/modules/upload-chara.xql', $backoffice:update-chara, map { 'resource' : $path, 'name' : $backoffice:update-chara })
 };
 
 (: 

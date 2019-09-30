@@ -49,7 +49,7 @@ declare function sesame:resolve-sesame($names as xs:string+) as item()* {
     return if ($response/@statusCode != 200 or $response/httpclient:body/@type != "xml") then
         error(xs:QName('sesame:HTTP'), 'Failed to retrieve data from Sesame')
     (: @todo response not always valid, see HD166014, report upstream? :)
-(:    else if (not(validation:validate($response//httpclient:body/Sesame, $sesame:SCHEMA))) then:)
+(:    else if (not(validation:jing-report($response//httpclient:body/Sesame, $sesame:SCHEMA))) then:)
 (:        error(xs:QName('sesame:validation'), 'Invalid response from Sesame' || $response):)
     (: check there is something returned for each name :)
     else if($response//httpclient:body/Sesame/Target[not(./Resolver)]) then

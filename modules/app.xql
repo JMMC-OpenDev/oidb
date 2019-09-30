@@ -6,7 +6,6 @@ import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
 import module namespace math="http://www.w3.org/2005/xpath-functions/math";
-import module namespace xmath="http://exist-db.org/xquery/math";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 import module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters" at "filters.xqm";
@@ -103,7 +102,7 @@ declare function app:each-row($node as node(), $model as map(*)) as node()* {
         element { node-name($node) } {
             $node/@*,
             app:row-data($row),
-            templates:process($node/node(), map:new(($model, map:entry('row', $row))))
+            templates:process($node/node(), map:merge(($model, map:entry('row', $row))))
         }
 };
 
@@ -414,7 +413,7 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
     let $ids := $data//*:TD/text()
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
-        'collections' := map:new(
+        'collections' : map:merge(
             for $id in $ids
             let $name := $collections[@id=$id]/name/text()
             return map:entry($id, $name)
@@ -438,7 +437,7 @@ function app:user-collections-options($node as node(), $model as map(*), $calib_
     let $ids := data($data//*:TD)
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
-        'user-collections' := map:new(
+        'user-collections' : map:merge(
             for $id in $ids[.=$collections/@id]
             return 
                 let $col := $collections[@id=$id]
@@ -468,12 +467,12 @@ function app:collection-form($node as node(), $model as map(*), $id as xs:string
         map {
         'id' : $id
         ,'ask_coltype' : $calib_level!=3
-        , 'coltype' :$collection/coltype/text()
-        ,'name' : $collection/name/text()
-        ,'title' : $collection/title/text()
+        , 'coltype'    : $collection/coltype/text()
+        ,'name'        : $collection/name/text()
+        ,'title'       : $collection/title/text()
         ,'description' : $collection/description/text()
-        ,'keywords' : ($collection//keyword/text())
-        ,'bibcodes' : ($collection//bibcode/text())
+        ,'keywords'    : ($collection//keyword/text())
+        ,'bibcodes'    : ($collection//bibcode/text())
          }
     
     return map:merge(($map1, if($calib_level != 3) then map {'ask_coltype' : "yes" } else () ))
@@ -504,7 +503,7 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
         return tokenize($instrument-name, '[^A-Za-z0-9]')[1])
     let $instruments := for $e in $instruments order by $e return $e
 
-    return map:new(map:entry('instruments', $instruments))
+    return map:merge(map:entry('instruments', $instruments))
 };
 
 (:~
@@ -532,7 +531,7 @@ declare function app:instrument($node as node(), $model as map(*), $key as xs:st
         }
         {$facility, $url, $anchor}
         </instrument>
-    return map { 'instrument' := $instrument, 'html-desc' := () (: TODO :) }
+    return map { 'instrument' : $instrument, 'html-desc' : () (: TODO :) }
 };
 
 
@@ -585,7 +584,7 @@ declare function app:statistics($node as node(), $model as map(*)) as map(*) {
             </dev>
                 return $tap:cache-insert($key, $statistics)
     
-    return map {  'statistics' := $ret }
+    return map {  'statistics' : $ret }
 };
 
 declare variable $app:facilities-query := adql:build-query(( 'col=facility_name', 'distinct' ));
@@ -617,8 +616,8 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
                 let $y := xs:double($coords[2])
                 let $z := xs:double($coords[3])
                 let $r := xs:double(6371000)
-                let $lat := xmath:degrees(math:asin( $z div $r ))
-                let $lon := xmath:degrees(math:atan2($y, $x))
+                let $lat := math:asin( $z div $r ) * 180 div math:pi()
+                let $lon := math:atan2($y, $x) * 180 div math:pi()
                 
                 let $has-records := for $f in $tap-facilities return matches( $f, $name)
                 let $has-records := if( true() = $has-records) then <i class="glyphicon glyphicon-ok"/> else ()
@@ -640,7 +639,7 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
         }
         </table>
 
-    return map { 'tap-facilities' := $tap-facilities , 'facilities' := $aspro-table }
+    return map { 'tap-facilities' : $tap-facilities , 'facilities' : $aspro-table }
 };
 
 declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));
@@ -665,7 +664,7 @@ declare
     %templates:wrap
 function app:data-pis-roles($node as node(), $model as map(*)) as map(*) {
     let $roles := $app:data-pis-roles//e 
-    return map:new(($model, map:entry('roles', $roles)))
+    return map:merge(($model, map:entry('roles', $roles)))
 };        
 
  (:~
@@ -699,7 +698,7 @@ function app:data-pis($node as node(), $model as map(*)) as map(*) {
         return 
             $e
     
-    return map:new(($model, map:entry('datapis', $datapis), map:entry('persons', ($missings, $persons))))
+    return map:merge(($model, map:entry('datapis', $datapis), map:entry('persons', ($missings, $persons))))
 };
 
 (:~
@@ -720,7 +719,7 @@ function app:user-names-options($node as node(), $model as map(*)) as map(*) {
         order by normalize-space(upper-case($user-name))
         return $user-name
             
-    return map:new(($model, map:entry('user-names', $user-names)))
+    return map:merge(($model, map:entry('user-names', $user-names)))
 };
 
 (:~
@@ -741,13 +740,13 @@ declare function app:data-pi-search-url($node as node(), $model as map(*), $data
 declare
     %templates:wrap
 function app:sort-by($node as node(), $model as map(*)) as map(*) {
-    map:new(
+    map:merge(
         map:entry('sortbys',
             map {
                 (: column name       displayed text :)
-                'target_name'     := "Target name",
-                't_min'           := "Date",
-                'instrument_name' := "Instrument"
+                'target_name'     : "Target name",
+                't_min'           : "Date",
+                'instrument_name' : "Instrument"
             }))
 };
 
@@ -765,7 +764,7 @@ declare function app:input-each-band($node as node(), $model as map(*)) as node(
             $node/@*,
             attribute { 'value' } { $n },
             if ($n = $model('band')) then attribute { 'checked'} { 'checked' } else (),
-            templates:process($node/node(), map:new(($model, map:entry('band', $n))))
+            templates:process($node/node(), map:merge(($model, map:entry('band', $n))))
         }
 };
 
@@ -781,7 +780,7 @@ declare function app:input-each-band($node as node(), $model as map(*)) as node(
 declare     
 	%templates:wrap
 function app:bands($node as node(), $model as map(*)) as map(*) {
-    map:new(($model, map:entry('bands', jmmc-astro:band-names())))
+    map:merge(($model, map:entry('bands', jmmc-astro:band-names())))
 };
 
 (:~
@@ -794,7 +793,7 @@ function app:bands($node as node(), $model as map(*)) as map(*) {
  : @return a new map as model with band names
  :)
 declare function app:wavelength-divisions($node as node(), $model as map(*)) as map(*) {
-    map:new(($model, map:entry('wavelength-divisions', jmmc-astro:wavelength-division-names())))
+    map:merge(($model, map:entry('wavelength-divisions', jmmc-astro:wavelength-division-names())))
 };
 
 declare variable $app:data-quality-levels := map {
@@ -815,8 +814,8 @@ declare variable $app:data-quality-levels := map {
  : @return a new map as model with quality levels
  :)
 declare function app:data-quality-flags($node as node(), $model as map(*)) as map(*) {
-    (: map:new(($model, map:entry('data-quality-flags', $jmmc-astro:data-quality-flags))) :)
-    map:new(($model, map:entry('data-quality-flags', $app:data-quality-levels)))
+    (: map:merge(($model, map:entry('data-quality-flags', $jmmc-astro:data-quality-flags))) :)
+    map:merge(($model, map:entry('data-quality-flags', $app:data-quality-levels)))
 };
 
 (:~
@@ -890,11 +889,11 @@ function app:search($node as node(), $model as map(*),
             let $th := $data//th[@name=$name]
             let $unit := if($th/@unit) then " [" || $th/@unit || "]" else ()
             return map {
-                'name'    := $name,
-(:                'ucd'     := $th/a/text(),:)
-(:                'ucd-url' := data($th/a/@href),:)
-                'description' := data($th/@description) || $unit,
-                'label'   := switch ($name)
+                'name'    : $name,
+(:                'ucd'     : $th/a/text(),:)
+(:                'ucd-url' : data($th/a/@href),:)
+                'description' : data($th/@description) || $unit,
+                'label'   : switch ($name)
                     case "em_min" return "wlen_min"
                     case "em_max" return "wlen_max"
                     default return $name
@@ -909,13 +908,13 @@ function app:search($node as node(), $model as map(*),
         (: add log request :)
         let $log := log:search(<success/>)
         return map {
-            'query' :=      $query,
-            'query-edit' := 'query.html?query=' || encode-for-uri($query),
-            'columns' :=    $columns,
-            'rows' :=       $rows,
-            'overflow' :=   if ($overflow) then true() else (),
-            'stats' :=      $stats,
-            'pagination' := map { 'page' := $page, 'npages' := ceiling(number($stats/@nobservations) div $perpage) }
+            'query' :      $query,
+            'query-edit' : 'query.html?query=' || encode-for-uri($query),
+            'columns' :    $columns,
+            'rows' :       $rows,
+            'overflow' :   if ($overflow) then true() else (),
+            'stats' :      $stats,
+            'pagination' : map { 'page' : $page, 'npages' : ceiling(number($stats/@nobservations) div $perpage) }
         }
     } catch filters:error {
         (: add log request with error :)
@@ -927,20 +926,20 @@ function app:search($node as node(), $model as map(*),
         let $suggestion := if ($cs-position) then let $uri := request:get-query-string() return <span><br/>You may try <ul class="list-inline">{ for $li in jmmc-simbad:search-names($cs-position, ()) let $href:= replace($uri, "conesearch="||$cs-position, "conesearch="||$li) return <li><a href="?{$href}">{$li}</a></li>} </ul></span> else ()
         
         return map {
-(:            'flash' := 'Unable to build a query from search form data: ' || $err:description:) 
-              'flash' := <span>Unable to build a query from search form data : <b><em>{$err:description}</em></b>{$suggestion}</span>
+(:            'flash' : 'Unable to build a query from search form data: ' || $err:description:) 
+              'flash' : <span>Unable to build a query from search form data : <b><em>{$err:description}</em></b>{$suggestion}</span>
         }
     } catch tap:error {
         let $message := if ($err:value) then ' (' || $err:value || ')' else ''
         return map {
-            'flash' := $err:description || $message
+            'flash' : $err:description || $message
         }
     } catch * {
         (: add log request with error :)
         let $log := log:search(<error code="{$err:code}">{$err:description}</error>)
         return 
         map {
-            'flash' := 'fatal error: (' || $err:code || ')' || $err:description
+            'flash' : 'fatal error: (' || $err:code || ')' || $err:description
         }
     }
 };
@@ -958,62 +957,62 @@ function app:search($node as node(), $model as map(*),
 declare
     %templates:wrap
 function app:deserialize-query-string($node as node(), $model as map(*)) as map(*) {
-    map:new((
+    map:merge((
         (: --- FILTERS --- :)
         (: target=[!][~]<data> :)
         map {
-            'target_name' := substring-after(request:get-parameter('target', ''), '~')
+            'target_name' : substring-after(request:get-parameter('target', ''), '~')
         },
         (: conesearch=<position>,<equinox>,<radius>,<unit> :)
         let $tokens := tokenize(request:get-parameter('conesearch', ''), ',')
         return if(count($tokens) = 4) then
             map {
-                'cs_position'    := $tokens[1],
-                'cs_equinox'     := $tokens[2],
-                'cs_radius'      := $tokens[3],
-                'cs_radius_unit' := $tokens[4]
+                'cs_position'    : $tokens[1],
+                'cs_equinox'     : $tokens[2],
+                'cs_radius'      : $tokens[3],
+                'cs_radius_unit' : $tokens[4]
             }
         else
-            map:new(),
+            map:merge(),
         (: observationdate=[<start>]..[<end>] :)
         map {
-            'date_start'  := substring-before(request:get-parameter('observationdate', ''), '..'),
-            'date_end'    := substring-after(request:get-parameter('observationdate', ''), '..')
+            'date_start'  : substring-before(request:get-parameter('observationdate', ''), '..'),
+            'date_end'    : substring-after(request:get-parameter('observationdate', ''), '..')
         },
         (: instrument=[!]<data> :)
         map {
-            'instrument'  := request:get-parameter('instrument', '')
+            'instrument'  : request:get-parameter('instrument', '')
         },
         (: wavelengthband=<band>[,<band>]* :)
         map {
-            'band'        := tokenize(request:get-parameter('wavelengthband', ''), ',')
+            'band'        : tokenize(request:get-parameter('wavelengthband', ''), ',')
         },
         (: collection=[!][~]<data> :)
         map {
-            'collection'  := substring-after(request:get-parameter('collection', ''), '~')
+            'collection'  : substring-after(request:get-parameter('collection', ''), '~')
         },
         (: datapi=[!][~]<data> :)
         map {
-            'datapi'      := substring-after(request:get-parameter('datapi', ''), '~')
+            'datapi'      : substring-after(request:get-parameter('datapi', ''), '~')
         },
         (: caliblevel=<level>[,<level>]* :)
         map {
-            'reduction'   := tokenize(request:get-parameter('caliblevel', ''), ',')
+            'reduction'   : tokenize(request:get-parameter('caliblevel', ''), ',')
         },
         (: public=yes|no|all :)
         map {
-            'available'   := request:get-parameter('public', 'all')
+            'available'   : request:get-parameter('public', 'all')
         },
         (: --- ORDERING --- :)
         let $order := request:get-parameter('order', '')[1]
         let $desc := starts-with($order, '^')
         return map {
-            'sortby'     := if($desc) then substring($order, 2) else $order,
-            'descending' := if($desc) then () else 'yes'
+            'sortby'     : if($desc) then substring($order, 2) else $order,
+            'descending' : if($desc) then () else 'yes'
         },
         (: --- PAGINATION --- :)
         map {
-            'perpage'    := request:get-parameter('perpage', '25')
+            'perpage'    : request:get-parameter('perpage', '25')
         }
     ))
 };
@@ -1092,7 +1091,7 @@ declare function app:datalink($node as node(), $model as map(*)) as map(*) {
     (: TO BE CONTINUED ... :)
     return if ($datalink)
         then 
-            map { 'datalink' := $datalink }
+            map { 'datalink' : $datalink }
         else 
             ()
 };
@@ -1125,15 +1124,15 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
         else
             <div> 
                 <h1> Granule {$data//td[@colname='id']/text()}</h1>
-                {()(: app:show-granule-summary($node,  map {'granule' := app:granules($query) }, "granule") :)}
+                {()(: app:show-granule-summary($node,  map {'granule' : app:granules($query) }, "granule") :)}
                 <div class="row">
                     <div class="col-md-6">
-                    {app:show-granule-summary($node,  map {'granule' := $data }, "granule")}
-                    {if ($data//td[@colname='calib_level'] = '0' ) then () else app:show-granule-siblings($node,  map {'granule' := $data }, "granule")}
+                    {app:show-granule-summary($node,  map {'granule' : $data }, "granule")}
+                    {if ($data//td[@colname='calib_level'] = '0' ) then () else app:show-granule-siblings($node,  map {'granule' : $data }, "granule")}
                     </div>
                     <div class="col-md-6 acol-md-offset-1">
-                    {app:show-granule-contact($node,  map {'granule' := $data }, "granule")}
-                    {app:show-granule-externals($node,  map {'granule' := $data }, "granule")}
+                    {app:show-granule-contact($node,  map {'granule' : $data }, "granule")}
+                    {app:show-granule-externals($node,  map {'granule' : $data }, "granule")}
                     </div>
                 </div>
                 
@@ -1405,8 +1404,8 @@ declare function app:get-data($node as node(), $model as map(*), $id as xs:integ
     let $do-log := log:get-data( $id, $data-url ) 
     
 
-    return  map { 'data-url' := if($data-url) then $data-url else (),
-                      'flash'    := if($data-url) then () else "can't find associated data, please check your granule id (given is '" || $id || "')" }
+    return  map { 'data-url' : if($data-url) then $data-url else (),
+                      'flash'    : if($data-url) then () else "can't find associated data, please check your granule id (given is '" || $id || "')" }
 };
 
 (: Query to get the 3 last entries :)
@@ -1453,13 +1452,13 @@ function app:homepage-header($node as node(), $model as map(*)) as map(*) {
     let $persons := $peoples//person[alias=$datapis]
     let $missings := $datapis[not(. = $peoples//alias)]
     return map {
-        'n_facilities'  := $count(( 'distinct', 'col=facility_name' )),
-        'n_instruments' := count(app:instruments($node,$model)('instruments')),
-        'n_data_pis'    := count($persons) + count($missings),
-        'n_collections' := $count(( 'distinct', 'col=obs_collection' )),
-        'n_oifits'      := $count(( 'distinct', 'col=access_url' )) - 1,
-        'n_granules'    := $count(( 'caliblevel=1,2,3' )),
-        'n_obs_logs'    := $count(( 'caliblevel=0' ))
+        'n_facilities'  : $count(( 'distinct', 'col=facility_name' )),
+        'n_instruments' : count(app:instruments($node,$model)('instruments')),
+        'n_data_pis'    : count($persons) + count($missings),
+        'n_collections' : $count(( 'distinct', 'col=obs_collection' )),
+        'n_oifits'      : $count(( 'distinct', 'col=access_url' )) - 1,
+        'n_granules'    : $count(( 'caliblevel=1,2,3' )),
+        'n_obs_logs'    : $count(( 'caliblevel=0' ))
     }
 };
 
@@ -1549,8 +1548,8 @@ declare function app:collections($node as node(), $model as map(*), $type as xs:
     let $vizier-collections := $collections[app:vizier-collection(.)]
     return map {
         'type' : $type,
-        'vizier-collections' := $vizier-collections,
-        'other-collections'  := $collections[not(.=$vizier-collections)]
+        'vizier-collections' : $vizier-collections,
+        'other-collections'  : $collections[not(.=$vizier-collections)]
     }
 };
 
@@ -1570,7 +1569,7 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
     let $embargo := collection:get-embargo($collection)
     return if ($collection)
         then 
-            map { 'collection' := $collection, 'document-name' :=  util:document-name($collection) 
+            map { 'collection' : $collection, 'document-name' :  util:document-name($collection) 
              , "embargo" : $embargo, "coltype" : $coltype}
         else 
             ()
@@ -1591,12 +1590,12 @@ declare %private function app:stats($query as item()*) as map(*) {
     let $n_granules := $count(( 'caliblevel=1,2,3' ))
     let $n_oifits := if($n_granules = 0 ) then 0 else $count(( 'distinct', 'col=access_url' ))
     return map {
-        'n_oifits'   := $n_oifits,
-        'n_granules' := $n_granules,
-        'n_obs_logs' := $count(( 'caliblevel=0' )),
-        'instruments' := $instruments,
-        'from-date'  :=$tmin-tmax[1],
-        'to-date'    :=$tmin-tmax[2]
+        'n_oifits'   : $n_oifits,
+        'n_granules' : $n_granules,
+        'n_obs_logs' : $count(( 'caliblevel=0' )),
+        'instruments' : $instruments,
+        'from-date'  :$tmin-tmax[1],
+        'to-date'    :$tmin-tmax[2]
     }
 };
 
@@ -1795,10 +1794,10 @@ function app:collection-granules($node as node(), $model as map(*), $id as xs:st
     let $granules := app:granules(( $query, 'page=' || $page, 'perpage=' || $perpage ))
 
     return map {
-        'granules' := $granules[name()='file'],
+        'granules' : $granules[name()='file'],
         (: check if too many results for query :)
-        'overflow' := $granules[name()='overflow'],
-        'pagination' := map { 'page' := $page, 'npages' := ceiling($stats('n_granules') div $perpage) }
+        'overflow' : $granules[name()='overflow'],
+        'pagination' : map { 'page' : $page, 'npages' : ceiling($stats('n_granules') div $perpage) }
     }
 };
 
@@ -1822,7 +1821,7 @@ declare function app:each-granule($node as node(), $model as map(*), $from as xs
             $node/@*,
             (: here is the magic: attach id to element for later scripting :)
             attribute { 'data-id' } { helpers:get($granule, 'id') },
-            templates:process($node/node(), map:new(($model, map:entry($to, $granule))))
+            templates:process($node/node(), map:merge(($model, map:entry($to, $granule))))
         }
 };
 
@@ -1836,7 +1835,7 @@ declare function app:each-granule($node as node(), $model as map(*), $from as xs
  :)
 declare function app:user-info($node as node(), $model as map(*), $key as xs:string) as map(*) {
     let $user := helpers:get($model, $key)
-    return map { 'user' := jmmc-auth:get-info($user) }
+    return map { 'user' : jmmc-auth:get-info($user) }
 };
 
 (:~
@@ -1968,12 +1967,12 @@ function app:upload($node as node(), $model as map(*), $staging as xs:string?, $
     let $staging := if ($staging) then $staging else util:uuid()
     (: a short textual description of the calibration level :)
     let $map := map { 
-        'oifits':= (),
-        'staging' := $staging,
-        'calib_level' := $calib_level
+        'oifits': (),
+        'staging' : $staging,
+        'calib_level' : $calib_level
     }
-    let $map := if($calib_level = 3) then map:new(($map, map:entry('skip-quality-level-selector', true()))) else $map
-    let $map := map:new(($map, app:upload-check-calib-level($node, $model, $calib_level)))
+    let $map := if($calib_level = 3) then map:merge(($map, map:entry('skip-quality-level-selector', true()))) else $map
+    let $map := map:merge(($map, app:upload-check-calib-level($node, $model, $calib_level)))
     return $map
 };
 
@@ -1992,7 +1991,7 @@ declare function app:upload-check-calib-level($node as node(), $model as map(*),
         else ''
     return 
         if($calib_level = (2,3)) then 
-            map{'calib_description' := $calib_description }
+            map{'calib_description' : $calib_description }
         else 
             map{}
 };
@@ -2062,7 +2061,7 @@ declare function app:rssItems($max as xs:integer) as node()* {
                 </table>
             let $c := count($rows)
             let $authors := distinct-values($rows//td[@colname="datapi"])
-(:            app:show-granule-summary(<a/>,  map {'granule' := $rows }, "granule"):)
+(:            app:show-granule-summary(<a/>,  map {'granule' : $rows }, "granule"):)
             return
                 <item xmlns:dc="http://purl.org/dc/elements/1.1/">
                     <link>{app:fix-relative-url("/show.html?id="||$first-id)}</link>

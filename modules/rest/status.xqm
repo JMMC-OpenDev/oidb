@@ -33,7 +33,7 @@ declare
 function status:status() {
     <status>
         {
-            let $main-status := backoffice:main-status(<a/>,map:new(()))
+            let $main-status := backoffice:main-status(<a/>,map:merge(()))
             let $padlenght := max( for $dt in $main-status//dt return string-length($dt)) +1
             let $summary-items := for $dt in $main-status//dt
                 let $data := normalize-space(replace(data(($dt/following-sibling::dd)[1]),"&#160;"," "))

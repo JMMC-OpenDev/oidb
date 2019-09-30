@@ -149,7 +149,7 @@ declare function local:upload($handle as xs:long, $votable as node()*) as item()
     (: remove old data from db :)
     let $delete := local:delete-collection($handle)
     
-    let $col-indexes := map:new(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
+    let $col-indexes := map:merge(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
  
     let $rows := $votable//votable:TR
     

@@ -36,17 +36,17 @@ function ads:article($node as node(), $model as map(*)) as map(*)? {
     let $bibcode := if (map:contains($model, 'bibcode')) then map:get($model, 'bibcode') else request:get-parameter('bibcode', false())
     let $record := jmmc-ads:get-record($bibcode)
     
-    return map { 'article' :=
-        map:new((
+    return map { 'article' :
+        map:merge((
             map:entry('bibcode', $bibcode),
             if ($record) then
                 (: turn record into model entries :)
                 map {
-                    'title'    := jmmc-ads:get-title($record),
-                    'authors'  := jmmc-ads:get-authors($record),
-                    'pubdate'  := jmmc-ads:get-pub-date($record),
-                    'keywords' := jmmc-ads:get-keywords($record),
-                    'ads-url'  := ads:abstract-url($bibcode)
+                    'title'    : jmmc-ads:get-title($record),
+                    'authors'  : jmmc-ads:get-authors($record),
+                    'pubdate'  : jmmc-ads:get-pub-date($record),
+                    'keywords' : jmmc-ads:get-keywords($record),
+                    'ads-url'  : ads:abstract-url($bibcode)
                 }
             else
                 (: unknown article, return only bibcode in model :)
