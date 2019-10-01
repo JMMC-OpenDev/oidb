@@ -1846,7 +1846,7 @@ declare function app:user-info($node as node(), $model as map(*), $key as xs:str
  : @return a new model with datapi entry
  :)
 declare function app:get-datapi($node as node(), $model as map(*)) as map(*) {
-    map{'datapi' := login:user-name() }
+    map {'datapi' : login:user-name() }
 };
 
 (:~
