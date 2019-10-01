@@ -44,19 +44,19 @@ declare variable $sesame:SCHEMA := doc('/db/apps/oidb/resources/schemas/sesame_4
 declare function sesame:resolve-sesame($names as xs:string+) as item()* {
     let $uri := concat($sesame:SESAME_URL, string-join(for $name in $names return encode-for-uri($name), '&amp;'))
     let $log := util:log("info", "search sesame for "||$names)
-    let $response := httpclient:get($uri, false(), <headers/>)
+    let $response := hc:send-request(<hc:request href="{$uri}" method="GET"/>)
     
-    return if ($response/@statusCode != 200 or $response/httpclient:body/@type != "xml") then
+    return if ($response/@status != 200 or not ( contains($response/hc:body/@media-type, "xml") ) ) then
         error(xs:QName('sesame:HTTP'), 'Failed to retrieve data from Sesame')
     (: @todo response not always valid, see HD166014, report upstream? :)
 (:    else if (not(validation:jing-report($response//httpclient:body/Sesame, $sesame:SCHEMA))) then:)
 (:        error(xs:QName('sesame:validation'), 'Invalid response from Sesame' || $response):)
     (: check there is something returned for each name :)
-    else if($response//httpclient:body/Sesame/Target[not(./Resolver)]) then
+    else if($response//Sesame/Target[not(./Resolver)]) then
         let $idx := count($response//Target[not(./Resolver)]/preceding-sibling::*)+1
         return error(xs:QName('sesame:resolve'), 'No result for ' || $names[$idx])
     else
-        for $target in $response//httpclient:body/Sesame/Target
+        for $target in $response//Sesame/Target
         return sesame:target($target)
 };
 
