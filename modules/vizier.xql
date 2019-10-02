@@ -25,7 +25,7 @@ function vizier:assert-empty-collection($node as node(), $model as map(*), $cata
             response:redirect-to(xs:anyURI('submit.html'))
         )
     else
-        map:merge()
+        map {}
 };
 
 (:~
@@ -59,14 +59,14 @@ function vizier:catalog-description($node as node(), $model as map(*)) as map(*)
     let $description := jmmc-vizier:catalog-abstract($readme)
     let $description := if( string-length($description) < 10 ) then jmmc-vizier:catalog-description($readme) else $description
     return map {
-        'source'        := 'http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=' || encode-for-uri($id),
-        'id'            := $id,
-        'name'          := $id,
-        'title'         := jmmc-vizier:catalog-title($readme),
-        'description'   := $description,
-        'last-modified' := jmmc-vizier:catalog-date($readme),
-        'bibcodes'      := jmmc-vizier:catalog-bibcodes($readme),
-        'datapi'        := jmmc-vizier:catalog-creator($readme)
+        'source'        : 'http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=' || encode-for-uri($id),
+        'id'            : $id,
+        'name'          : $id,
+        'title'         : jmmc-vizier:catalog-title($readme),
+        'description'   : $description,
+        'last-modified' : jmmc-vizier:catalog-date($readme),
+        'bibcodes'      : jmmc-vizier:catalog-bibcodes($readme),
+        'datapi'        : jmmc-vizier:catalog-creator($readme)
     }
 };
 
@@ -84,8 +84,8 @@ declare
 function vizier:catalog-files($node as node(), $model as map(*)) as map(*) {
     let $id := normalize-space(request:get-parameter('catalog', ''))
     return map {
-        'oifits' := jmmc-vizier:catalog-fits($id),
-        'skip-quality-level-selector' := true()
+        'oifits' : jmmc-vizier:catalog-fits($id),
+        'skip-quality-level-selector' : true()
     }
 };
 
