@@ -973,47 +973,48 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
                 'cs_radius_unit' : $tokens[4]
             }
         else
-            map:merge(),
-        (: observationdate=[<start>]..[<end>] :)
-        map {
-            'date_start'  : substring-before(request:get-parameter('observationdate', ''), '..'),
-            'date_end'    : substring-after(request:get-parameter('observationdate', ''), '..')
-        },
-        (: instrument=[!]<data> :)
-        map {
-            'instrument'  : request:get-parameter('instrument', '')
-        },
-        (: wavelengthband=<band>[,<band>]* :)
-        map {
-            'band'        : tokenize(request:get-parameter('wavelengthband', ''), ',')
-        },
-        (: collection=[!][~]<data> :)
-        map {
-            'collection'  : substring-after(request:get-parameter('collection', ''), '~')
-        },
-        (: datapi=[!][~]<data> :)
-        map {
-            'datapi'      : substring-after(request:get-parameter('datapi', ''), '~')
-        },
-        (: caliblevel=<level>[,<level>]* :)
-        map {
-            'reduction'   : tokenize(request:get-parameter('caliblevel', ''), ',')
-        },
-        (: public=yes|no|all :)
-        map {
-            'available'   : request:get-parameter('public', 'all')
-        },
-        (: --- ORDERING --- :)
-        let $order := request:get-parameter('order', '')[1]
-        let $desc := starts-with($order, '^')
-        return map {
-            'sortby'     : if($desc) then substring($order, 2) else $order,
-            'descending' : if($desc) then () else 'yes'
-        },
-        (: --- PAGINATION --- :)
-        map {
-            'perpage'    : request:get-parameter('perpage', '25')
-        }
+        (
+            (: observationdate=[<start>]..[<end>] :)
+            map {
+                'date_start'  : substring-before(request:get-parameter('observationdate', ''), '..'),
+                'date_end'    : substring-after(request:get-parameter('observationdate', ''), '..')
+            },
+            (: instrument=[!]<data> :)
+            map {
+                'instrument'  : request:get-parameter('instrument', '')
+            },
+            (: wavelengthband=<band>[,<band>]* :)
+            map {
+                'band'        : tokenize(request:get-parameter('wavelengthband', ''), ',')
+            },
+            (: collection=[!][~]<data> :)
+            map {
+                'collection'  : substring-after(request:get-parameter('collection', ''), '~')
+            },
+            (: datapi=[!][~]<data> :)
+            map {
+                'datapi'      : substring-after(request:get-parameter('datapi', ''), '~')
+            },
+            (: caliblevel=<level>[,<level>]* :)
+            map {
+                'reduction'   : tokenize(request:get-parameter('caliblevel', ''), ',')
+            },
+            (: public=yes|no|all :)
+            map {
+                'available'   : request:get-parameter('public', 'all')
+            },
+            (: --- ORDERING --- :)
+            let $order := request:get-parameter('order', '')[1]
+            let $desc := starts-with($order, '^')
+            return map {
+                'sortby'     : if($desc) then substring($order, 2) else $order,
+                'descending' : if($desc) then () else 'yes'
+            },
+            (: --- PAGINATION --- :)
+            map {
+                'perpage'    : request:get-parameter('perpage', '25')
+            }
+        )
     ))
 };
 
@@ -1686,14 +1687,16 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
         } </tr> {
         for $row in $votable//votable:TABLEDATA/votable:TR[position() >= $start and position() < $start + $length]
         return <tr> {
-            fn:for-each-pair(function ($header, $cell) {
+            fn:for-each-pair(
+                $headers, $row/votable:TD, 
+                function ($header, $cell) {
                 (: compare value against the null for the column :)
                 let $value := if ($cell = $header/votable:VALUES/@null) then '' else $cell/text()
                 return element { 'td' } {
                     $cell/@*,
                     attribute { "colname" } { data($header/@name) },
                     $value }
-            }, $headers, $row/votable:TD)
+            } )
         } </tr>
     } </votable>
 };

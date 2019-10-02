@@ -275,7 +275,7 @@ declare %private function granule:update-statement($id as xs:integer, $data as n
     (: TODO we could check that subdate is updated - or maybe add an additional column for that :)
     return string-join((
         "UPDATE", $config:sql-table,
-        "SET", string-join(fn:for-each-pair(function ($c, $v) { $c || '=' || $v }, $columns, $values), ', '),
+        "SET", string-join(fn:for-each-pair($columns, $values, function ($c, $v) { $c || '=' || $v } ), ', '),
         "WHERE id='" || $id || "'"
     ), ' ')
 };

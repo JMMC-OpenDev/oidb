@@ -270,16 +270,16 @@ declare %private function restxq:match-path($params as map(*), $input as xs:stri
     return
         if (matches($input, $regex)) then
             let $groupsRegex := "^" || replace($template, "\{\$([^\}]+)\}", "(.*)") || "$"
-            let $groups := analyze-string($input, $groupsRegex)//fn:group/string()
+            let $groups := (replace($input, $groupsRegex, '$1'), replace($input, $groupsRegex, '$2'))
             let $analyzed := analyze-string($template, "\{\$[^\}]+\}")
             return
                 map:merge((
                     $params,
-                    fn:for-each-pair(function($group, $varExpr) {
+                    fn:for-each-pair($groups, $analyzed//fn:match, function($group, $varExpr) {
                         let $var := replace($varExpr, "\{\$([^\}]+)\}", "$1")
                         return
                             map:entry($var, $group)
-                    }, $groups, $analyzed//fn:match)
+                    } )
                 ))
         else
             ()
@@ -392,6 +392,10 @@ declare %private function restxq:call-with-args($fn as function(*), $args as (fu
             $fn($args[1](), $args[2](), $args[3](), $args[4](), $args[5](), $args[6](), $args[7]())
         case 8 return
             $fn($args[1](), $args[2](), $args[3](), $args[4](), $args[5](), $args[6](), $args[7](), $args[8]())
+        case 9 return
+            $fn($args[1](), $args[2](), $args[3](), $args[4](), $args[5](), $args[6](), $args[7](), $args[8](), $args[9]())
+        case 10 return
+            $fn($args[1](), $args[2](), $args[3](), $args[4](), $args[5](), $args[6](), $args[7](), $args[8](), $args[9](), $args[10]())
         default return
             error($restxq:TOO_MANY_ARGS, "Too many arguments to function " || function-name($fn))
 };

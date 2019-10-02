@@ -23,6 +23,7 @@
               <li>Handle private collection for <a href="//www.jmmc.fr/suv">SUV</a></li>
               <li>Change: fix uploaded filename to avoid some non reliable escaping (":" replaced by "_")</li>
               <li>BugFix: fix cache handling of tap requests</li>
+              <li>Dev: major update to be compliant with the new beautiful and powerful eXistDB V5</li>
             </ul>
         </change>
         <change xmlns="" version="1.3">

@@ -209,14 +209,15 @@ declare %private function adql:where_clause($params as xs:string*) as xs:string 
         (: identify chunks of conditions between 'or' :)
         let $or-idx := index-of($filters, 'or')
         let $starts  := ( 1, for $i in $or-idx return $i + 1 )
-        let $lengths := fn:for-each-pair(function ($i, $j) { $i - $j }, ( $or-idx, count($filters) + 1 ), $starts)
+        let $lengths := fn:for-each-pair( ( $or-idx, count($filters) + 1 ), $starts, function ($i, $j) { $i - $j })
         return string-join(
             (: skip leading, trailing, as well as multiple 'or' in params :)
             fn:for-each-pair(
+                $starts, $lengths,
                 function ($start, $length) {
                     let $conditions := for $p in subsequence($filters, $start, $length) return adql:predicate($p)
                     return string-join($conditions, ' AND ')
-                }, $starts, $lengths)[. != ''],
+                } )[. != ''],
             ' OR ')
     return if($search-condition != '') then
         'WHERE ' || $search-condition
