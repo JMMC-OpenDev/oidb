@@ -56,7 +56,7 @@ declare function tap:execute($adql-statement as xs:string, $maxrec as xs:integer
         'FORMAT=votable',
         'MAXREC=' || ( if ($maxrec) then  $maxrec else '-1' ),
         'QUERY=' || encode-for-uri($adql-statement)), '&amp;')
-    let $data    := hc:send-request(<hc:request method="get" href="$uri"/> )
+    let $data    := hc:send-request(<hc:request method="get" href="{$uri}"/> )
 
     return if (empty($data) or empty($data/votable:VOTABLE)) then
         error(xs:QName('tap:error'), 'Bad response from the TAP server')
