@@ -9,6 +9,8 @@ module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+
 
 (: Root directory where collections are stored :)
 declare variable $collection:collections-uri := $config:data-root || '/collections';
@@ -137,7 +139,7 @@ declare function collection:get-granules($collection-id as xs:string)  {
  :)
 declare function collection:get-granules($collection-id as xs:string, $handle as xs:long)  {
         let $statement := adql:build-query(("obs_collection="||$collection-id))
-        let $result := sql:execute($handle, $statement, false())
+        let $result := sql-utils:execute($handle, $statement, false())
 
         return if ($result/name() = 'sql:result' and $result/@updateCount >= 0) then ()
         else if ($result/name() = 'sql:exception') then
@@ -167,7 +169,7 @@ declare function collection:delete-granules($collection-id as xs:string)  {
  :)
 declare function collection:delete-granules($collection-id as xs:string, $handle as xs:long)  {
         let $statement := collection:delete-granules-statement($collection-id)
-        let $result := sql:execute($handle, $statement, false())
+        let $result := sql-utils:execute($handle, $statement, false())
 
         return if ($result/name() = 'sql:result' and $result/@updateCount >= 0) then
             (: rows deleted successfully :)

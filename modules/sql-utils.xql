@@ -4,7 +4,7 @@ xquery version "3.0";
  : This module provides a set of utility function on top of eXist-db module
  : for performing SQL queries against databases.
  :)
-module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils";
+module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils";
 
 import module namespace sql="http://exist-db.org/xquery/sql";
 
@@ -16,7 +16,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
  : @param $str the string to escape
  : @return the escaped string
  :)
-declare function utils:escape($str as xs:string) as xs:string {
+declare function sql-utils:escape($str as xs:string) as xs:string {
     (: FIXME more escapes? same as adql:escape()? :)
     replace($str, "'", "''")
 };
@@ -35,15 +35,15 @@ declare function utils:escape($str as xs:string) as xs:string {
  : @return the value returned by the function
  : @error any error thrown by tbe function
  :)
-declare function utils:within-transaction($db_handle as xs:long, $func as function(xs:long) as item()*) as item()* {
+declare function sql-utils:within-transaction($db_handle as xs:long, $func as function(xs:long) as item()*) as item()* {
     try {
-        let $begin := sql:execute($db_handle, "START TRANSACTION", false())
+        let $begin := sql-utils:execute($db_handle, "START TRANSACTION", false())
         let $ret   := $func($db_handle)
-        let $end   := sql:execute($db_handle, "COMMIT", false())
+        let $end   := sql-utils:execute($db_handle, "COMMIT", false())
         return $ret
     } catch * {
         (: abort the current transaction :)
-        sql:execute($db_handle, "ROLLBACK", false()),
+        sql-utils:execute($db_handle, "ROLLBACK", false()),
         (: pass error :)
         error($err:code, $err:description, $err:value)
     }
@@ -59,6 +59,24 @@ declare function utils:within-transaction($db_handle as xs:long, $func as functi
  : @return the value returned by the function
  : @error any error thrown by the function
  :)
-declare function utils:within-transaction($func as function(xs:long) as item()*) as item()* {
-    utils:within-transaction(config:get-db-connection(), $func)
+declare function sql-utils:within-transaction($func as function(xs:long) as item()*) as item()* {
+    sql-utils:within-transaction(config:get-db-connection(), $func)
+};
+
+(:~
+ : Wrapper of SQL execute function.
+ : Executes a SQL statement against a SQL db using the connection indicated by the connection handle or use config:get-db-connection if nothing returned.
+ :
+ : @param $connection-handle  The connection handle
+ : @param $sql-statement The SQL statement
+ : @param $make-node-from-column-name The flag that indicates whether the xml nodes should be formed from the column names (in this mode a space in a Column Name will be replaced by an underscore
+ : @return the results
+ :)
+declare function sql-utils:execute($connection-handle as xs:long, $sql-statement as xs:string, $make-node-from-column-name as xs:boolean) node()? {
+
+    let $ret := sql:execute($connection-handle, $sql-statement, $make-node-from-column-name)
+    let $ret := if (exists($ret)) then $ret else sql:execute(config:get-db-connection(), $sql-statement, $make-node-from-column-name)
+
+    return 
+      $ret
 };

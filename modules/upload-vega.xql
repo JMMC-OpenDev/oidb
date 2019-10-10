@@ -12,7 +12,7 @@ xquery version "3.0";
  :)
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace vega="http://apps.jmmc.fr/exist/apps/oidb/vega" at "vega.xqm";
 import module namespace sql="http://exist-db.org/xquery/sql";
@@ -50,7 +50,7 @@ declare variable $local:cache-destroy  := function() { () (: xmldb:remove($confi
  :)
 declare function local:delete-collection($handle as xs:long) {
     app:clear-cache(),
-    sql:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
+    sql-utils:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
 };
 
 (:~
@@ -161,7 +161,7 @@ let $response :=
                 <method>{$local:name}</method>
                 {
                 let $new := vega:get-observations()
-                let $ids := utils:within-transaction(local:upload(?, $new))
+                let $ids := sql-utils:within-transaction(local:upload(?, $new))
                 return $ids
             } </success>
         } catch * {

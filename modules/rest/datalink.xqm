@@ -6,7 +6,7 @@ module namespace datalink="http://apps.jmmc.fr/exist/apps/oidb/restxq/datalink";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "../config.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "../tap.xqm";
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "../sql-utils.xql";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "../sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log.xqm";
 import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";
 

@@ -12,7 +12,7 @@ xquery version "3.0";
  :)
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace sql="http://exist-db.org/xquery/sql";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
@@ -119,7 +119,7 @@ let $response :=
                 let $log := util:log("info", "maxrecno="||$max-recno)
                 let $votable  := local:get-votable($max-recno)
                 
-                let $ids := <ids>{utils:within-transaction(local:upload(?, $votable))}</ids> 
+                let $ids := <ids>{sql-utils:within-transaction(local:upload(?, $votable))}</ids> 
                 let $new-max-recno := if( count($ids/*)>0 ) then local:update-max-recno($votable) else ()
                 let $log := util:log("info", "newmaxrecno="||$new-max-recno)
 

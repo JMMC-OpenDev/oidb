@@ -12,7 +12,7 @@ xquery version "3.0";
  :)
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace sql="http://exist-db.org/xquery/sql";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
@@ -42,7 +42,7 @@ declare variable $local:collection := 'eso_vlti_import';
  :)
 declare function local:delete-collection($handle as xs:long) {
     app:clear-cache(),
-    sql:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
+    sql-utils:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
 };
 
 
@@ -174,7 +174,7 @@ let $response :=
             <success> {
                 let $check-access := if(collection:has-access($local:collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into '|| $local:collection ||'.')
                 let $new := doc($local:resource)
-                let $ids := <ids>{utils:within-transaction(local:upload(?, $new))}</ids> 
+                let $ids := <ids>{sql-utils:within-transaction(local:upload(?, $new))}</ids> 
 (:                let $ids := <ids></ids>:)
                 let $duration := seconds-from-duration(util:system-time()-$stime)
                 return (<info>{count($ids/id) || " granules injected properly"}  in {$duration}sec, { count($ids/*) div $duration }req/sec</info>, $ids/warning, <granuleOkCount>{count($ids/id)}</granuleOkCount>, <method>{$local:name}</method>)

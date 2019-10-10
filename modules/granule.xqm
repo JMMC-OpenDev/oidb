@@ -7,7 +7,7 @@ xquery version "3.0";
 module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xqm";
 
@@ -52,7 +52,7 @@ declare %private function granule:insert-statement($data as node()*) {
     let $nodes := ( $nodes[not(name() = $el-names)], $nb-els )
 
     let $columns := for $x in $nodes return name($x)
-    let $values  := for $x in $nodes return "'" || utils:escape($x) || "'"
+    let $values  := for $x in $nodes return "'" || sql-utils:escape($x) || "'"
     return
         concat(
             "INSERT INTO ",
@@ -79,7 +79,7 @@ declare %private function granule:insert-datalink-statement($id as xs:integer, $
     (: filter out the empty fields: keep default value for them :)
     let $nodes := ( $data[./node()] )
     let $columns := ( 'ID' , for $x in $nodes return name($x) )
-    let $values  := ( $id , for $x in $nodes return "'" || utils:escape($x) || "'" )
+    let $values  := ( $id , for $x in $nodes return "'" || sql-utils:escape($x) || "'" )
     return
         concat(
             "INSERT INTO ",
@@ -95,7 +95,7 @@ declare %private function granule:insert-datalink-statement($id as xs:integer, $
 declare function granule:add-datalink($id as xs:integer, $datalink as node(), $handle as xs:long) {
     if (granule:has-access($id, 'w', $handle)) then
         let $statement := granule:insert-datalink-statement($id, $datalink/*)
-        let $result := sql:execute($handle, $statement, false())
+        let $result := sql-utils:execute($handle, $statement, false())
 
         return if ($result/name() = 'sql:result') then
             (: row updated successfully :)
@@ -180,7 +180,7 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
                                     ()
     
     let $statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date))
-    let $result := sql:execute($handle, $statement, false())
+    let $result := sql-utils:execute($handle, $statement, false())
     let $id := if ($result/name() = "sql:exception") 
         then
             let $info :=  string-join( ("", "granule metadata where:", for $e in $granule/* return name($e)||"="||$e, ""), "&#10;")
@@ -193,7 +193,7 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
                 $result//sql:field[@name='id'][1]
     let $datalinks := for $datalink in $granule/datalink
             let $statement := granule:insert-datalink-statement($id, $datalink/*)
-            let $result := sql:execute($handle, $statement, false())
+            let $result := sql-utils:execute($handle, $statement, false())
             return 
                 if ($result/name() = "sql:exception") then
                     error(xs:QName('granule:error'), 'Failed to upload datalink: ' || $result//sql:message/text() || ', query: ' || $statement)
@@ -243,7 +243,7 @@ declare function granule:retrieve($id as xs:integer) {
  :)
 declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node()? {
     let $statement := granule:select-statement($id)
-    let $result := sql:execute($handle, $statement, false())
+    let $result := sql-utils:execute($handle, $statement, false())
     
     let $granule :=
         if ($result/name() = 'sql:result' and $result/@count = 1) then
@@ -271,7 +271,7 @@ declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node
  :)
 declare %private function granule:update-statement($id as xs:integer, $data as node()*) as xs:string {
     let $columns := for $x in $data return name($x)
-    let $values  := for $x in $data return if ($x/node()) then "'" || utils:escape($x) || "'" else "NULL"
+    let $values  := for $x in $data return if ($x/node()) then "'" || sql-utils:escape($x) || "'" else "NULL"
     (: TODO we could check that subdate is updated - or maybe add an additional column for that :)
     return string-join((
         "UPDATE", $config:sql-table,
@@ -305,7 +305,7 @@ declare function granule:update($id as xs:integer, $data as node(), $handle as x
     if (granule:has-access($id, 'w', $handle)) then
         (: protect the id column :)
         let $statement := granule:update-statement($id, $data/*[name() != 'id'])
-        let $result := sql:execute($handle, $statement, false())
+        let $result := sql-utils:execute($handle, $statement, false())
 
         return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
             (: row updated successfully :)
@@ -350,7 +350,7 @@ declare function granule:delete($id as xs:integer)  {
 declare function granule:delete($id as xs:integer, $handle as xs:long)  {
     if (granule:has-access($id, 'w', $handle)) then
         let $statement := granule:delete-statement($id)
-        let $result := sql:execute($handle, $statement, false())
+        let $result := sql-utils:execute($handle, $statement, false())
 
         return if ($result/name() = 'sql:result' and $result/@updateCount = 1) then
             (: row deleted successfully :)

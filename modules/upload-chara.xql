@@ -20,7 +20,7 @@ import module namespace request = "http://exist-db.org/xquery/request";
 import module namespace util = "http://exist-db.org/xquery/util";
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xqm";
 import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xqm";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
@@ -76,7 +76,7 @@ declare variable $local:cache-destroy  := function() { true() (: xmldb:remove($c
  :)
 declare function local:delete-collection($handle as xs:long) {
     app:clear-cache(),
-    sql:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
+    sql-utils:execute($handle, "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $local:collection || "';", false())
 };
 
 (:~
@@ -299,7 +299,7 @@ let $response :=
         <method>{$local:name}</method>
         {
         try {
-            let $ids := utils:within-transaction(local:upload(?, $data))
+            let $ids := sql-utils:within-transaction(local:upload(?, $data))
             return $ids
         } catch * {
             <error> { $err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" } </error>

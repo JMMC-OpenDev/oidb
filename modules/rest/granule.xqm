@@ -5,7 +5,7 @@ xquery version "3.0";
  :)
 module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/restxq/granule";
 
-import module namespace utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "../sql-utils.xql";
+import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "../sql-utils.xql";
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log.xqm";
 import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";
 
