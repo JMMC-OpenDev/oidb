@@ -240,12 +240,12 @@ declare function collection:get-type($id-or-collection as item()) as xs:string {
 (:~
  : Get collection embargo period.
  : @param $id-or-collection the id of the collection to test or the collection as XML fragment
- : @return the duration of embargo or empty when collection is public 
+ : @return the duration of embargo or P0Y when collection is public 
  :)
 declare function collection:get-embargo($id-or-collection as item()) as xs:duration {
     switch (collection:get-type($id-or-collection))
         case "suv" return xs:yearMonthDuration('P2Y')
         case "pionier" return xs:yearMonthDuration('P1Y')
-        default return ()
+        default return xs:yearMonthDuration('P0Y')
 };
 
