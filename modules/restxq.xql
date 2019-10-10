@@ -270,7 +270,8 @@ declare %private function restxq:match-path($params as map(*), $input as xs:stri
     return
         if (matches($input, $regex)) then
             let $groupsRegex := "^" || replace($template, "\{\$([^\}]+)\}", "(.*)") || "$"
-            let $groups := (replace($input, $groupsRegex, '$1'), replace($input, $groupsRegex, '$2'))
+            (: let $groups := (replace($input, $groupsRegex, '$1'), replace($input, $groupsRegex, '$2')) :)
+            let $groups := analyze-string($input, $groupsRegex)//fn:group/string()
             let $analyzed := analyze-string($template, "\{\$[^\}]+\}")
             return
                 map:merge((
