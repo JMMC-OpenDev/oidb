@@ -62,7 +62,7 @@ function datalink:add-datalink($id as xs:int, $datalinks-doc as document-node())
         <response> {
             try {
                 (: abort on error and roll back :)
-                utils:within-transaction(
+                sql-utils:within-transaction(
                     function($handle as xs:long) as element(id)* {
                         for $datalink in $datalinks-doc//datalink
                             return gran:add-datalink($id,$datalink, $handle)
@@ -101,7 +101,7 @@ function datalink:add-datalinks($datalinks-doc as document-node()) {
         <response> {
             try {
                 (: abort on error and roll back :)
-                utils:within-transaction(
+                sql-utils:within-transaction(
                     function($handle as xs:long) as element(id)* {
                         for $datalink at $pos in $datalinks
                             let $log := if ( ( $pos mod 100 ) = 0 ) then util:log("info", "add new datalink ("|| $pos || "/" || $nb-datalinks || ")") else ()

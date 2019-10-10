@@ -37,13 +37,14 @@ declare function sql-utils:escape($str as xs:string) as xs:string {
  :)
 declare function sql-utils:within-transaction($db_handle as xs:long, $func as function(xs:long) as item()*) as item()* {
     try {
-        let $begin := sql-utils:execute($db_handle, "START TRANSACTION", false())
+        let $log := util:log("info", "START TRANSACTION")
+        let $begin := sql:execute($db_handle, "START TRANSACTION", false())
         let $ret   := $func($db_handle)
-        let $end   := sql-utils:execute($db_handle, "COMMIT", false())
+        let $end   := sql:execute($db_handle, "COMMIT", false())
         return $ret
     } catch * {
         (: abort the current transaction :)
-        sql-utils:execute($db_handle, "ROLLBACK", false()),
+        sql:execute($db_handle, "ROLLBACK", false()),
         (: pass error :)
         error($err:code, $err:description, $err:value)
     }
@@ -72,11 +73,17 @@ declare function sql-utils:within-transaction($func as function(xs:long) as item
  : @param $make-node-from-column-name The flag that indicates whether the xml nodes should be formed from the column names (in this mode a space in a Column Name will be replaced by an underscore
  : @return the results
  :)
-declare function sql-utils:execute($connection-handle as xs:long, $sql-statement as xs:string, $make-node-from-column-name as xs:boolean) node()? {
+declare function sql-utils:execute($connection-handle as xs:long, $sql-statement as xs:string, $make-node-from-column-name as xs:boolean) as node()? {
 
+    let $log := util:log("info", "execute : " || $sql-statement || " with handle = "|| $connection-handle)
     let $ret := sql:execute($connection-handle, $sql-statement, $make-node-from-column-name)
-    let $ret := if (exists($ret)) then $ret else sql:execute(config:get-db-connection(), $sql-statement, $make-node-from-column-name)
-
+    let $ret := if (exists($ret)) then $ret else 
+        let $log := util:log("error", "no result using given handle (" || $connection-handle ||") :  trying with a new one ")
+        return 
+            sql:execute(config:get-db-connection(), $sql-statement, $make-node-from-column-name)
+    let $ret := if (exists($ret)) then $ret else util:log("error", "Fatal case can't execute : " || $sql-statement)
+    
+    
     return 
       $ret
 };

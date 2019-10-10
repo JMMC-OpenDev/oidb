@@ -105,7 +105,7 @@ function granule:save-granules($granules as document-node()?) {
         <response> {
             try {
                 (: abort on error and roll back :)
-                utils:within-transaction(
+                sql-utils:within-transaction(
                     function($handle as xs:long) as element(id)* {
                         for $granule in $granules//granule
                         let $id := gran:create(granule:sanitize($granule), $handle)
