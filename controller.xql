@@ -22,12 +22,23 @@ declare variable $domain := "fr.jmmc.oidb.login";
 (: app:user-admin() and app:user-allowed() uses this attributes :)
 (: TODO check if we can move/hide it in app module :) 
 declare variable $login := function () {
-    let $set-user := login:set-user($domain, (), false())
-    (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
-    let $user := (request:get-attribute($domain || '.user'), data(sm:id()//*:username))[1]
-    let $superuser := request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
-    let $assert := util:eval(xs:anyURI('./modules/assert.xql'))
-    return ()
+    
+    
+    if ( request:get-parameter('logout', false()) ) then 
+(:        let $store-flash := flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>) :)
+        let $set-user := login:set-user($domain, (), false())
+(:  next lines throws a 500 Error moving to existdb 5 ... how can we get this feature back ? :)
+(:        let $do := flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>):)
+
+        return ()
+    else 
+        let $set-user := login:set-user($domain, (), false())
+        (: next lines not called to avoid a 500 error on logout after moving to exist V5:)
+        (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
+        let $user := (request:get-attribute($domain || '.user'), data(sm:id()//*:username))[1]
+        let $superuser := request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
+        let $assert := util:eval(xs:anyURI('./modules/assert.xql'))
+        return ()
 };
 
 declare variable $cookie-agreement := 
@@ -137,14 +148,7 @@ else if (ends-with($exist:resource, ".html")) then
                     ()
             else
                 (: no authentication required :)
-                if (request:get-parameter('logout', false())) then
-                    (: user requested logout :)
-                    (
-                        session:create(), (: session was invalidated by logout :)
-                        flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>)
-                    )
-                else
-                    ()
+                ()
         }
         <view>
             <forward url="{$exist:controller}/modules/view.xql">
