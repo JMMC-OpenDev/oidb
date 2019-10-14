@@ -119,7 +119,7 @@ declare variable $config:jndi-name := "@jndi-name@";
  : 
  : @return a connection handle
  :)
-declare function config:get-db-connection() as xs:long{
+declare function sql:get-jndi-connection($config:jndi-name) as xs:long{
     sql:get-jndi-connection($config:jndi-name)
 };
 

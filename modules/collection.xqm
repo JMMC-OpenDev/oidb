@@ -127,7 +127,7 @@ declare %private function collection:delete-granules-statement($collection-id as
  : @return granules element
  :)
 declare function collection:get-granules($collection-id as xs:string)  {
-    collection:get-granules($collection-id, config:get-db-connection())
+    collection:get-granules($collection-id, sql:get-jndi-connection($config:jndi-name))
 };
 
 (:~
@@ -156,7 +156,7 @@ declare function collection:get-granules($collection-id as xs:string, $handle as
  : @error failed to delete
  :)
 declare function collection:delete-granules($collection-id as xs:string)  {
-    collection:delete-granules($collection-id, config:get-db-connection())
+    collection:delete-granules($collection-id, sql:get-jndi-connection($config:jndi-name))
 };
 
 (:~

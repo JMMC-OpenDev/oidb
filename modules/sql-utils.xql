@@ -61,7 +61,8 @@ declare function sql-utils:within-transaction($db_handle as xs:long, $func as fu
  : @error any error thrown by the function
  :)
 declare function sql-utils:within-transaction($func as function(xs:long) as item()*) as item()* {
-    sql-utils:within-transaction(config:get-db-connection(), $func)
+    (: sql-utils:within-transaction(sql:get-jndi-connection($config:jndi-name), $func) :)
+    sql-utils:within-transaction(sql:get-jndi-connection($config:jndi-name), $func)
 };
 
 (:~
@@ -79,10 +80,10 @@ declare function sql-utils:execute($connection-handle as xs:long, $sql-statement
     let $ret := sql:execute($connection-handle, $sql-statement, $make-node-from-column-name)
     let $ret := if (exists($ret)) then $ret else 
         let $log := util:log("error", "no result using given handle (" || $connection-handle ||") :  trying with a new one ")
+        (: Next line MUST NOT USE  config:get-db-connection else we are out of context after and lose connection :)
         return 
-            sql:execute(config:get-db-connection(), $sql-statement, $make-node-from-column-name)
+            sql:execute(sql:get-jndi-connection($config:jndi-name), $sql-statement, $make-node-from-column-name)
     let $ret := if (exists($ret)) then $ret else util:log("error", "Fatal case can't execute : " || $sql-statement)
-    
     
     return 
       $ret
