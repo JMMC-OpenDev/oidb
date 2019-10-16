@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>alpha</status><!-- one of alpha beta stable -->
+    <status>beta</status><!-- one of alpha beta stable -->
     <license/>
     <copyright>true</copyright>
     <type>application</type>
