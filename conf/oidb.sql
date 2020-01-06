@@ -74,6 +74,9 @@ CREATE TABLE oidb (
     datapi            text
 );
 
+-- Create spatial index (pg_sphere required)
+CREATE INDEX oidb_spatial ON oidb USING GIST(spoint(radians(s_ra),radians(s_dec)));
+
 --
 -- END
 --
