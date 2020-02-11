@@ -20,7 +20,8 @@ declare namespace xhtml="http://www.w3.org/1999/xhtml";
  :)
 declare function local:get-doc() as element() {
     let $uri := xs:anyURI($config:maindoc-twiki-url)
-    return httpclient:get($uri, false(), <headers/>)//xhtml:div[@id="natMainContents"]
+    (: some twiki install return headers with an empty  : charset=  that broke the process. Have a look on the content-type header line :)
+    return hc:send-request(<hc:request method="GET" href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbInlineDoc"/>)//xhtml:div[@class="patternContent"]
 };
 
 (:~
