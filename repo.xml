@@ -17,6 +17,18 @@
     using a given property file (see build.xml for detail)
     </note>
     <changelog>
+        <change xmlns="" version="1.6">
+           <h3>V1.6 release</h3>
+           <ul>
+              <li>BugFix: replace uncompatible code</li>
+           </ul>
+        </change>
+        <change xmlns="" version="1.5">
+           <h3>V1.5 release</h3>
+           <ul>
+              <li>Dev: minor updates to bump on eXistDB V5.2</li>
+           </ul>
+        </change>
         <change xmlns="" version="1.4">
            <h3>V1.4 release</h3>
             <ul>
