@@ -140,9 +140,10 @@ declare function local:metadata($observation as node()) as node() {
 declare function local:upload($handle as xs:long, $observations as node()*) as item()* {
     (: remove old data from db :)
     let $delete := local:delete-collection($handle)
+    let $log := util:log("info", "delete vega collection")
     (: insert new granules in db :)
     
-    for $o in $observations
+    let $ret := for $o in $observations
     return try {
         <id>{ granule:create(local:metadata($o), $handle) }</id>
     } catch * {
@@ -152,6 +153,9 @@ declare function local:upload($handle as xs:long, $observations as node()*) as i
 	util:log("error", serialize(<warning>Failed to convert observation log to granule (VegaObs ID { $o/ID/text() }): { $err:description } { $err:value }</warning>))
 	)
     }
+    
+    let $log := util:log("info", "vega collection upload end")
+    return $ret
 };
 
 let $response :=
