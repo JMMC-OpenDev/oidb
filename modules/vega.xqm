@@ -19,8 +19,9 @@ declare variable $vega:VEGAWS_URL := "http://vegaobs-ws.oca.eu/axis2/services/Ve
  : @return a sequence of <user> elements with id and name
  :)
 declare %private function vega:get-users() as node()* {
+    let $log := util:log("info", "vega:get-users()")
     let $uri  := concat($vega:VEGAWS_URL, 'getUserList')
-    let $data := httpclient:get($uri, false(), <headers/>)//httpclient:body
+    let $data := hc:send-request(<hc:request method="get" href="{$uri}"/>)[2]
     
     for $return in $data//xsd:return
         let $tokens := tokenize($return, '\t')
@@ -69,7 +70,7 @@ declare %private function vega:votable-observations($votable as node()) as node(
 declare %private function vega:get-observations-by-data-status($dataStatus as xs:string) as node()* {
     let $uri  := concat($vega:VEGAWS_URL, 'getObservationsVOTableByDataStatus', '?dataStatus=', $dataStatus)
     let $log := util:log("info", "vega:get-observations-by-data-status("||$dataStatus||") at "||$uri)
-    let $data := httpclient:get($uri, false(), <headers/>)//httpclient:body
+    let $data := hc:send-request(<hc:request method="get" href="{$uri}"/>)[2]
     let $votable := fn:parse-xml(
         (: remove leading 'null', proper entity escape :)
         replace(substring($data//xsd:return, 5), '&amp;', '&amp;amp;'))
