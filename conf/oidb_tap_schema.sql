@@ -82,7 +82,8 @@ INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", 
 ('oidb', 'subdate', 'submission date', NULL, NULL, NULL, 'TIMESTAMP', -1, 0, 0, 0),
 ('oidb', 'id', 'Object ID', 'internal ID (granule ID)', NULL, NULL, 'BIGINT', -1, 0, 0, 0),
 ('oidb', 'progid', 'program or proposal identifier', NULL, NULL, NULL, 'VARCHAR', -1, 0, 0, 0),
-('oidb', 'datapi', 'Data PI', NULL, NULL, NULL, 'VARCHAR', -1, 0, 0, 0)
+('oidb', 'datapi', 'Data PI', NULL, NULL, NULL, 'VARCHAR', -1, 0, 0, 0),
+('oidb', 'access_md5', 'md5sum of the resource at access_url', NULL, NULL, NULL, 'VARCHAR', -1, 0, 0, 0)
 ;
 
 --

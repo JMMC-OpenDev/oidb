@@ -3,13 +3,6 @@
 --
 SET client_encoding = 'UTF8';
 
-CREATE SEQUENCE oidb_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
 -- See http://www.sqlines.com/postgresql/how-to/create_user_defined_type
 CREATE DOMAIN rights VARCHAR(12) CHECK (VALUE IN ('public', 'secure', 'proprietary'));
 
@@ -68,10 +61,13 @@ CREATE TABLE oidb (
     keywords          text,
 
     subdate           timestamp without time zone DEFAULT now(),
-    id                bigint DEFAULT nextval('oidb_id_seq'::regclass) NOT NULL,
+    id                bigint PRIMARY KEY,
 
     progid            text,
-    datapi            text
+    datapi            text,
+
+    access_md5        VARCHAR(32)
+
 );
 
 -- Create spatial index (pg_sphere required)
