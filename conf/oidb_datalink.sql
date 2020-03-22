@@ -14,7 +14,10 @@ CREATE TABLE oidb_datalink (
     description       text,
     semantics         text, -- should not be null
     content_type      text,
-    content_length    bigint
+    content_length    bigint,
+
+    -- store submission date to help future synchronizations
+    subdate           timestamp without time zone DEFAULT now()
 
 );
 

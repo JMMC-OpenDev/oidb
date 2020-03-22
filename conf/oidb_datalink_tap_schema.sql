@@ -17,14 +17,15 @@ INSERT INTO "TAP_SCHEMA"."tables" VALUES
 -- oidb_datalink table
 INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", "unit", "ucd", "utype", "datatype", "size", "principal", "indexed", "std") VALUES 
     -- ObsCore model: data description
-('oidb_datalink', 'id',             'internal ID (granule ID)',                              NULL,    'meta.id;meta.main',   NULL,                       'BIGINT',  -1, 0, 0, 0),
-('oidb_datalink', 'access_url',     'link to data or service',                               NULL,    'meta.ref.url',        'obscore:Access.Reference', 'VARCHAR', -1, 1, 0, 1),
-('oidb_datalink', 'service_def',    'reference to a service descriptor resource',            NULL,    'meta.ref',            NULL,                       'VARCHAR', -1, 0, 0, 0),
-('oidb_datalink', 'error_message',  'error if an access_url cannot be created',              NULL,    'meta.code.error',     NULL,                       'VARCHAR', -1, 0, 0, 0),
-('oidb_datalink', 'description',    'human-readable text describing this link',              NULL,    'meta.note',           NULL,                       'VARCHAR', -1, 0, 0, 0),
-('oidb_datalink', 'semantics',      'term from a controlled vocabulary describing the link', NULL,    'meta.code',           NULL,                       'VARCHAR', -1, 0, 0, 0),
-('oidb_datalink', 'content_type',   'mime-type of the content the link returns',             NULL,    'meta.code.mime',      'obscore:Access.Format',    'VARCHAR', -1, 1, 0, 1),
-('oidb_datalink', 'content_length', 'size of the download the link returns',                 'kbyte', 'phys.size;meta.file', 'obscore:Access.Size',      'BIGINT',  -1, 1, 0, 1)
+('oidb_datalink', 'id',             'internal ID (granule ID)',                              NULL,    'meta.id;meta.main',   NULL,                       'BIGINT',    -1, 0, 0, 0),
+('oidb_datalink', 'access_url',     'link to data or service',                               NULL,    'meta.ref.url',        'obscore:Access.Reference', 'VARCHAR',   -1, 1, 0, 1),
+('oidb_datalink', 'service_def',    'reference to a service descriptor resource',            NULL,    'meta.ref',            NULL,                       'VARCHAR',   -1, 0, 0, 0),
+('oidb_datalink', 'error_message',  'error if an access_url cannot be created',              NULL,    'meta.code.error',     NULL,                       'VARCHAR',   -1, 0, 0, 0),
+('oidb_datalink', 'description',    'human-readable text describing this link',              NULL,    'meta.note',           NULL,                       'VARCHAR',   -1, 0, 0, 0),
+('oidb_datalink', 'semantics',      'term from a controlled vocabulary describing the link', NULL,    'meta.code',           NULL,                       'VARCHAR',   -1, 0, 0, 0),
+('oidb_datalink', 'content_type',   'mime-type of the content the link returns',             NULL,    'meta.code.mime',      'obscore:Access.Format',    'VARCHAR',   -1, 1, 0, 1),
+('oidb_datalink', 'content_length', 'size of the download the link returns',                 'kbyte', 'phys.size;meta.file', 'obscore:Access.Size',      'BIGINT',    -1, 1, 0, 1),
+('oidb_datalink', 'subdate',        'submission date',                                       NULL,    NULL,                  NULL,                       'TIMESTAMP', -1, 0, 0, 0)
 ;
 
 --
