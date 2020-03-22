@@ -61,7 +61,7 @@ CREATE TABLE oidb (
     keywords          text,
 
     subdate           timestamp without time zone DEFAULT now(),
-    id                bigint PRIMARY KEY,
+    id                BIGSERIAL PRIMARY KEY,
 
     progid            text,
     datapi            text,
