@@ -3,6 +3,9 @@
 --
 SET client_encoding = 'UTF8';
 
+-- copy doc instead of using BIGSERIAL ( that does not work in my previous (bad?) tests )
+CREATE SEQUENCE oidb_id_seq;
+
 -- See http://www.sqlines.com/postgresql/how-to/create_user_defined_type
 CREATE DOMAIN rights VARCHAR(12) CHECK (VALUE IN ('public', 'secure', 'proprietary'));
 
@@ -61,7 +64,7 @@ CREATE TABLE oidb (
     keywords          text,
 
     subdate           timestamp without time zone DEFAULT now(),
-    id                BIGSERIAL PRIMARY KEY,
+    id                bigint DEFAULT nextval('oidb_id_seq') PRIMARY KEY,
 
     progid            text,
     datapi            text,
@@ -69,6 +72,9 @@ CREATE TABLE oidb (
     access_md5        VARCHAR(32)
 
 );
+
+-- copy doc instead of using BIGSERIAL ( that does not work in my previous (bad?) tests )
+ALTER SEQUENCE oidb_id_seq OWNED BY oidb.id;
 
 -- Create spatial index (pg_sphere required)
 CREATE INDEX oidb_spatial ON oidb USING GIST(spoint(radians(s_ra),radians(s_dec)));
