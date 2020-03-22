@@ -3,18 +3,10 @@
 --
 SET client_encoding = 'UTF8';
 
-CREATE SEQUENCE oidb_datalink_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
 -- oidb_datalink table = ObsCore + extensions
 CREATE TABLE oidb_datalink (
     -- Datalink model: 
-    id                bigint NOT NULL,
+    id                bigint REFERENCES oidb(id),
     -- 
     access_url        text,
     service_def       text,
