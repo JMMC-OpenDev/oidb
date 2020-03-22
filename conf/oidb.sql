@@ -5,6 +5,8 @@ SET client_encoding = 'UTF8';
 
 -- copy doc instead of using BIGSERIAL ( that does not work in my previous (bad?) tests )
 CREATE SEQUENCE oidb_id_seq;
+-- SEQUENCE val requires to be updated after dump import:
+--  SELECT setval('oidb_id_seq', max(id)) FROM oidb; 
 
 -- See http://www.sqlines.com/postgresql/how-to/create_user_defined_type
 CREATE DOMAIN rights VARCHAR(12) CHECK (VALUE IN ('public', 'secure', 'proprietary'));
