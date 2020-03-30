@@ -11,6 +11,8 @@ import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "log.xq
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace scheduler="http://exist-db.org/xquery/scheduler";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
+import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
+
 
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
 import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
@@ -100,6 +102,11 @@ declare function backoffice:doc-status($node as node(), $model as map(*)) as nod
     else
         (: no imported documentation found :)
         <span>No yet present. Visit twiki page {$twiki-link}</span>
+};
+
+
+declare function backoffice:eso-recno($node as node(), $model as map(*)) as node()* {
+    <span>{number(collection:retrieve('eso_vlti_import')//recno)}</span>
 };
 
 (:~
