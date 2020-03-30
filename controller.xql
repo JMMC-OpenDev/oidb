@@ -18,6 +18,7 @@ declare variable $exist:prefix external;
 declare variable $exist:root external;
 
 declare variable $domain := "fr.jmmc.oidb.login";
+declare variable $login-max-age := xs:dayTimeDuration("P7D");
 (: call login function before any use of protected code         :)
 (: app:user-admin() and app:user-allowed() uses this attributes :)
 (: TODO check if we can move/hide it in app module :) 
@@ -26,13 +27,12 @@ declare variable $login := function () {
     
     if ( request:get-parameter('logout', false()) ) then 
 (:        let $store-flash := flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>) :)
-        let $set-user := login:set-user($domain, (), false())
+        let $set-user := login:set-user($domain, $login-max-age, false())
 (:  next lines throws a 500 Error moving to existdb 5 ... how can we get this feature back ? :)
 (:        let $do := flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>):)
-
         return ()
     else 
-        let $set-user := login:set-user($domain, (), false())
+        let $set-user := login:set-user($domain, $login-max-age, false())
         (: next lines not called to avoid a 500 error on logout after moving to exist V5:)
         (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
         let $user := (request:get-attribute($domain || '.user'), data(sm:id()//*:username))[1]
