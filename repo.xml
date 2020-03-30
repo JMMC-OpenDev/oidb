@@ -12,62 +12,72 @@
     <finish>post-install.xql</finish>
     <finish/>
     <note>Pay attention to change modules/config.xqm 
-    with sql configuration variables: config:sql-driver, config:sql-url, config:sql-username, config:sql-password and config:sql-table 
-    with tap endpoint : config:TAP_SYNC
-    using a given property file (see build.xml for detail)
+        with sql configuration variables: config:sql-driver, config:sql-url, config:sql-username, config:sql-password and config:sql-table 
+        with tap endpoint : config:TAP_SYNC
+        using a given property file (see build.xml for detail)
     </note>
     <changelog>
+        <change xmlns="" version="1.7">
+            <h3>V1.7 release</h3>
+            <ul>
+                <li>Highlight global download link in the result's table header top right corner.</li>
+                <li>Move ADQL query below the result table.</li>
+                <li>Change default results's order using date.</li>
+                <li>Extend too short persistent login session duration to 7 days.</li>
+                <li>Add first quickplot in the tooltip of oifits result lines if any.</li>
+            </ul>
+        </change>
         <change xmlns="" version="1.6">
-           <h3>V1.6 release</h3>
-           <ul>
-              <li>BugFix: replace uncompatible code</li>
-           </ul>
+            <h3>V1.6 release</h3>
+            <ul>
+                <li type="bugfix">Replace uncompatible code.</li>
+            </ul>
         </change>
         <change xmlns="" version="1.5">
-           <h3>V1.5 release</h3>
-           <ul>
-              <li>Dev: minor updates to bump on eXistDB V5.2</li>
-           </ul>
+            <h3>V1.5 release</h3>
+            <ul>
+                <li type="dev">Minor updates to bump on eXistDB V5.2.</li>
+            </ul>
         </change>
         <change xmlns="" version="1.4">
-           <h3>V1.4 release</h3>
+            <h3>V1.4 release</h3>
             <ul>
-              <li>Handle private collection for <a href="//www.jmmc.fr/suv">SUV</a></li>
-              <li>Change: fix uploaded filename to avoid some non reliable escaping (":" replaced by "_")</li>
-              <li>BugFix: fix cache handling of tap requests</li>
-              <li>Dev: major update to be compliant with the new beautiful and powerful eXistDB V5</li>
+                <li>Handle private collection for <a href="//www.jmmc.fr/suv">SUV.</a></li>
+                <li>Fix uploaded filename to avoid some non reliable escaping (":" replaced by "_").</li>
+                <li type="bugfix" >Fix cache handling of tap requests.</li>
+                <li type="dev">Major updates required by new eXistDB V5.</li>
             </ul>
         </change>
         <change xmlns="" version="1.3">
-           <h3>V1.3 release</h3>
+            <h3>V1.3 release</h3>
             <ul>
-              <li>ESO VLTI obs log harvesting (L0).</li>
-              <li>Display sibling granules in the granule's detail page.</li>
-              <li>Display list of instruments by collection in the collections page.</li>
-              <!-- robots.txt added -->
+                <li>ESO VLTI obs log harvesting (L0).</li>
+                <li>Display sibling granules in the granule's detail page.</li>
+                <li>Display list of instruments by collection in the collections page.</li>
+                <!-- robots.txt added -->
             </ul>
         </change>
         <change xmlns="" version="1.2">
-           <h3>V1.2 release</h3>
+            <h3>V1.2 release</h3>
             <ul>
-              <li>Provides additional data: quickplots and PIONIER's pdf.</li>
+                <li>Provides additional data: quickplots and PIONIER's pdf.</li>
             </ul>
         </change>
         <change xmlns="" version="1.1">
             <h3>V1.1 release</h3>
             <ul>
-              <li>Handle synchronization with b/ESO observation log catalog through TAP VizieR.</li>
-              <li>Submission process enhanced for invalid files: errors are more higlighted, wrong files can be deleted before submission.</li>
-              <li>Use abstract section of readme for catalog submissions instead of description.</li>
-              <li>Data Management Plan link put in the help menu.</li>
-              <li>Cache main requests to get faster responses.</li>
-              <!-- robots.txt added -->
+                <li>Handle synchronization with b/ESO observation log catalog through TAP VizieR.</li>
+                <li>Submission process enhanced for invalid files: errors are more higlighted, wrong files can be deleted before submission.</li>
+                <li>Use abstract section of readme for catalog submissions instead of description.</li>
+                <li>Data Management Plan link put in the help menu.</li>
+                <li>Cache main requests to get faster responses.</li>
+                <!-- robots.txt added -->
             </ul>
         </change>
         <change xmlns="" version="1.0">
             <h3>V1.0 release</h3>
             <ul>
-              <li>First public release hosting public data.</li>
+                <li>First public release hosting public data.</li>
             </ul>
         </change>
     </changelog>
