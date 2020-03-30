@@ -265,6 +265,9 @@ declare function helpers:pagination($node as node(), $model as map(*)) as node()
  :  - a map, the value attributes are taken from the map keys and the texts
  :    from the model values
  :  - a sequence, the value attributes and the texts are sequence items.
+ : 
+ : For map entry value and sorted=no, the default key order is taken from the list 
+ : retrieved from the model with "-default-keys-order" suffix
  :
  : @param $node
  : @param $model
@@ -277,9 +280,13 @@ declare
 function helpers:select-options($node as node(), $model as map(*), $key as xs:string, $sorted as xs:string?) as node()* {
     let $options := $model($key)
     let $ret := if ($options instance of map(*)) then
-        for $key at $pos in map:keys($options)
-        order by if ($sorted="no") then $pos else upper-case($key) ascending
-        return <option value="{ $key }">{ map:get($options, $key) }</option>
+        let $map-default-keys-order := $model($key||"-default-keys-order")
+        return
+            for $key at $pos in map:keys($options)
+            order by if ($sorted="no") then
+                if (exists($map-default-keys-order) ) then index-of($map-default-keys-order, $key) else  $pos 
+                else upper-case($key) ascending
+            return <option value="{ $key }">{ map:get($options, $key) }</option>
     else
         for $value at $pos in $options
         order by if ($sorted="no") then $pos else upper-case($value) ascending
