@@ -1,5 +1,5 @@
 xquery version "3.0";
- 
+
 module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates";
 
 import module namespace templates="http://exist-db.org/xquery/templates";
@@ -47,7 +47,7 @@ declare function app:user-allowed() as xs:boolean {
  :)
 declare function app:user-admin() as xs:boolean {
     try{
-    request:get-attribute($app:domain || '.superuser') 
+    request:get-attribute($app:domain || '.superuser')
     or
     (: allow offline developpement :)
     exists ( ("guillaume.mella@","admin")[matches( request:get-attribute($app:domain || '.user') , .)] )
@@ -63,14 +63,14 @@ declare function app:user-admin() as xs:boolean {
 declare function app:user-name() as xs:string {
     let $user := request:get-attribute($app:domain || '.user')
     return $user
-}; 
+};
 
 (:~
  : Return a selection of items from the data row as HTML5 data attributes.
- : 
+ :
  : If an expected column is found in the row, it creates a 'data-' prefixed
  : attribute to associate with the HTML row.
- : 
+ :
  : @param $row VOTable data row
  : @return a sequence of 'data-' attributes
  :)
@@ -84,14 +84,14 @@ declare %private function app:row-data($row as node()) {
 
 (:~
  : Iterate over each data row, updating the model for subsequent templating.
- : 
+ :
  : It creates a new node for each row and template processes
  : each extending the model with the row data and urls.
- : 
+ :
  : @note
  : This function differs from templates:each in that it adds row-specific data
  : to the node as HTML5 'data-' attributes.
- : 
+ :
  : @param $node  the node to use as pattern for each rows
  : @param $model the current model
  : @return a sequence of nodes, one for each row
@@ -108,9 +108,9 @@ declare function app:each-row($node as node(), $model as map(*)) as node()* {
 
 (:~
  : Create and format cells for a given row of data.
- : 
+ :
  : Data formatting depends on the column type.
- : 
+ :
  : @param $node  a placeholder
  : @param $model the current model with row data
  : @return a sequence of <td/> elements for the current row
@@ -131,9 +131,9 @@ declare function app:tr-cells($rows as node()*, $columns as xs:string*)
         return <tr><th>{$m}</th>{$tr//td}</tr>
 };
 
-(:~ 
+(:~
  : Output a tr fragment per given column picking data from given rows.
- : 
+ :
  : @param $rows the rows to search data into
  : @param $columns the list of column name to output
  : @return a sequence of <tr/> elements for the each columns with one td per row
@@ -148,13 +148,13 @@ declare function app:td-cells($rows as node()*, $columns as xs:string*)
             let $cell := $row/td[@colname=$col]
                 return
                     if($cell) then app:td-cell($cell, $row) else <td class="missing-column-{$col}"/>
-        }   
+        }
         </tr>
 };
 
-(:~ 
+(:~
  : Output a td fragment per given column picking data from given row.
- : 
+ :
  : @param $cell the cell element to convert if appropriate
  : @param $columns the list of column name to output
  : @param $row the row to search complimentary data into
@@ -172,7 +172,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                             let $obs-release-date := $row/td[@colname='obs_release_date']
                             return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'], $row/td[@colname='calib_level'])
                     case "datapi"
-                        return 
+                        return
                             let $id := $row/td[@colname='id']
                             return <span>{data($cell)}<a href="show.html?id={$id}#contact">&#160;<i class="glyphicon glyphicon-envelope"/> </a></span>
                     case "bib_reference"
@@ -189,12 +189,12 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                                 ''
                     case "id"
                         return <a href="show.html?id={$cell}">{data($cell)}</a>
-                    case "keywords" 
-                        return if(exists(data($cell)) and data($cell)!="") then 
-                                <div class="bootstrap-tagsinput"> {  	 	 
-                                    let $keywords := tokenize($cell, ";")  	 	 
-                                    for $kw in $keywords  	 	 
-                                        return <span class="tag label label-info">{ $kw }</span>  	 	 
+                    case "keywords"
+                        return if(exists(data($cell)) and data($cell)!="") then
+                                <div class="bootstrap-tagsinput"> {
+                                    let $keywords := tokenize($cell, ";")
+                                    for $kw in $keywords
+                                        return <span class="tag label label-info">{ $kw }</span>
                                 }</div>
                     else ''
                     case "s_ra"
@@ -218,7 +218,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
 
 (:~
  : Given curation data, check if data is public or not.
- : # TODO check that secure and () return false 
+ : # TODO check that secure and () return false
  : @param $data_rights availability of the dataset (public/secure/proprietaty)
  : @param $release_date date of public_release
  : @return a boolean, public or not
@@ -244,25 +244,25 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
                     }
                 (: compare release date to current time :)
                 return if (current-dateTime() gt $obs_release_date) then true() else false()
-            else 
+            else
                 (: never gonna be public :)
                 false()
         default
             (: never gonna be public :)
             return false()
-            
+
 };
 
 (:~
  : Format a cell for the access_url column.
- : 
- : It contains the link to the file and an eventual status icon for private 
+ :
+ : It contains the link to the file and an eventual status icon for private
  : data. The url is replace by get-data.html?id=$id if id parameter is provided else the original url is used.
- : 
- : @param $id optional granule id 
+ :
+ : @param $id optional granule id
  : @param $url the URL to the OIFits file to hide behind get-data.html if an associated id is given
  : @param $data_rights availability of the dataset
- : @param $release_date the date at which data become public 
+ : @param $release_date the date at which data become public
  : @param $creator_name owner of the data
  : @return an <a> element
  :)
@@ -272,46 +272,50 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
     let $d := if($datapi) then <li>{$datapi||" (data PI)"}</li> else ()
     let $contact := <span><b>Contact:</b><ul>{$c, $d}</ul></span>
     let $contact := serialize($contact)
-    return 
+    return
         element {"a"} {
-        attribute { "href" } { if(exists($id)) then "get-data.html?id="||$id else $url }, 
+        attribute { "href" } { if(exists($id)) then "get-data.html?id="||$id else $url },
         if ( not ( $calib_level < 1 ) and string-length($url)>3 and ( $public or $creator_name = '' )) then
+            
+            let $dfpu := datalink:datalink-first-png-url($id)
+            let $img     := if(exists($dfpu)) then serialize(<img src="{$dfpu}" width="400%"/>) else ()
+            return
             (
                 attribute { "rel" }                 { "tooltip" },
 (:                attribute { "data-placement"}       { "right" },:)
-                attribute { "data-original-title" } { "&lt;div&gt;"||$contact||serialize(<img src="/DATALINKS/{$data_rights}/granule_{$id}.png" width="400%"/>)||"&lt;/div&gt;" },
+                attribute { "data-original-title" } { "&lt;div&gt;"||$contact||$img||"&lt;/div&gt;" },
                 attribute { "data-html" } { "true" }
             )
-          else 
+          else
             (
                 attribute { "rel" }                 { "tooltip" },
                 attribute { "data-original-title" } { $contact },
                 attribute { "data-html" } { "true" }
             ),
          tokenize($url, "/")[last()] ! xmldb:decode(.) ,
-         if ($public) then () else <i class="glyphicon glyphicon-lock"/> 
+         if ($public) then () else <i class="glyphicon glyphicon-lock"/>
         }
 };
 
 (:~
  : Append scheme://host:port if given input starts with /, else return the same input.
- : 
- : @param $url the input URL to prefix with actual server if 
+ :
+ : @param $url the input URL to prefix with actual server if
  : @return a full qualified url.
  :)
 declare function app:fix-relative-url($url as xs:string) as xs:string {
-    if(starts-with($url, "/")) 
+    if(starts-with($url, "/"))
     then
-        request:get-scheme()||"://"||request:get-server-name()||":"||request:get-server-port()||$url 
+        request:get-scheme()||"://"||request:get-server-name()||":"||request:get-server-port()||$url
     else
         $url
 };
 
 (:~
  : Format a cell for the obs_collection column.
- : 
+ :
  : It builds an anchor element redirecting to the collection page.
- : 
+ :
  : @param $id the ID of the collection
  : @return an <a> element
  :)
@@ -330,9 +334,9 @@ declare function app:format-collection-url($id as xs:string) {
 
 (:~
  : Format a cell for the obs_collection column.
- : 
+ :
  : It builds an anchor element redirecting to the collection page.
- : 
+ :
   : @param $node
  : @param $model the current model
  : @param $key the entry name in model with collection id
@@ -345,7 +349,7 @@ declare function app:format-collection-url($node as node(), $model as map(*), $k
 
 (:~
  : Format a cell for a wavelength value.
- : 
+ :
  : @param $wl the wavelength in meters
  : @return the same wavelength in micrometers
  :)
@@ -355,7 +359,7 @@ declare %private function app:format-wavelengths($wl as xs:double) {
 
 (:~
  : Format a cell for a mjd value.
- : 
+ :
  : @param $mjd the date in mjd
  : @return the date in a datetime format
  :)
@@ -365,7 +369,7 @@ declare %private function app:format-mjd($mjd as xs:double) {
 
 (:~
  : Helper to build an URL for a given target on SIMBAD.
- : 
+ :
  : @param $name
  : @return an URL to SIMBAD for the specified target as string
  :)
@@ -376,8 +380,8 @@ declare %private function app:simbad-url($name as xs:string) as xs:string {
 (:~
  : Helper to build an URL for the page at the ADS abstract service for
  : the given bibliographic reference.
- : 
- : @param $bibref 
+ :
+ : @param $bibref
  : @return an URL to CDS's ADS as string
  :)
 declare %private function app:adsbib-url($bibref as xs:string) as xs:string {
@@ -386,7 +390,7 @@ declare %private function app:adsbib-url($bibref as xs:string) as xs:string {
 
 (:~
  : Helper to build an URL to a given catalogue on VizieR.
- : 
+ :
  : @param $catalogue catalogue name
  : @return an URL to the VizieR astronomical catalogue as string
  :)
@@ -399,9 +403,9 @@ declare variable $app:collections-query := adql:build-query(( 'col=obs_collectio
 
 (:~
  : Build a map for collections and put it in the model for templating.
- : 
+ :
  : It creates a 'collections' entry in the model for the children of the nodes.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with collections details
@@ -423,9 +427,9 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
 
 (:~
  : Build a map of user writable collections and put it in the model for templating.
- : 
+ :
  : It creates a 'user-collections' entry in the model for the children of the nodes.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with collections details
@@ -439,7 +443,7 @@ function app:user-collections-options($node as node(), $model as map(*), $calib_
     return map {
         'user-collections' : map:merge(
             for $id in $ids[.=$collections/@id]
-            return 
+            return
                 let $col := $collections[@id=$id]
                 let $valid-level := if(exists($calib_level)) then if($calib_level>2) then exists($col//bibcode/text()) else empty($col//bibcode/text()) else true()
                 let $name := $col/name/text() || " - " || $col/datapi/text()
@@ -450,9 +454,9 @@ function app:user-collections-options($node as node(), $model as map(*), $calib_
 
 (:~
  : Build a map with data associated to the given collections .
- : 
+ :
  : It creates a 'user-collections' entry in the model for the children of the nodes.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with collections details
@@ -474,7 +478,7 @@ function app:collection-form($node as node(), $model as map(*), $id as xs:string
         ,'keywords'    : ($collection//keyword/text())
         ,'bibcodes'    : ($collection//bibcode/text())
          }
-    
+
     return map:merge(($map1, if($calib_level != 3) then map {'ask_coltype' : "yes" } else () ))
 };
 
@@ -487,9 +491,9 @@ declare variable $app:instruments-query := adql:build-query(( 'col=instrument_na
 
 (:~
  : Build a list of instrument names and put it in the model for templating.
- : 
+ :
  : It creates a 'instruments' entry in the model for the children of the node.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with instruments list
@@ -508,22 +512,22 @@ function app:instruments($node as node(), $model as map(*)) as map(*) {
 
 (:~
  : Put instrument details into model for templating.
- : 
+ :
  : It takes the instrument name from the model using given key or from a 'name' HTTP parameter in the request.
- : 
+ :
  : @param $node
  : @param $model the current model
  : @return a submodel with instrument description
  :)
 declare function app:instrument($node as node(), $model as map(*), $key as xs:string?) as map(*) {
     let $id := if($key) then map:get($model,$key) else request:get-parameter('name', '')
-    
+
     let $focal-instrument := collection('/db/apps/oidb-data/instruments')//focalInstrument[starts-with(./*:name,$id)]
     let $facility := <facility>{string-join(($focal-instrument/ancestor::*:interferometerSetting/*:description/*:name), " / ")}</facility>
     let $url := <url>{ 'search.html?instrument=' || encode-for-uri($id) }</url>
-    
+
     let $anchor := <anchor>#{$id}</anchor>
-    
+
     let $instrument := <instrument>
         {if(count($focal-instrument)=1)
             then jmmc-xml:strip-ns($focal-instrument/*)
@@ -537,7 +541,7 @@ declare function app:instrument($node as node(), $model as map(*), $key as xs:st
 
 (:~
  : Add instrument stats to the model for templating.
- : 
+ :
  : @param $node
  : @param $model the current model
  : @param $key the entry name in model with instrument id
@@ -550,21 +554,21 @@ declare function app:instrument-stats($node as node(), $model as map(*), $key as
 
 (:~
  : Add general statistics to the model .
- : 
+ :
  : @param $node
  : @param $model the current model
  : @return a submodel with stats
  :)
 declare function app:statistics($node as node(), $model as map(*)) as map(*) {
     let $key:="granules-stats"
-    let $cached := $tap:cache-get($key) 
-    
-    let $ret := 
-        if(exists($cached)) then 
+    let $cached := $tap:cache-get($key)
+
+    let $ret :=
+        if(exists($cached)) then
             $cached
         else
             let $vot       := tap:retrieve-or-execute(adql:build-query( 'caliblevel=1,2,3' ))
-            let $granules := app:votable-rows-to-granules(data($vot//votable:FIELD/@name), $vot//votable:TABLEDATA/votable:TR) 
+            let $granules := app:votable-rows-to-granules(data($vot//votable:FIELD/@name), $vot//votable:TABLEDATA/votable:TR)
             let $rows := $granules//granule
             let $statistics:=
             <dev>nb_granules for calib_level >=1 :{count($rows)}<br/>
@@ -579,11 +583,11 @@ declare function app:statistics($node as node(), $model as map(*)) as map(*) {
                 let $em_res_power_min := min($granule//em_res_power)
                 let $em_res_power_max := max($granule//em_res_power)
                 return <tr><td>{$nb}</td><td>{$instrument_name}</td><td>{$nb_vis}</td><td>{$nb_vis2}</td><td>{$nb_t3}</td><td>{$em_res_power_min}</td><td>{$em_res_power_max}</td><td>TBD</td><td>#?</td><td>#?</td></tr>
-            }   
+            }
             </table>
             </dev>
                 return $tap:cache-insert($key, $statistics)
-    
+
     return map {  'statistics' : $ret }
 };
 
@@ -591,9 +595,9 @@ declare variable $app:facilities-query := adql:build-query(( 'col=facility_name'
 
 (:~
  : Build a list of facility names and put it in the model for templating.
- : 
+ :
  : It creates a 'facilities' entry in the model for the children of the node.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with facilities list
@@ -603,7 +607,7 @@ declare
 function app:facilities($node as node(), $model as map(*)) as map(*) {
     let $data := tap:retrieve-or-execute($app:facilities-query)
     let $tap-facilities := distinct-values($data//*:TD/text())
-    
+
     let $aspro-table := <table class="table table-striped table-bordered table-hover">
     <tr><th>Name</th><th>Description</th><th>X,Y,Z coordinates</th><th>Lat,Lon approximation </th><th>records in the database</th></tr>
         {
@@ -618,12 +622,12 @@ function app:facilities($node as node(), $model as map(*)) as map(*) {
                 let $r := xs:double(6371000)
                 let $lat := math:asin( $z div $r ) * 180 div math:pi()
                 let $lon := math:atan2($y, $x) * 180 div math:pi()
-                
+
                 let $has-records := for $f in $tap-facilities return matches( $f, $name)
                 let $has-records := if( true() = $has-records) then <i class="glyphicon glyphicon-ok"/> else ()
 
                 where  not($name = ("DEMO", "Paranal", "Sutherland") )
-                return 
+                return
                     <tr>
                         <th><a href="search.html?facility={$name}">{$name}</a></th><td>{$desc}</td><td>{string-join($coords,",")}</td><td>{$lat},{$lon} </td><td>{$has-records}</td>
                     </tr>
@@ -650,29 +654,29 @@ declare variable $app:data-pis-roles := <roles>
             <e><k>instrument-pi</k><icon>glyphicon glyphicon-certificate</icon><description>Instrument PI</description></e>
             <e><k>unregistered</k><icon>glyphicon glyphicon-bell</icon><description>Unregistered user</description></e>
         </roles>;
-        
+
 (:~
  : Build a list of dataPI roles and put it in the model for templating.
- : 
+ :
  : It creates a 'roles' entry in the model for the children of the node.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with one icon and description subelement per role
- :)        
+ :)
 declare
     %templates:wrap
 function app:data-pis-roles($node as node(), $model as map(*)) as map(*) {
-    let $roles := $app:data-pis-roles//e 
+    let $roles := $app:data-pis-roles//e
     return map:merge(($model, map:entry('roles', $roles)))
-};        
+};
 
  (:~
  : Build a list of dataPIs and put it in the model for templating.
- : 
+ :
  : It creates a 'datapis' entry in the model for the children of the node.
  : It also extract the people informations from the xml db in a 'persons' entry.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with dataPI names and persons fragments
@@ -686,27 +690,27 @@ function app:data-pis($node as node(), $model as map(*)) as map(*) {
     let $data := tap:retrieve-or-execute($app:obs-creator-names-query)
     let $datapis := distinct-values(($datapis, $data//*:TD/text()))
 
-    let $persons := for $p in doc($config:data-root||"/people/people.xml")//person[alias=$datapis] 
+    let $persons := for $p in doc($config:data-root||"/people/people.xml")//person[alias=$datapis]
         let $icons := $app:data-pis-roles//e[k=$p/flag]/icon
         order by normalize-space(upper-case($p/lastname))
-        return 
+        return
             element {name ($p)} { $p/@*, $icons, $p/*[name()!='alias'], $p/alias[.=$datapis], element {"id"} {data($p/alias[1])} , element {"email"} {data($p/alias[@email]/@email[1])}}
-            
-    let $missings := for $p in $datapis[not(.=$persons/alias)] 
+
+    let $missings := for $p in $datapis[not(.=$persons/alias)]
         let $e:=<person><missing/>{$app:data-pis-roles//e[k='unregistered']/icon}<firstname></firstname><lastname></lastname><alias>{$p}</alias></person>
 (:        let $u := update insert $e into doc($config:data-root||"/people/people.xml")/people:)
-        return 
+        return
             $e
-    
+
     return map:merge(($model, map:entry('datapis', $datapis), map:entry('persons', ($missings, $persons))))
 };
 
 (:~
  : Build a list of dataPIs and put it in the model for templating.
- : 
+ :
  : It creates a 'datapis' entry in the model for the children of the node.
  : It also extract the people informations from the xml db in a 'persons' entry.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with dataPI names and persons fragments
@@ -718,13 +722,13 @@ function app:user-names-options($node as node(), $model as map(*)) as map(*) {
         let $user-name := data($p/alias[text()][1])
         order by normalize-space(upper-case($user-name))
         return $user-name
-            
+
     return map:merge(($model, map:entry('user-names', $user-names)))
 };
 
 (:~
  : Helper to build an URL for a given datapi on the search URL.
- : 
+ :
  : @param $datapi-key model's key for data pi value
  : @param $node the current node
  : @param $model the current model
@@ -733,7 +737,7 @@ function app:user-names-options($node as node(), $model as map(*)) as map(*) {
 declare function app:data-pi-search-url($node as node(), $model as map(*), $datapi-key as xs:string, $label-key as xs:string?) as node() {
     let $datapi := map:get($model, $datapi-key)
     let $label := if($label-key) then  data(map:get($model, $label-key)) else data($datapi)
-    return 
+    return
         <a href="search.html?datapi={$datapi}" alt="search for {$label}">{$label}</a>
 };
 
@@ -744,15 +748,17 @@ function app:sort-by($node as node(), $model as map(*)) as map(*) {
         map:entry('sortbys',
             map {
                 (: column name       displayed text :)
-                'target_name'     : "Target name",
                 't_min'           : "Date",
+                'target_name'     : "Target name",
                 'instrument_name' : "Instrument"
-            }))
+            }),
+        map:entry('sortbys-default-keys-order', ('t_min', 'instrument_name', 'target_name'))
+    ))
 };
 
 (:~
  : Return of HTML input elements for each of the wavelength bands.
- : 
+ :
  : @param $node  the node to use as pattern for each rows
  : @param $model the current model
  : @return a sequence of nodes, one for each band
@@ -770,14 +776,14 @@ declare function app:input-each-band($node as node(), $model as map(*)) as node(
 
 (:~
  : Build a list of bands and put it in the model for templating.
- : 
+ :
  : It creates a 'bands' entry in the model for the children of the node.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with band names
  :)
-declare     
+declare
 	%templates:wrap
 function app:bands($node as node(), $model as map(*)) as map(*) {
     map:merge(($model, map:entry('bands', jmmc-astro:band-names())))
@@ -785,9 +791,9 @@ function app:bands($node as node(), $model as map(*)) as map(*) {
 
 (:~
  : Build a list of wavelength divisions and put it in the model for templating.
- : 
+ :
  : It creates a 'wavelength-ranges' entry in the model for the children of the node.
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with band names
@@ -806,9 +812,9 @@ declare variable $app:data-quality-levels := map {
 
 (:~
  : Put a map for data quality levels in the model for templating.
- : Levels are 0 to 4 for respectivly, 
+ : Levels are 0 to 4 for respectivly,
  : Trash, To be reduced again, Quick look (risky to publish), Science ready, Outstanding quality
- : 
+ :
  : @param $node the current node
  : @param $model the current model
  : @return a new map as model with quality levels
@@ -819,14 +825,14 @@ declare function app:data-quality-flags($node as node(), $model as map(*)) as ma
 };
 
 (:~
- : Return an element with counts of the number of observations, all OIFits 
+ : Return an element with counts of the number of observations, all OIFits
  : files and private OIFits files in the database.
- : 
+ :
  : @param $params a sequence of parameters
  : @return a <stats> element with attributes for counts.
  :)
 declare %private function app:data-stats($params as xs:string*) as node() {
-    let $base-query := 
+    let $base-query :=
         adql:clear-pagination(
             adql:clear-select-list(
                 adql:clear-order(
@@ -843,10 +849,10 @@ declare %private function app:data-stats($params as xs:string*) as node() {
 
 (:~
  : Display the result of the query in a paginated table.
- : 
+ :
  : The query is passed to a TAP service and the returned VOTable
  : content is put in the model for further template processing.
- : 
+ :
  : @param $node
  : @param $model
  : @param $page    offset into query result (page * perpage)
@@ -880,9 +886,9 @@ function app:search($node as node(), $model as map(*),
                 $data//th/@name/string()
             else
                 $app:main-metadata
-    
+
         let $stats   := app:data-stats($params)
-    
+
         (: select columns, keep order :)
         let $columns :=
             for $name in $column-names
@@ -901,7 +907,7 @@ function app:search($node as node(), $model as map(*),
 
         (: pick rows from transformed votable - skip row of headers :)
         let $rows    := $data//tr[position()!=1]
-    
+
         (: the query shown to the user :)
         let $query := adql:build-query($params)
 
@@ -919,14 +925,14 @@ function app:search($node as node(), $model as map(*),
     } catch filters:error {
         (: add log request with error :)
         let $log := log:search(<error code="{$err:code}">{$err:description}</error>)
-        
+
         (: try to provide suggestion if search by name fails :)
         let $cs-tokens := tokenize(request:get-parameter('conesearch', ''), ',')
         let $cs-position := if (count($cs-tokens) = 4) then $cs-tokens[1] else ()
         let $suggestion := if ($cs-position) then let $uri := request:get-query-string() return <span><br/>You may try <ul class="list-inline">{ for $li in jmmc-simbad:search-names($cs-position, ()) let $href:= replace($uri, "conesearch="||$cs-position, "conesearch="||$li) return <li><a href="?{$href}">{$li}</a></li>} </ul></span> else ()
-        
+
         return map {
-(:            'flash' : 'Unable to build a query from search form data: ' || $err:description:) 
+(:            'flash' : 'Unable to build a query from search form data: ' || $err:description:)
               'flash' : <span>Unable to build a query from search form data : <b><em>{$err:description}</em></b>{$suggestion}</span>
         }
     } catch tap:error {
@@ -937,7 +943,7 @@ function app:search($node as node(), $model as map(*),
     } catch * {
         (: add log request with error :)
         let $log := log:search(<error code="{$err:code}">{$err:description}</error>)
-        return 
+        return
         map {
             'flash' : 'fatal error: (' || $err:code || ')' || $err:description
         }
@@ -1020,10 +1026,10 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
 
 (:~
  : Return components of a query string for building an ADQL select.
- : 
+ :
  : It translates the parameters from the request into filter strings suitable
  : to build an ADQL query.
- : 
+ :
  : @return a sequence of filter strings
  :)
 declare function app:serialize-query-string() as xs:string* {
@@ -1056,7 +1062,7 @@ declare function app:serialize-query-string() as xs:string* {
             case "band"        return "wavelengthband="    || string-join(for $v in $value return $v, ',')
             case "collection"  return "collection=" || "~" || $value
             case "datapi"      return "datapi=" ||     "~" || $value
-            case "reduction"   return if (empty(( 0, 1, 2, 3 )[not(string(.)=$value)])) then 
+            case "reduction"   return if (empty(( 0, 1, 2, 3 )[not(string(.)=$value)])) then
                     (: default is all calibration level :)
                     ()
                 else
@@ -1079,10 +1085,10 @@ declare function app:serialize-query-string() as xs:string* {
  : Put datalink elements for a given id into model for templating.
  : Not yet used by show because of non templated app:show
  : It takes the granule ID from a 'id' HTTP parameter in the request.
- : 
+ :
  : @param $node
  : @param $model the current model
- : @return a submodel with datalink elements i.e a transformed votable 
+ : @return a submodel with datalink elements i.e a transformed votable
  :)
 declare function app:datalink($node as node(), $model as map(*)) as map(*) {
     let $id := request:get-parameter('id', '')
@@ -1091,20 +1097,20 @@ declare function app:datalink($node as node(), $model as map(*)) as map(*) {
     let $datalink:= datalink:datalink($id)
     (: TO BE CONTINUED ... :)
     return if ($datalink)
-        then 
+        then
             map { 'datalink' : $datalink }
-        else 
+        else
             ()
 };
 
 
 (:~
  : Display all columns from the selected row.
- :  
+ :
  : A query with the identifier for the row is passed to the TAP service and the
  : returned VOTable is formatted as an HTML table.
  : TODO refactor using templating and td-cells()
- : 
+ :
  : @param $node
  : @param $model
  : @param $id the row identifier
@@ -1123,7 +1129,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                 <strong>No granule found with id={$id}</strong>
             </div>
         else
-            <div> 
+            <div>
                 <h1> Granule {$data//td[@colname='id']/text()}</h1>
                 {()(: app:show-granule-summary($node,  map {'granule' : app:granules($query) }, "granule") :)}
                 <div class="row">
@@ -1136,9 +1142,9 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     {app:show-granule-externals($node,  map {'granule' : $data }, "granule")}
                     </div>
                 </div>
-                
+
                 <h2><i class="glyphicon glyphicon-align-justify"/> Table of metadata for granule {$data//td[@colname='id']/text()}</h2>
-                
+
                 <table class="table table-striped table-bordered table-hover table-condensed">
                 <!-- <caption> Details for { $id } </caption> -->
                 {
@@ -1155,15 +1161,15 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
 
 (:~
  : Display the summary information for a given granule.
- : 
+ :
  : @param $node
  : @param $model
  : @return a <table> filled with data from the raw row
  :)
 declare function app:show-granule-summary($node as node(), $model as map(*), $key as xs:string)
 {
-    let $granule := map:get($model, $key) 
-    
+    let $granule := map:get($model, $key)
+
     return <div id="summary">
                 <h2><i class="glyphicon glyphicon-zoom-in"/> Summary</h2>
                 <table class="table table-striped table-bordered table-hover">
@@ -1179,37 +1185,37 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
 
 (:~
  : Display the summary information for a given granule.
- : 
+ :
  : @param $node
  : @param $model
  : @return a <table> filled with data from the raw row
  :)
 declare function app:show-granule-siblings($node as node(), $model as map(*), $key as xs:string)
 {
-    let $granule := map:get($model, $key) 
-    
-   
+    let $granule := map:get($model, $key)
+
+
     let $query := "SELECT id FROM " || $config:sql-table || " AS t WHERE t.access_url='" || $granule//td[@colname='access_url'] || "'"
     (: send query by TAP :)
     let $votable := tap:execute($query)
     let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
     let $nb-granules := count($data//tr[td])
     where $nb-granules >= 2
-    return 
+    return
         <div id="external_resources">
             <h2>Granules in the same OIFITS</h2>
             <table class="table table-striped table-bordered table-hover">
-                { 
-                    for $row in $data//tr[td] return 
+                {
+                    for $row in $data//tr[td] return
                     <tr>{app:td-cell($row//td, $row)}</tr>
                 }
             </table>
         </div>
-    
+
 };
 
 
-(:~ 
+(:~
  : Provide a javascript encoded array to fill an html attribute that can display an email after client side decoding.
  : TODO move into jmmc-auth
  :)
@@ -1217,7 +1223,7 @@ declare function app:get-encoded-email-array($email as xs:string) as xs:string
 {
   let $pre := substring-before($email,"@")
   let $pre := translate($pre, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm")
-  
+
   let $post := substring-after($email,"@")
   let $post := translate($post, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm")
   let $post := tokenize( $post , "\.")
@@ -1228,7 +1234,7 @@ declare function app:get-encoded-email-array($email as xs:string) as xs:string
   return "[[&apos;"||string-join($mailto, "&apos;, &apos;")||"&apos;],[&apos;"||$pre||"&apos;],[&apos;"||string-join($post, "&apos;, &apos;")|| "&apos;]]"
 };
 
-(:~ 
+(:~
  : Provide a javascript decoder code.
  : TODO move into jmmc-auth
  :)
@@ -1244,106 +1250,106 @@ declare function app:get-encoded-email-decoder() as xs:string {
     });
     ]]>
     </script>
-    
+
 };
 
 
 (:~
- : Clear cached data. MUST BE called after TAP datasource update. 
+ : Clear cached data. MUST BE called after TAP datasource update.
  :)
-declare function app:clear-cache(){ 
-  tap:clear-cache() 
+declare function app:clear-cache(){
+  tap:clear-cache()
 };
 
 
 (:~
  : Display the contact information for a given granule.
- : 
+ :
  : @param $node
  : @param $model
  : @return a <table> filled with data from the raw row
  :)
 declare function app:show-granule-contact($node as node(), $model as map(*), $key as xs:string)
 {
-    let $granule := map:get($model, $key) 
-    
-    return 
+    let $granule := map:get($model, $key)
+
+    return
         <div id="contact">
             <h2><i class="glyphicon glyphicon-envelope"/> Contact</h2>
             {
                 let $row := ($granule//tr[td], $granule)[1] (: use tr if votable is provided else the given node as supposed to be a tr :)
-               
+
                 let $datapi := $row//td[@colname="datapi"]
-                
+
                 let $obs_creator_name := data($row//td[@colname="obs_creator_name"])
                 let $obs_creator_name-email := user:get-email($obs_creator_name)
                 let $obs_creator_name-link := if($obs_creator_name-email) then
                                 let $js :=  app:get-encoded-email-array($obs_creator_name-email)
                                     return <a href="#" data-contarr="{$js}">{$obs_creator_name}&#160;<i class="glyphicon glyphicon-envelope"/></a>
                                 else $obs_creator_name
-                
-                return 
-                    if($obs_creator_name=$datapi) then 
+
+                return
+                    if($obs_creator_name=$datapi) then
                         <address>
                             <strong>Data PI / OBS creator</strong><br/>
-                            {$obs_creator_name-link} 
-                        </address> 
-                    else 
+                            {$obs_creator_name-link}
+                        </address>
+                    else
                         let $datapi-email := user:get-email($datapi)
                         let $datapi-link := if($datapi-email) then
                                 let $js :=  app:get-encoded-email-array($datapi-email)
                                     return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
                                 else <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
                                 If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user may contact the creator of the resource just below.</span>
-                        return 
+                        return
                         <address>
                             <strong>Data PI</strong><br/>
                             {$datapi-link}<br/>
                             <strong>OBS creator</strong><br/>
                             {$obs_creator_name-link}
-                        </address>    
+                        </address>
             }
         </div>
 };
 
 (:~
  : Display the external links for a given granule.
- : 
+ :
  : TODO implement logic to retrieve some external link from the fields of a given granule
  :      VLTI should not be hardcoded here!!
- : 
+ :
  : @param $node
  : @param $model
  : @return a <table> filled with data from the raw row
  :)
 declare function app:show-granule-externals($node as node(), $model as map(*), $key as xs:string)
 {
-    let $granule := map:get($model, $key) 
+    let $granule := map:get($model, $key)
     let $granule_id := xs:integer($granule//td[@colname='id'])
     let $facility-name := string($granule//td[@colname='facility_name'])
- 
+
     let $prog_id := string($granule//td[@colname='progid'])
     (: add a fallback using obs_id to retrieve PIONIER collection's granules :)
     (: would be good to change the db content, isn't it ? :)
     let $prog_id := if ($prog_id!='') then $prog_id else string($granule//td[@colname='obs_id'])
-    
+
     let $data_rights := $granule//td[@colname='data_rights']
     let $release_date := $granule//td[@colname='obs_release_date']
-    
+
     let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
-    
-    let $ext-res := if($facility-name="VLTI" and $prog_id!='') then 
+
+    let $ext-res := if($facility-name="VLTI" and $prog_id!='') then
         let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($prog_id)
-        return 
+        return
             <a href="{$url}">Jump to ESO archive for progid <em>{$prog_id}</em></a>
-        else 
+        else
             ()
-            
-    let $datalink-res := 
+
+    let $datalink-res :=
         let $datalink-vot := app:transform-votable( datalink:datalink($granule_id) )
         let $content_length_unit := data($datalink-vot//th[@name='content_length']/@unit)
         let $content_length_desc := data($datalink-vot//th[@name='content_length']/@description)
-        return 
+        return
             for $tr in $datalink-vot//tr[td]
             let $url                 := data($tr/td[@colname='access_url'])
             let $filename            := tokenize($url, '/')[last()]
@@ -1354,12 +1360,12 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
             let $title := if($content_length) then $content_length_desc||": ["||$content_length||"] "||$content_length_unit else ()
             let $title := $filename || ":" || $title
             (: hide thunbnail if private ( could be shown to datapi ? ) :)
-            let $thumbnail := if ($public) then 
+            let $thumbnail := if ($public) then
                 if(contains($content_type, 'png')) then <a href="{$url}" title="{$title} "><img src="{$url}" width="60%"/></a> else ()
-                else <i class="glyphicon glyphicon-lock"/> 
+                else <i class="glyphicon glyphicon-lock"/>
             return
                 <tr><th><a href="{$url}" title="{$title} ">{$description}</a>{$thumbnail}</th></tr>
-    
+
     return
         (if(empty($datalink-res)) then () else
             <div id="quicklook_plots">
@@ -1376,7 +1382,7 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
             </table>
         </div>
         )
-           
+
 };
 
 
@@ -1385,7 +1391,7 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
  : It returns a 303 return code if an url associated to the granule id is found else an error message is thrown.
  : A log is also store for statistic purpose.
  : a flash is thrown if url is missing
- : 
+ :
  : @param $node  the current node
  : @param $model the current model
  : @param $id    the granule id (caller template show not call this function if id is missing)
@@ -1396,14 +1402,14 @@ declare function app:get-data($node as node(), $model as map(*), $id as xs:integ
     (: send query by TAP :)
     let $data := tap:execute($query)
     let $data-url := $data//*:TD/text()
-    
+
     let $activate-303 := if ($data-url) then
         (response:set-header("Location", $data-url),
         response:set-status-code(303))
         else ()
-        
-    let $do-log := log:get-data( $id, $data-url ) 
-    
+
+    let $do-log := log:get-data( $id, $data-url )
+
 
     return  map { 'data-url' : if($data-url) then $data-url else (),
                       'flash'    : if($data-url) then () else "can't find associated data, please check your granule id (given is '" || $id || "')" }
@@ -1429,7 +1435,7 @@ declare function app:latest($node as node(), $model as map(*)) {
     return <ul> {
         for $row in $data/*:TR
         return <li>
-            <span> { $row/*:TD[position()=$name-pos]/text() } </span> - 
+            <span> { $row/*:TD[position()=$name-pos]/text() } </span> -
             <span> { $row/*:TD[position()=$url-pos]/text() } </span>
         </li>
     } </ul>
@@ -1437,7 +1443,7 @@ declare function app:latest($node as node(), $model as map(*)) {
 
 (:~
  : Create model with general informations for homepage templating.
- : 
+ :
  : @param $node
  : @param $model
  : @return a new model with counts for homepage
@@ -1465,7 +1471,7 @@ function app:homepage-header($node as node(), $model as map(*)) as map(*) {
 
 (:~
  : Add a new attribute of given name and value to the node.
- : 
+ :
  : @param $elt the element
  : @param the name of the attribute
  : @param the value of the attribute
@@ -1479,7 +1485,7 @@ import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "lo
 
 (:~
  : Set the value of the passed input element to the email of the current user.
- : 
+ :
  : @param $elt
  : @param $model
  : @return a copy of the element with email as default value
@@ -1490,7 +1496,7 @@ declare function app:input-user-email($elt as element(), $model as map(*)) {
 
 (:~
  : Set the value of the passed input element to the name of the current user.
- : 
+ :
  : @param $elt
  : @param $model
  : @return a copy of the element with name as default value
@@ -1501,7 +1507,7 @@ declare function app:input-user-name($elt as element(), $model as map(*)) {
 
 (:~
  : Replace node with documentation extracted from TWiki.
- : 
+ :
  : @param $node the placeholder for documentation
  : @param $model
  : @return a document fragment with documentation
@@ -1512,7 +1518,7 @@ declare function app:doc($node as node(), $model as map(*)) {
 
 (:~
  : Test if a collection is from a VizieR astronomical catalog.
- : 
+ :
  : @param $c a <collection> element
  : @return true if the collection is from a VizieR catalog
  :)
@@ -1522,13 +1528,13 @@ declare %private function app:vizier-collection($c as element(collection)) as xs
 
 (:~
  : Add collections to the model.
- : 
+ :
  : It separates collections based on their origin (at the moment, from VizieR
  : astronomical catalog or user-defined).
- : 
+ :
  : templates may call one of them using following snippet :
  : <div data-template="helpers:render" data-template-partial="_collection-short.html" data-template-key="other-collections" data-template-as="collection"/>
- : 
+ :
  : @param $node
  : @param $model
  : @return a new submodel with collections
@@ -1556,9 +1562,9 @@ declare function app:collections($node as node(), $model as map(*), $type as xs:
 
 (:~
  : Put collection details into model for templating.
- : 
+ :
  : It takes the collection ID from a 'id' HTTP parameter in the request.
- :  
+ :
  : @param $node
  : @param $model the current model
  : @return a submodel with collection description
@@ -1569,16 +1575,16 @@ declare function app:collection($node as node(), $model as map(*)) as map(*) {
     let $coltype := collection:get-type($collection)
     let $embargo := collection:get-embargo($collection)
     return if ($collection)
-        then 
-            map { 'collection' : $collection, 'document-name' :  util:document-name($collection) 
+        then
+            map { 'collection' : $collection, 'document-name' :  util:document-name($collection)
              , "embargo" : $embargo, "coltype" : $coltype}
-        else 
+        else
             ()
 };
 
 (:~
  : Count the number of OIFITS files and granules matching a given query. Provide the first and last observing date of records matching a given query.
- : 
+ :
  : @param $query the query parameters
  : @return a map with counts of OIFITS, granules ( resp. n_oifits, n_granules) and from-date and to-date
  :)
@@ -1605,8 +1611,8 @@ declare function app:date-multiline($node as node(), $model as map(*), $key as x
     let $y := year-from-date($date)
     let $m := ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')[month-from-dateTime($date)]
     let $d := day-from-dateTime($date)
-    
-    return 
+
+    return
     <div class="btn-group-vertical btn-group-xs" role="group">
         <button type="button" class="btn btn-warning">{$y}</button>
         <button type="button" class="btn btn-default">{$m}<br/>{$d}</button>
@@ -1615,7 +1621,7 @@ declare function app:date-multiline($node as node(), $model as map(*), $key as x
 
 (:~
  : Add collection stats to the model for templating.
- : 
+ :
  : @param $node
  : @param $model the current model
  : @param $key the entry name in model with collection id
@@ -1628,10 +1634,10 @@ declare function app:collection-stats($node as node(), $model as map(*), $key as
 
 (:~
  : Transform a VOTable into an intermediate format for templating.
- : 
- : It turns the VOTable field descriptions into <th/> elements with name and 
+ :
+ : It turns the VOTable field descriptions into <th/> elements with name and
  : UCD. And it adds the respective field names as attributes to each cell.
- : 
+ :
  : @param $votable a VOTable
  : @return a <votable/> element
  :)
@@ -1641,13 +1647,13 @@ declare function app:transform-votable($votable as node()) as node() {
 
 (:~
  : Transform a VOTable into an intermediate format for templating.
- : 
- : It turns the VOTable field descriptions into <th/> elements with name and 
+ :
+ : It turns the VOTable field descriptions into <th/> elements with name and
  : UCD. And it adds the respective field names as attributes to each cell.
- : 
- : It transforms the rows starting at the given index and discards any 
+ :
+ : It transforms the rows starting at the given index and discards any
  : preceding rows.
- : 
+ :
  : @param $votable a VOTable
  : @param $start   the starting row position
  : @return a <votable/> element
@@ -1658,13 +1664,13 @@ declare function app:transform-votable($votable as node(), $start as xs:double) 
 
 (:~
  : Transform a VOTable into an intermediate format for templating.
- : 
- : It turns the VOTable field descriptions into <th/> elements with name and 
+ :
+ : It turns the VOTable field descriptions into <th/> elements with name and
  : UCD. And it adds the respective field names as attributes to each cell.
- : 
- : It transforms a given number of rows starting at the given index and 
+ :
+ : It transforms a given number of rows starting at the given index and
  : discards any other row.
- : 
+ :
  : @param $votable a VOTable
  : @param $start   the starting row position
  : @param $length  the number of rows to transform
@@ -1688,7 +1694,7 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
         for $row in $votable//votable:TABLEDATA/votable:TR[position() >= $start and position() < $start + $length]
         return <tr> {
             fn:for-each-pair(
-                $headers, $row/votable:TD, 
+                $headers, $row/votable:TD,
                 function ($header, $cell) {
                 (: compare value against the null for the column :)
                 let $value := if ($cell = $header/votable:VALUES/@null) then '' else $cell/text()
@@ -1703,7 +1709,7 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
 
 (:~
  : Convert a row of a granule from a VOTable to XML granule.
- : 
+ :
  : @param $fields the VOTable column names
  : @param $row    the VOTable row
  : @return a XML granule
@@ -1718,7 +1724,7 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
 
 (:~
  : Convert rows of a granules from a VOTable to XML granules.
- : 
+ :
  : @param $fields the VOTable column names
  : @param $rows    the VOTable rows
  : @return the XML granules
@@ -1735,10 +1741,10 @@ declare %private function app:votable-rows-to-granules($fields as xs:string*, $r
 
 (:~
  : Return for templating the granules matching a query grouped by source.
- : 
- : If the TAP service reports an overflow (number of results to query exceeds 
+ :
+ : If the TAP service reports an overflow (number of results to query exceeds
  : row limit) the returned sequence is terminated by an overflow element.
- : 
+ :
  : @param $query the description of the ADQL query
  : @return a sequence of granule grouped by source
  :)
@@ -1752,20 +1758,20 @@ declare function app:granules($query as item()*) as node()* {
     return (
         (: group by source file (access_url) :)
         for $rows in $data//tr[td] group by $url := $rows/td[@colname='access_url']
-        return <file> 
+        return <file>
             <url>{ $url }</url>
             <url-link>{app:td-cell($rows[1]//td[@colname='access_url'], $rows[1])/a }</url-link>
             {
             for $tr in $rows
-                return 
+                return
                     <granule> {
                     (: turn each cell into child element whose name is the respective column name :)
                     for $td in $tr/td
-                      
+
                       return element { data($td/@colname) } { data($td) }
-                    } 
+                    }
                   </granule>
-            } 
+            }
         </file>,
         (: potentially report result overflow :)
         if (tap:overflowed($votable)) then <overflow/> else ()
@@ -1774,12 +1780,12 @@ declare function app:granules($query as item()*) as node()* {
 
 (:~
  : Put collection granules into model from templating.
- : 
+ :
  : It takes the collection ID from a 'id' HTTP parameter in the request.
- : 
+ :
  : It ultimately adds a 'granules' entry to the model containing a sequence of
  : the collection granules grouped by source file.
- : 
+ :
  : @param $node  the current node
  : @param $model the current model
  : @param $id    the collection identifier
@@ -1806,11 +1812,11 @@ function app:collection-granules($node as node(), $model as map(*), $id as xs:st
 
 (:~
  : Iterate over granules from a model entry and repeatedly process nested contents.
- : 
+ :
  : @note
  : This function differs from helpers:each() in that it adds a 'data-id'
  : attribute to each node.
- : 
+ :
  : @param $node  the template node to repeat
  : @param $model the current model
  : @param $from  the key in model for entry with granules to iterate over
@@ -1830,7 +1836,7 @@ declare function app:each-granule($node as node(), $model as map(*), $from as xs
 
 (:~
  : Add the user information (name, email, affiliation) to the model for templating.
- : 
+ :
  : @param $node  the current node
  : @param $modem the current model
  : @param $key   the key to the entry in model with user id
@@ -1843,7 +1849,7 @@ declare function app:user-info($node as node(), $model as map(*), $key as xs:str
 
 (:~
  : Add the user name to the model for templating associated to 'datapi' key.
- : 
+ :
  : @param $node  the current node
  : @param $modem the current model
  : @return a new model with datapi entry
@@ -1855,14 +1861,14 @@ declare function app:get-datapi($node as node(), $model as map(*)) as map(*) {
 (:~
  : Truncate a text string from the model to a given length.
  : TODO: move to templates-helpers
- : 
+ :
  : @param $node the placeholder for the ellipsized text
  : @param $model
  : @param $key the key to lookup in the model for source text
  : @param $length the maximum size of text returned
  : @return a ellipsized text if too long
  :)
-declare 
+declare
     %templates:default("length", "300")
 function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $length as xs:integer) as xs:string? {
     let $text := helpers:get($model, $key)
@@ -1875,14 +1881,14 @@ function app:ellipsize($node as node(), $model as map(*), $key as xs:string, $le
 (:~
  : provide an ads link for given bibcode.
  : TODO: move to templates-helpers
- : 
+ :
  : @param $node the placeholder for the ellipsized text
  : @param $model
  : @param $key the key to lookup in the model for source text
  : @param $length the maximum size of text returned
  : @return a ellipsized text if too long
  :)
-declare 
+declare
     %templates:wrap
 function app:ads-link($node as node(), $model as map(*), $key as xs:string) as node() {
     let $bibcode := helpers:get($model, $key)
@@ -1893,7 +1899,7 @@ function app:ads-link($node as node(), $model as map(*), $key as xs:string) as n
 
 (:~
  : wrap jmmc-auth function for templating.
- : 
+ :
  : @param $node the placeholder for the email
  : @param $model
  : @param $key the key to lookup in the model for email text
@@ -1905,14 +1911,14 @@ declare function app:get-obfuscated-email($node as node(), $model as map(*), $ke
 
 (:~
  : Build a link to sort the results on the given column.
- : 
+ :
  : It picks the name of the column from the model and analyzes the current
  : query string to create a 'href' attribute on the current node to start a
  : new query with sorting on the current column or inverting the sorting
  : if the results have already been sorted by the column).
- : 
+ :
  : It template-processes the children of the node.
- : 
+ :
  : @param $node  the parent for the href attribute to change sorting
  : @param $model the current model
  : @return the templatized node.
@@ -1948,7 +1954,7 @@ declare function app:column-sort($node as node(), $model as map(*)) as node() {
 (:        attribute { "data-html" } { "false" },:)
         attribute { "title" } { $column('description') },
 
-        templates:process($node/node(), $model), 
+        templates:process($node/node(), $model),
         if ($same-key) then <span class="caret"/> else ()
     }
 };
@@ -1969,7 +1975,7 @@ function app:upload($node as node(), $model as map(*), $staging as xs:string?, $
     (: TODO check 0 < calib_level < 3 or calib_level = ( 2, 3 ) :)
     let $staging := if ($staging) then $staging else util:uuid()
     (: a short textual description of the calibration level :)
-    let $map := map { 
+    let $map := map {
         'oifits': (),
         'staging' : $staging,
         'calib_level' : $calib_level
@@ -1981,7 +1987,7 @@ function app:upload($node as node(), $model as map(*), $staging as xs:string?, $
 
 (:~
  : Test if calib_level param is valid and set calib_description entry to the model for templating, else leave empty map.
- : 
+ :
  : @param $node  the current node
  : @param $modem the current model
  : @param $calib_level the calibration level of the data to be uploaded
@@ -1992,16 +1998,16 @@ declare function app:upload-check-calib-level($node as node(), $model as map(*),
         if ($calib_level = 2) then'calibrated'
         else if ($calib_level = 3) then 'published'
         else ''
-    return 
-        if($calib_level = (2,3)) then 
+    return
+        if($calib_level = (2,3)) then
             map{'calib_description' : $calib_description }
-        else 
+        else
             map{}
 };
 
 (:~
  : Make an entry in the log of visits for the current page.
- : 
+ :
  : @param $node
  : @param $model
  : @return empty
@@ -2012,7 +2018,7 @@ declare function app:log($node as node(), $model as map(*)){
 
 (:~
  : Add a categorized random image as background to the node.
- : 
+ :
  : @param $node     the current node to templatize
  : @param $model    the current model
  : @param $category the category from which to pick the vignette
@@ -2033,7 +2039,7 @@ declare function app:random-vignette($node as node(), $model as map(*), $categor
 
     (: prepare a CSS property with the image as background :)
     let $background := "background: url('" || $path || $filename || "') no-repeat center center; "
-    
+
     return element { node-name($node) } {
         $node/@* except $node/@style,
         attribute { 'style' } { $background || data($node/@style) },
@@ -2045,17 +2051,17 @@ declare function app:rssItems($max as xs:integer) as node()* {
     let $latest-granules := adql:build-query(( 'order=subdate','order=^id', 'limit='||$max ))
     let $votable         := tap:retrieve-or-execute($latest-granules)
     let $data            := app:transform-votable($votable)
-    
+
     let $granule-items :=
-        for $rows in $data//tr[td] 
+        for $rows in $data//tr[td]
             group by $url:=$rows/td[@colname="access_url"]
             order by ($rows/td[@colname="subdate"])[1] descending
-        
+
             return
             let $first-row := ($rows)[1]
             let $date := xs:dateTime($first-row/td[@colname="subdate"])
             let $first-id := $first-row/td[@colname="id"]
-            let $summary := 
+            let $summary :=
                 <table border="1" class="table table-striped table-bordered table-hover">
                     {
                         let $columns := ("id", $app:main-metadata ,"obs_collection", "obs_creator_name", "quality_level")
@@ -2083,14 +2089,14 @@ declare function app:rssItems($max as xs:integer) as node()* {
                     </description>
                     <pubDate>{jmmc-dateutil:ISO8601toRFC822($date)}</pubDate>
                 </item>
-                
+
     let $last-comments := comments:last-comments($max)
-    let $comment-items := for $c in $last-comments 
+    let $comment-items := for $c in $last-comments
         let $granule-id := $c/@granule-id
         let $date   := $c/date
         let $text   := data($c/text)
         let $author := data($c/author)
-            
+
         return
                 <item xmlns:dc="http://purl.org/dc/elements/1.1/">
                     <link>{app:fix-relative-url("/show.html?id="||$granule-id)}</link>
@@ -2103,7 +2109,7 @@ declare function app:rssItems($max as xs:integer) as node()* {
                     </description>
                     <pubDate>{$date}</pubDate>
                 </item>
-        
-                
+
+
     return for $item in ($granule-items, $comment-items) order by $item/pubDate descending return $item
 };
