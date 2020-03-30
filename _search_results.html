@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div>
+    <h1>Results</h1>
+
     <div id="flash" data-template="helpers:if-model-key" data-template-key="flash">
         <div class="alert alert-danger alert-dismissable col-md-offset-2 col-md-8">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
@@ -14,18 +16,11 @@
     </div>
     <div data-template="templates:surround" data-template-with="templates/paginated.html" data-template-at="paginated">
         <table class="table table-striped table-bordered table-hover">
-            <caption data-template="helpers:if-model-key" data-template-key="query">
-                Results for <code>
-                    <span data-template="helpers:model-value" data-template-key="query"/>
-                </code>
-                <br/>
-                ( <a data-template="helpers:model-value-attribute" data-template-key="query-edit" data-template-name="href">Edit query</a> )
-            </caption>
             <thead>
-                <tr>
-                    <th>
+                <tr data-template="helpers:if-model-key" data-template-key="rows">
+                    <th class="warning"> 
                         <div class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <a class="dropdown-toggle text-success" data-toggle="dropdown" href="#">
                                 <span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/>
                             </a>
                             <ul class="dropdown-menu" role="menu"/>
@@ -70,5 +65,27 @@
             </tbody>
         </table>
     </div>
+    <div class="panel panel-default" style="overflow:visible;" data-template="helpers:if-model-key" data-template-key="rows">
+        <div class="panel-heading">
+            <h6 class="panel-title">
+                <a data-toggle="collapse" data-parent="#querycaption" href="#querycaption">
+                    <i class="indicator glyphicon glyphicon-chevron-down"/> Results for ADQL query
+                </a>
+            </h6>
+        </div>
+        <div id="querycaption" class="panel-body panel-collapse collapse in">
+            <table class="table table-striped table-bordered table-hover">
+                <caption data-template="helpers:if-model-key" data-template-key="query">
+                    <code>
+                        <span data-template="helpers:model-value" data-template-key="query"/>
+                    </code>
+                    <br/>
+                    ( <a data-template="helpers:model-value-attribute" data-template-key="query-edit" data-template-name="href">Edit query</a> )
+                </caption>
+            </table>    
+            <p>Provided metadata are an extension on top of the <a href="http://www.ivoa.net/documents/ObsCore/">ObsCore</a> datamodel.</p>    
+        </div>   
+    </div>
+    
     <div data-template="templates:include" data-template-path="_voar.html"/>
 </div>
