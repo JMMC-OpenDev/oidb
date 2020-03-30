@@ -17,7 +17,7 @@ declare %private function flash:message($level as xs:string, $msg as item()*) {
     if (session:exists()) then
         session:set-attribute('flash', element { $level } { $msg })
     else
-        util:log($level, $msg/string())
+        util:log($level, data($msg))
 };
 
 (:~
