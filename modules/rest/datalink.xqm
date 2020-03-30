@@ -10,6 +10,7 @@ import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils
 import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log.xqm";
 import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";
 
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "../app.xql";
 
 
 declare namespace rest="http://exquery.org/ns/restxq";
@@ -46,6 +47,13 @@ function datalink:datalink($id as xs:int) {
     (: :)
     
     return $votable
+};
+
+
+declare function datalink:datalink-first-png-url($id as xs:int) as xs:string?{
+    let $query := "SELECT TOP 1 access_url FROM oidb_datalink AS t WHERE t.id='" || $id || "' and t.content_type='application/png'" 
+    let $votable := tap:execute($query) (: we could use retrieve-ior-execute instead ? :)
+    return data(app:transform-votable( $votable )//td[@colname='access_url'])
 };
 
 (:~
