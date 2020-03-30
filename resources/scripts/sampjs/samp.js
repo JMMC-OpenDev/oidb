@@ -364,7 +364,9 @@ var samp = (function() {
     // If absent, the default SAMP Web Profile server is used.
     var XmlRpcClient = function(endpoint) {
         this.endpoint = endpoint ||
-                        "//localhost:" + WEBSAMP_PORT + WEBSAMP_PATH;
+                        "http://localhost:" + WEBSAMP_PORT + WEBSAMP_PATH;
+        // GM http://localhost and http://127.0.0.1 are both fine with recent 
+        // chrome (73) but firefox 73 still throws a CORS exception
     };
 
     // Creates an XHR facade - an object that presents an interface
