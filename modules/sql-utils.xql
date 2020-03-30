@@ -76,7 +76,7 @@ declare function sql-utils:within-transaction($func as function(xs:long) as item
  :)
 declare function sql-utils:execute($connection-handle as xs:long, $sql-statement as xs:string, $make-node-from-column-name as xs:boolean) as node()? {
 
-    let $log := util:log("info", "execute : " || $sql-statement || " with handle = "|| $connection-handle)
+(:    let $log := util:log("info", "execute : " || $sql-statement || " with handle = "|| $connection-handle):)
     let $ret := sql:execute($connection-handle, $sql-statement, $make-node-from-column-name)
     let $ret := if (exists($ret)) then $ret else 
         let $log := util:log("error", "no result using given handle (" || $connection-handle ||") :  trying with a new one ")
