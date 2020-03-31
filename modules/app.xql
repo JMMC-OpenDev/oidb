@@ -744,7 +744,7 @@ declare function app:data-pi-search-url($node as node(), $model as map(*), $data
 declare
     %templates:wrap
 function app:sort-by($node as node(), $model as map(*)) as map(*) {
-    map:merge(
+    map:merge((
         map:entry('sortbys',
             map {
                 (: column name       displayed text :)
