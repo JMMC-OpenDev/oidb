@@ -36,6 +36,9 @@ let $oidb-credentials := ( false(), 'oidb', 'rwxr-x---' )
 
 (: set of permissions to require oidb admin credentials and execute as dba :)
 let $oidb-credentials-dba := ( 'admin', 'oidb', 'rwsr-x---' )
+(: FIXME : eval is not working anymore since 5.2? even if logged user get perms to read the content :)
+let $oidb-credentials-dba := ( 'admin', 'oidb', 'rwsr-xr-x' )
+
 let $jmmc-credentials-dba := ( 'admin', 'jmmc', 'rwsr-xr-x' )
 let $guest-credentials-rw := ( 'guest', 'oidb', 'rw-rw-rw-' )
 
