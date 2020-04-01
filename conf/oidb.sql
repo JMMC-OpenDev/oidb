@@ -1,11 +1,17 @@
 --
 -- Table structure for table `oidb`
 --
+-- to get whole init sql you can run :
+-- $ for s in oidb.sql tap_schema.sql oidb_tap_schema.sql oidb_datalink.sql oidb_datalink_tap_schema.sql; do cat $s >> oidb-init-merged.sql ;  done
+-- ( mimic init defined in jmmc-oidb-docker/oidb-postgres/Dockerfile )
+--
+-- and don't forget to check the id sequence see below.
+--
 SET client_encoding = 'UTF8';
 
 -- copy doc instead of using BIGSERIAL ( that does not work in my previous (bad?) tests )
 CREATE SEQUENCE oidb_id_seq;
--- SEQUENCE val requires to be updated after dump import:
+-- anyway SEQUENCE val requires to be updated after dump import:
 --  SELECT setval('oidb_id_seq', max(id)) FROM oidb; 
 
 -- See http://www.sqlines.com/postgresql/how-to/create_user_defined_type
