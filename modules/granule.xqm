@@ -146,7 +146,7 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
    
     let $embargo := collection:get-embargo ($collection)
     let $coltype := collection:get-type($collection)
-    
+
     let $data_rights :=         if( $granule/data_rights ) then
                                     () (: keep verbatim metadata  :)
                                 else if(exists($embargo)) then 
@@ -156,12 +156,13 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
     
     let $obs_release_date :=    if( $granule/obs_release_date ) then
                                     () (: keep verbatim metadata  :)
-                                else if( $data_rights="secure" ) then
+                                else if( ($granule/data_rights, $data_rights)="secure" ) then
                                     <obs_release_date>
                                         {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
                                     </obs_release_date>
                                 else
-                                    () (: TODO check that this empty case is normal :)
+                                    util:log("info", "obs_release_date not present ?? data_rights="||$data_rights)
+                                    (: TODO check that this empty case is normal :)
 
     let $manage-local-data :=   if( starts-with($granule/access_url,"/") and exists($obs_release_date) ) then 
                                     let $in-future :=   ( xs:dateTime($obs_release_date) - fn:current-dateTime() ) > xs:dayTimeDuration("P0D")  
