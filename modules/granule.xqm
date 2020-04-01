@@ -130,7 +130,7 @@ declare function granule:create($granule as node()) as xs:integer {
 declare function granule:create($granule as node(), $handle as xs:long) as xs:integer {
     let $collection := xs:string($granule/obs_collection/text())
     let $check-collection := if(exists($collection)) then true() else error(xs:QName('granule:error'), 'obs_collection is not present in given granule.')
-    let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into " || $collection ||".')
+    let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into ' || $collection ||'.')
     
 
 (:  
