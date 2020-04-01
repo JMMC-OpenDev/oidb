@@ -17,6 +17,14 @@
         using a given property file (see build.xml for detail)
     </note>
     <changelog>
+        <change xmlns="" version="1.8">
+            <h3>V1.8 release</h3>
+            <ul>
+              <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period.</li>
+              <li type="dev">Fix code to handle ESO's wdb output change.</li>
+              <li type="dev">Add more logs on SQL side</li>
+            </ul>
+        </change>
         <change xmlns="" version="1.7">
             <h3>V1.7 release</h3>
             <ul>
