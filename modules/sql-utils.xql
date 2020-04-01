@@ -41,8 +41,10 @@ declare function sql-utils:within-transaction($db_handle as xs:long, $func as fu
         let $begin := sql:execute($db_handle, "START TRANSACTION", false())
         let $ret   := $func($db_handle)
         let $end   := sql:execute($db_handle, "COMMIT", false())
+        let $log := util:log("info", "COMMIT TRANSACTION")
         return $ret
     } catch * {
+        util:log("info", "ROLLBACK TRANSACTION"),
         (: abort the current transaction :)
         sql:execute($db_handle, "ROLLBACK", false()),
         (: pass error :)
