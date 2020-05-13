@@ -863,8 +863,9 @@ declare %private function app:data-stats($params as xs:string*) as node() {
 declare
     %templates:default("page", 1)
     %templates:default("perpage", 25)
+    %templates:default("order", "t_min")
 function app:search($node as node(), $model as map(*),
-                    $page as xs:integer, $perpage as xs:integer, $all as xs:string?) as map(*) {
+                    $page as xs:integer, $perpage as xs:integer, $order as xs:string?, $all as xs:string?) as map(*) {
     try {
         (: Search database, use request parameters :)
         (: clean up pagination stuff, recovered later from function parameters :)
@@ -872,6 +873,8 @@ function app:search($node as node(), $model as map(*),
 
         return if (empty($params)) then map {}
         else
+        (: append default order param if not present  :)    
+        let $params := ($params,("order="||$order)[not($params[starts-with(., "order=")])] )
 
         let $paginated-query := adql:build-query((
                 $params,
