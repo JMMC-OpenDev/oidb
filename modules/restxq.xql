@@ -38,6 +38,9 @@ xquery version "3.0";
  :)
 module namespace restxq="http://exist-db.org/xquery/restxq";
 
+import module namespace login="http://exist-db.org/xquery/login" at "resource:org/exist/xquery/modules/persistentlogin/login.xql";
+
+
 declare variable $restxq:NAMESPACE := "http://exquery.org/ns/restxq";
 (: 
  : Define a second namespace for the annotations which can be used in cases
@@ -72,6 +75,9 @@ declare variable $restxq:ERROR_IF_AMBIGUOUS := false();
  : by calling util:list-functions on a module URI.
  :)
 declare function restxq:process($path-info as xs:string?, $functions as function(*)+) {
+    (: log again to fix future xmldb writing permission issues :)
+    let $restxq:set-user := login:set-user("fr.jmmc.oidb.login", xs:dayTimeDuration("P7D"), false())
+
     let $params := map {
         "$restxq:path" :
             if (exists($path-info)) then

@@ -196,20 +196,10 @@ function oifits:stage-oifits($staging as xs:string, $filename as xs:string) {
             return oifits:upload($filename, $data, $collection)
         } </response>
     } catch java:org.xmldb.api.base.XMLDBException {
-        (: failed to save to staging on first time, try again for a strange :)
-        (: WORKAROUND :)
-        try {
-            <response> {
-                let $data := request:get-data()
-                let $collection := xmldb:create-collection($oifits:base-staging, $staging)
-                (: put files in staging area :)
-                return oifits:upload($filename, $data, $collection)
-            } </response>
-        } catch java:org.xmldb.api.base.XMLDBException {
-            <rest:response>
-                <http:response status="401"/> <!-- Unauthorized -->
-            </rest:response>
-        }
+        (: failed to save to staging :)
+        <rest:response>
+            <http:response status="401"/> <!-- Unauthorized -->
+        </rest:response>
     } catch * {
         <rest:response>
             <http:response status="500"/> <!-- Internal Server Error -->
