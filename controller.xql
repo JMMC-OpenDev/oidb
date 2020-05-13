@@ -21,6 +21,8 @@ declare variable $domain := "fr.jmmc.oidb.login";
 declare variable $login-max-age := xs:dayTimeDuration("P7D");
 (: call login function before any use of protected code         :)
 (: app:user-admin() and app:user-allowed() uses this attributes :)
+(: moving to 5.2 requires an additional call in our restxq module :)
+
 (: TODO check if we can move/hide it in app module :) 
 declare variable $login := function () {
     if ( request:get-parameter('logout', false()) ) then 
