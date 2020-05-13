@@ -17,6 +17,24 @@
         using a given property file (see build.xml for detail)
     </note>
     <changelog>
+         <!--
+         <change xmlns="" version="X.">
+            <h3>VX. release</h3>
+            <ul>
+              <li></li>
+              <li type="dev"></li>
+              <li type="bugfix"></li>
+            </ul>
+        </change>
+        -->
+        <change xmlns="" version="1.9">
+            <h3>V1.9 release</h3>
+            <ul>
+              <li>Fix result order according default form values.</li>
+              <li type="dev"></li>
+              <li type="bugfix">Fix permission issue during the OIFits upload.</li>
+            </ul>
+        </change>
         <change xmlns="" version="1.8">
             <h3>V1.8 release</h3>
             <ul>
