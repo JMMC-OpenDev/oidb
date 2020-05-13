@@ -18,6 +18,7 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
 import module namespace backoffice="http://apps.jmmc.fr/exist/apps/oidb/backoffice" at "backoffice.xql";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
+import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "sesame.xql";
 
 (:~
  : Start a job in the background through the scheduler with parameters.
@@ -57,12 +58,13 @@ declare %private function local:update-doc() {
 };
 
 (:~
- : Clear cache.
+ : Clear cache of long tap query (app:clear-cache) but also clear sub caches (sesame).
  : 
  : @return always returns true().
  :)
 declare %private function local:cache-flush() {
     let $clear := app:clear-cache()
+    let $clear-sesame := cache:destroy($sesame:cache-name)
         return true()
 };
 

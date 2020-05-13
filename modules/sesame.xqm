@@ -7,6 +7,9 @@ xquery version "3.0";
  :)
 module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame";
 
+declare variable $sesame:cache-name := "oidb-sesame";
+
+
 (:~
  : Return a target element with data on name, position and type as attributes.
  : 
@@ -70,6 +73,14 @@ declare function sesame:resolve-sesame($names as xs:string+) as item()* {
  : @return a <sesame> element a <target> with data for each input name.
  :)
 declare function sesame:resolve($names as xs:string+) as node() {
-    (: FIXME no caching for the time being :)
-    <sesame> { sesame:resolve-sesame($names) } </sesame>
+    <sesame> {
+    let $key := string-join($names, "-")
+    let $c := cache:get($sesame:cache-name, $key)
+    return 
+        if ($c) then $c
+        else 
+            let $value := sesame:resolve-sesame($names) 
+            let $store := cache:put($sesame:cache-name, $key, $value)
+            return $value
+    } </sesame>
 };
