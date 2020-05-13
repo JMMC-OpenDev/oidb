@@ -23,8 +23,6 @@ declare variable $login-max-age := xs:dayTimeDuration("P7D");
 (: app:user-admin() and app:user-allowed() uses this attributes :)
 (: TODO check if we can move/hide it in app module :) 
 declare variable $login := function () {
-    
-    
     if ( request:get-parameter('logout', false()) ) then 
 (:        let $store-flash := flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>) :)
         let $set-user := login:set-user($domain, $login-max-age, false())
@@ -33,9 +31,8 @@ declare variable $login := function () {
         return ()
     else 
         let $set-user := login:set-user($domain, $login-max-age, false())
-        (: next lines not called to avoid a 500 error on logout after moving to exist V5:)
-        (: FIXME use sm:id() instead when upstream bug #388 is fixed :)
-        let $user := (request:get-attribute($domain || '.user'), data(sm:id()//*:username))[1]
+        (: could sm:id() better replace request attribute ?? :)
+        let $user := request:get-attribute($domain || '.user')
         let $superuser := request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
         let $assert := util:eval(xs:anyURI('./modules/assert.xql'))
         return ()
