@@ -56,7 +56,7 @@ declare %private function adql:set_quantifier($params as item()*) as xs:string {
  : @return a TOP fragment or an empty string
  :)
 declare %private function adql:set_limit($params as xs:string*) as xs:string {
-        let $page    := number(adql:get-parameter($params, 'page', ()))
+    let $page    := number(adql:get-parameter($params, 'page', ()))
     let $page := if( string($page) != 'NaN' ) then $page else ()
     
     let $limit-param := number(adql:get-parameter($params, 'limit', ()))
@@ -142,17 +142,26 @@ declare %private function adql:group_by($params as xs:string*) as xs:string {
  :)
 declare %private function adql:order_by_clause($params as xs:string*) as xs:string {
     let $sort-keys := adql:get-parameter($params, 'order', ())
-    return if(exists($sort-keys)) then
-        'ORDER BY ' ||
-            string-join(
-                for $key in $sort-keys
+    
+    let $order-by := if(exists($sort-keys)) then
+            for $key in $sort-keys
                 let $sort-key := if(starts-with($key, '^')) then substring($key, 2) else $key
                 let $ordering-specification := if(substring-before($key, $sort-key) = '^') then 'ASC' else 'DESC'
                 return $sort-key || ' ' || $ordering-specification
-                , ', ')
     else
         (: no order specified :)
-        ''
+        ()
+        
+    let $page    := number(adql:get-parameter($params, 'page', ()))
+    let $page := if( string($page) != 'NaN' ) then $page else ()
+    let $limit-param := number(adql:get-parameter($params, 'limit', ()))
+    let $limit-param := if (string($limit-param) != 'NaN') then $limit-param else ()
+    
+    let $order-by := if ( exists($page) or exists($limit-param) ) then ( $order-by, $adql:correlation-name || ".id" ) else $order-by
+    
+    return 
+        if ( exists($order-by) ) then 'ORDER BY ' || string-join( $order-by , ', ') else ''
+        
 };
 
 (:~
