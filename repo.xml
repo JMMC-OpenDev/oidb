@@ -31,6 +31,7 @@
             <h3>V1.9 release</h3>
             <ul>
               <li>Fix result order according default form values.</li>
+              <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over HTTP.</li>
               <li type="dev"></li>
               <li type="bugfix">Fix permission issue during the OIFits upload.</li>
             </ul>
