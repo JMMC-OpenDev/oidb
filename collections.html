@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div data-template="app:collections">
-    <h1>Collections</h1>
+    <h1>Collections: </h1>
+        <form>
+            <label class="control-label" for="coltypes">Collection types: </label>
+            <span data-template="helpers:each" data-template-from="types" data-template-to="type">
+                <input type="checkbox" name="type" checked="c" data-template="helpers:form-control"/>
+                <span data-template="helpers:model-value" data-template-key="type"/>
+            </span>
+            <button type="submit" class="btn btn-primary">filter</button>    
+        </form>
         <h2>VizieR astronomical catalogues</h2>
         <div class="row">
             <div class="list-group col-md-offset-1 col-md-10">

@@ -201,13 +201,7 @@ declare function collection:list() as element(collection)* {
  : @return true() if current user has access to collection for the mode
  :)
 declare function collection:has-access($id-or-collection as item(), $mode as xs:string) {
-    let $collection :=
-        if ($id-or-collection instance of xs:string) then
-            collection:retrieve($id-or-collection)
-        else if ($id-or-collection instance of node()) then
-             $id-or-collection
-        else
-            error(xs:QName('collection:error'), 'Bad collection id ' || $id-or-collection || '.')
+    let $collection := collection:get($id-or-collection)
     return if (empty($collection)) then
         error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
     else
@@ -217,24 +211,43 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
 };
 
 (:~
+ : Test if a collection is from a VizieR astronomical catalog.
+ :
+ : @param $c a <collection> element
+ : @return true if the collection is from a VizieR catalog
+ :)
+declare function collection:vizier-collection($c as element(collection)) as xs:boolean {
+    starts-with(data($c/source), 'http://cdsarc.u-strasbg.fr/viz-bin/Cat')
+};
+
+(:~
  : Get collection type.
  : @param $id-or-collection the id of the collection to test or the collection as XML fragment
  : @return the value of coltype element or 'public' if not present
  :)
 declare function collection:get-type($id-or-collection as item()) as xs:string {
-    let $collection :=
-        if ($id-or-collection instance of xs:string) then
+    let $collection := collection:get($id-or-collection)
+    return if (empty($collection)) then
+        error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
+    else
+        let $type := $collection/coltype
+        let $type := 
+            if ($type) then 
+                $type 
+            else if (collection:vizier-collection($collection)) then 
+                "vizier" 
+            else 
+                "public"
+        return $type[1]
+};
+
+declare function collection:get($id-or-collection) {
+	if ($id-or-collection instance of xs:string) then
             collection:retrieve($id-or-collection)
         else if ($id-or-collection instance of node()) then
              $id-or-collection
         else
             error(xs:QName('collection:error'), 'Bad collection id ' || $id-or-collection || '.')
-    return if (empty($collection)) then
-        error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
-    else
-        let $type := $collection/coltype
-        let $type := if ($type) then $type else "public"
-        return $type[1]
 };
 
 (:~

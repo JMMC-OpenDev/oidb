@@ -1519,15 +1519,6 @@ declare function app:doc($node as node(), $model as map(*)) {
     doc($config:data-root || "/" || $config:maindoc-filename)
 };
 
-(:~
- : Test if a collection is from a VizieR astronomical catalog.
- :
- : @param $c a <collection> element
- : @return true if the collection is from a VizieR catalog
- :)
-declare %private function app:vizier-collection($c as element(collection)) as xs:boolean {
-    starts-with(data($c/source), 'http://cdsarc.u-strasbg.fr/viz-bin/Cat')
-};
 
 (:~
  : Add collections to the model.
@@ -1542,12 +1533,12 @@ declare %private function app:vizier-collection($c as element(collection)) as xs
  : @param $model
  : @return a new submodel with collections
  :)
-declare function app:collections($node as node(), $model as map(*), $type as xs:string?) as map(*) {
+declare function app:collections($node as node(), $model as map(*), $type as xs:string*) as map(*) {
     let $collections :=
         for $collection in collection("/db/apps/oidb-data/collections")/collection
         (: open up collection and add link to full description page :)
         let $coltype := collection:get-type($collection)
-        where not($coltype != $type)
+        where $coltype = $type
         return <collection> {
             $collection/@*,
             $collection/node(),
@@ -1555,9 +1546,12 @@ declare function app:collections($node as node(), $model as map(*), $type as xs:
             if($collection/coltype) then () else <coltype>{$coltype}</coltype>,
             <coltypeurl>{ '?type=' || $coltype }</coltypeurl>
         } </collection>
-    let $vizier-collections := $collections[app:vizier-collection(.)]
+    let $types := for $collection in collection("/db/apps/oidb-data/collections")/collection
+                        return collection:get-type($collection)
+    let $vizier-collections := $collections[collection:vizier-collection(.)]
     return map {
         'type' : $type,
+        'types' : distinct-values($types),
         'vizier-collections' : $vizier-collections,
         'other-collections'  : $collections[not(.=$vizier-collections)]
     }
