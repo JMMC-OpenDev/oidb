@@ -329,8 +329,6 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
                     switch ($type)
                         case "checkbox" case "radio" return
                             element { node-name($node) } {
-                                util:log("info","helpers:form-controls for "||$name|| " in " || string-join(map:keys($model))),
-                                util:log("info","helpers:form-controls value "||$value),
                                 if( exists($params-values) ) then $node/@* except $node/@checked else $node/@*,
                                 attribute value { $value },
                                 if ($node/@value = $value) then
