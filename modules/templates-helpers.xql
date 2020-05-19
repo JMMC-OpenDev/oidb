@@ -296,7 +296,7 @@ function helpers:select-options($node as node(), $model as map(*), $key as xs:st
 
 (:~
  : Process input and select form controls, setting their value/selection to
- : values found in the model - if present.
+ : values found in the model or request parameters - if present.
  :
  : @note
  : 'templates' has a similar function (templates:form-control) that:
@@ -322,14 +322,21 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
             let $name := $node/@name
             (: try to get value from the model (instead of request parameters) :)
             let $value := map:get($model, $name)
+            (: look for request params of the given name to let decide which checked attribute to set below :)
+            let $params-values := request:get-parameter($name, ())
             return
                 if (exists($value)) then
                     switch ($type)
                         case "checkbox" case "radio" return
                             element { node-name($node) } {
-                                $node/@* except $node/@checked,
+                                util:log("info","helpers:form-controls for "||$name|| " in " || string-join(map:keys($model))),
+                                util:log("info","helpers:form-controls value "||$value),
+                                if( exists($params-values) ) then $node/@* except $node/@checked else $node/@*,
+                                attribute value { $value },
                                 if ($node/@value = $value) then
                                     attribute checked { "checked" }
+                                else if ($params-values=$value) then
+                                     attribute checked { "checked" }
                                 else
                                     (),
                                 $children
