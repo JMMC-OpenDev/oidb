@@ -329,9 +329,9 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
                     switch ($type)
                         case "checkbox" case "radio" return
                             element { node-name($node) } {
-                                if( exists($params-values) ) then $node/@* except $node/@checked else $node/@*,
-                                attribute value { $value },
-                                if ($node/@value = $value) then
+                                if ( exists($params-values) or $node/@value) then $node/@* except $node/@checked else $node/@*,
+                                if ( exists($node/@value) ) then () else attribute value { $value },
+                                if ($node/@value = $value ) then
                                     attribute checked { "checked" }
                                 else if ($params-values=$value) then
                                      attribute checked { "checked" }
