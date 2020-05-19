@@ -1538,7 +1538,7 @@ declare function app:collections($node as node(), $model as map(*), $type as xs:
         for $collection in collection("/db/apps/oidb-data/collections")/collection
         (: open up collection and add link to full description page :)
         let $coltype := collection:get-type($collection)
-        where $coltype = $type
+        where empty($type) or $coltype = $type
         return <collection> {
             $collection/@*,
             $collection/node(),
