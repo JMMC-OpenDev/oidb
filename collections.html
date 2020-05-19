@@ -10,13 +10,13 @@
             </span>
             <button type="submit" class="btn btn-primary">filter</button>    
         </form>
-        <h2>VizieR astronomical catalogues</h2>
+        <h2 data-template="helpers:if-model-key" data-template-key="vizier-collections">VizieR astronomical catalogues</h2>
         <div class="row">
             <div class="list-group col-md-offset-1 col-md-10">
                 <div data-template="helpers:render" data-template-partial="_collection-short.html" data-template-key="vizier-collections" data-template-as="collection"/>
             </div>
         </div>
-        <h2>Other collections</h2>
+        <h2 data-template="helpers:if-model-key" data-template-key="other-collections">Other collections</h2>
         <div class="row">
             <div class="list-group col-md-offset-1 col-md-10">
                 <div data-template="helpers:render" data-template-partial="_collection-short.html" data-template-key="other-collections" data-template-as="collection"/>
