@@ -50,5 +50,15 @@ input {
     opacity: .7;
 }
 /* stop tooltip flickering */
-
 .tooltip { pointer-events: none; }
+
+/* more fun on the homepage */
+.vignettes li
+{
+    transition: transform .2s;
+}
+
+.vignettes li:hover
+{
+   transform:  scale(1.1) rotate(-3deg);
+}
