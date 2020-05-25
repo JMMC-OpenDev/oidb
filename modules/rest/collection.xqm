@@ -140,6 +140,7 @@ function coll:delete-collection($id as xs:string) {
         } catch collection:unauthorized {
             401 (: Unauthorized :)
         } catch * {
+            util:log("info", "error " ||  $err:code  || "-" || $err:description ),
             500 (: Internal Server Error :)
         }
     return <rest:response><http:response status="{ $status }"/></rest:response>
