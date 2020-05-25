@@ -69,7 +69,7 @@ declare function sql-utils:within-transaction($func as function(xs:long) as item
 
 (:~
  : Wrapper of SQL execute function.
- : Executes a SQL statement against a SQL db using the connection indicated by the connection handle or use config:get-db-connection if nothing returned.
+ : Executes a SQL statement against a SQL db using the connection indicated by the connection handle or use a new one using $config:jndi-nam if error or missing return.
  :
  : @param $connection-handle  The connection handle
  : @param $sql-statement The SQL statement
@@ -78,8 +78,16 @@ declare function sql-utils:within-transaction($func as function(xs:long) as item
  :)
 declare function sql-utils:execute($connection-handle as xs:long, $sql-statement as xs:string, $make-node-from-column-name as xs:boolean) as node()? {
 
-(:    let $log := util:log("info", "execute : " || $sql-statement || " with handle = "|| $connection-handle):)
-    let $ret := sql:execute($connection-handle, $sql-statement, $make-node-from-column-name)
+    let $log := util:log("info", "execute : " || $sql-statement || " with handle = "|| $connection-handle)
+    
+    let $ret := try {
+                    sql:execute($connection-handle, $sql-statement, $make-node-from-column-name)
+                } catch * {
+                    let $log := util:log("error", "exception occurs using given handle (" || $connection-handle ||") :  trying with a new one ")
+                    let $log := util:log("error", $err:description)
+                    return ()
+                }
+        
     let $ret := if (exists($ret)) then $ret else 
         let $log := util:log("error", "no result using given handle (" || $connection-handle ||") :  trying with a new one ")
         (: Next line MUST NOT USE  config:get-db-connection else we are out of context after and lose connection :)
