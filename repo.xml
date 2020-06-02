@@ -27,6 +27,12 @@
             </ul>
         </change>
         -->
+        <change xmlns="" version="1.10">
+            <h3>V1.10 release</h3>
+            <ul>
+              <li>Enhance VLTI L0 update using <a href="http://obs.jmmc.fr">obsportal</a> as datasource.</li>
+            </ul>
+        </change>
         <change xmlns="" version="1.9">
             <h3>V1.9 release</h3>
             <ul>
@@ -39,7 +45,7 @@
         <change xmlns="" version="1.8">
             <h3>V1.8 release</h3>
             <ul>
-              <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period.</li>
+              <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side.</li>
               <li type="dev">Fix code to handle ESO's wdb output change.</li>
               <li type="dev">Add more logs on SQL side</li>
             </ul>
