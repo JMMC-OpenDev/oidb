@@ -49,10 +49,10 @@ declare %private function obsportal:votable-observations($votable as node()) as 
  : @return a sequence of observations
  :)
 declare function obsportal:get-observations() as node()* {
-(:    let $votable := doc($obsportal:OBSPORTAL_URL):)
-    let $votable := doc("/obs.xml")
+    let $votable := doc($obsportal:OBSPORTAL_URL)
     return 
-        subsequence(obsportal:votable-observations($votable),1,1000)
+(:        subsequence(obsportal:votable-observations($votable),1,1000) :)
+        obsportal:votable-observations($votable)
 };
 
 
