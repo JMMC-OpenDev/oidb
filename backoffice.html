@@ -85,7 +85,7 @@
     </div>
     <div class="row">
         <div class="col-md-7">
-            <div class="panel panel-default" id="eso">
+    <!--        <div class="panel panel-default" id="eso">
                 <div class="panel-heading">
                     <h3 class="panel-title">
                         <i class="glyphicon glyphicon-upload"/>&#160;VLTI L0</h3>
@@ -119,7 +119,22 @@
                     </form>
                 </div>
             </div>
+            -->
+            <div class="panel panel-default" id="obsportal">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="glyphicon glyphicon-upload"/> Obsportal L0 update</h3>
+                </div>
+                <div class="panel-body">
+                    <form action="modules/backoffice-job.xql" method="post" class="form-inline" role="form">
+                        <button type="submit" name="do" value="obsportal-update" class="btn btn-default">Update obsportal logs</button>
+                        <div class="form-group">
+                            <b>Last update</b>: <span data-template="backoffice:obsportal-status"/>
+                        </div>
+                    </form>
+                </div>
             </div>
+        </div>
         <div class="col-md-5">
             <div class="panel panel-default" id="chara">
                 <div class="panel-heading">
@@ -139,7 +154,7 @@
             <div class="panel panel-default" id="vega">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        <i class="glyphicon glyphicon-upload"/>&#160;Vega L0 upload</h3>
+                        <i class="glyphicon glyphicon-upload"/>&#160;Vega L0 update</h3>
                 </div>
                 <div class="panel-body">
                     <form action="modules/backoffice-job.xql" method="post" class="form-inline" role="form">

@@ -68,34 +68,14 @@ declare %private function local:cache-flush() {
         return true()
 };
 
-
 (:~
- : Start a new ESO update job in background from an uploaded file.
- : 
- : @param $resource the path to the uploaded file with observations.
- : @return false() if it failed to schedule the job or there is already another job running.
- :)
-declare %private function local:update-eso() {
-    try {
-        let $data := request:get-uploaded-file-data('file')
-        let $path := xmldb:store('/db/apps/oidb-data/tmp', 'upload-eso.xml', $data)
-
-        return local:start-job($config:app-root || '/modules/upload-eso.xql', $backoffice:update-eso, map { 'resource' : $path, 'name' : $backoffice:update-eso })
-    } catch * {
-        let $log := util:log("error", "Can't store data into /db/apps/oidb-data/tmp/upload-eso.xml : "||$err:description)
-
-        return false()
-    }
-};
-
-
-(:~
- : Start a new ESO update job in background for incremental update.
+ : Start a new ESO l0 update job in background for incremental update. It is now base on top of ObsPortal data source.
  : 
  : @return false() if it failed to schedule the job or there is already another job running.
  :)
-declare %private function local:update-eso-inc() {
-    local:start-job($config:app-root || '/modules/sync-l0-eso.xql', $backoffice:update-eso-inc, map { 'name' : $backoffice:update-eso-inc })
+declare %private function local:update-obsportal($action) {
+(:    local:start-job($config:app-root || '/modules/sync-l0-eso.xql', $backoffice:update-eso-inc, map { 'name' : $backoffice:update-eso-inc }):)
+    local:start-job($config:app-root || '/modules/upload-obsportal.xql', $backoffice:update-obsportal, map {'name' : $backoffice:update-obsportal, 'action' : $action})
 };
 
 (:~
@@ -161,18 +141,22 @@ return (
             else
                 local:error(<span xmlns="http://www.w3.org/1999/xhtml">VEGA observation logs is already running or failed to be properly updated. See log for details.</span>)
 
+        case "obsportal-update" return
+            if(local:update-obsportal($action)) then
+                local:info(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs are being updated from <a href="http://obs.jmmc.fr/">JMMC Obs portal</a>.</span>)
+            else
+                local:error(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs is already running or failed to be properly updated. See log for details.</span>)
         case "eso-update" return
-            if(local:update-eso()) then
-                local:info(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs are being updated from file.</span>)
+            if(local:update-obsportal($action)) then
+                local:info(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs are being updated from <a href="http://obs.jmmc.fr/">JMMC Obs portal</a>.</span>)
             else
-                local:error(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs is already running or failed to be properly updated. See log for details.</span>)
-        
+                local:error(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs is already running or failed to be properly updated. See log for details.</span>)
         case "eso-update-inc" return
-            if(local:update-eso-inc()) then
-                local:info(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs (incremental mode) are being updated from vizier B/ESO.</span>)
+            if(local:update-obsportal($action)) then
+                local:info(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs are being updated from <a href="http://obs.jmmc.fr/">JMMC Obs portal</a>.</span>)
             else
-                local:error(<span xmlns="http://www.w3.org/1999/xhtml">ESO observation logs (incremental mode) is already running or failed to be properly updated. See log for details.</span>)
-    
+                local:error(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs is already running or failed to be properly updated. See log for details.</span>)
+                
         case "chara-update" return
             if(local:update-chara()) then
                 local:info(<span xmlns="http://www.w3.org/1999/xhtml">CHARA observation logs are being updated from file.</span>)

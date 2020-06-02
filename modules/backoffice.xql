@@ -24,6 +24,8 @@ declare variable $backoffice:update-eso := "OiDB ESO updater";
 declare variable $backoffice:update-eso-inc := "OiDB ESO incremental updater";
 declare variable $backoffice:update-vega := "OiDB VEGA updater";
 declare variable $backoffice:update-chara := "OiDB CHARA updater";
+declare variable $backoffice:update-obsportal := "OiDB OBSPORTAL updater";
+
 
 (:~
  : Template helper to display the general status.
