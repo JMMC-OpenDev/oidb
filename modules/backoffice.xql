@@ -222,6 +222,23 @@ declare function backoffice:chara-status($node as node(), $model as map(*)) as x
         '-'
 };
 
+ (:~
+ : Template helper to display the status of the Obsportal update.
+ : 
+ : @param $node
+ : @param $model
+ : @return
+ :)
+declare function backoffice:obsportal-status($node as node(), $model as map(*)) as xs:string {
+    let $job := scheduler:get-scheduled-jobs()//scheduler:job[@name=$backoffice:update-obsportal]
+    return if ($job) then
+        (: currently executing :)
+        'Running...'
+    else
+        (: TODO :)
+        '-'
+};
+
 (:~
  : Template helper to display the submission log summary.
  : 
