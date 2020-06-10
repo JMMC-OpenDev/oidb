@@ -79,8 +79,11 @@ CREATE TABLE oidb (
     progid                  text,
     datapi                  text,
 
-    access_md5              VARCHAR(32)
+    access_md5              VARCHAR(32),
 
+    -- Limit duplicates on the same collection
+    -- was setup for obsportal incremental sync that can carry updates or repeated records to handle duplicates comming with date margin
+    CONSTRAINT dup_granule_same_col UNIQUE ( calib_level, obs_id, obs_collection, s_ra, s_dec, t_min, t_max, instrument_name, instrument_mode)
 );
 
 -- copy doc instead of using BIGSERIAL ( that does not work in my previous (bad?) tests )
