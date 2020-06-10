@@ -55,7 +55,7 @@ declare function collection:create($id as xs:string?, $collection as node()) as 
  : @return the <collection> element with the given ID or empty if not found
  :)
 declare function collection:retrieve($id as xs:string) as node()? {
-    collection($collection:collections-uri)/collection[@id eq $id]
+    collection(xs:anyURI($collection:collections-uri))/collection[@id eq $id]
 };
 
 (:~
