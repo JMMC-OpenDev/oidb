@@ -12,11 +12,11 @@ import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xq
 import module namespace scheduler="http://exist-db.org/xquery/scheduler";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
+import module namespace obsportal="http://apps.jmmc.fr/exist/apps/oidb/obsportal" at "obsportal.xqm";
 
 
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
 import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
-
 
 
 declare variable $backoffice:update-doc := "OiDB doc updater";
@@ -236,7 +236,7 @@ declare function backoffice:obsportal-status($node as node(), $model as map(*)) 
         'Running...'
     else
         (: TODO :)
-        '-'
+        ""||obsportal:get-last-mod-date(obsportal:get-collection-id("FIXME"))
 };
 
 (:~
@@ -249,8 +249,9 @@ declare function backoffice:obsportal-status($node as node(), $model as map(*)) 
  :)
 declare 
 %templates:default("maxSubmissions", 10)
-function backoffice:submission-status($node as node(), $model as map(*), $maxSubmissions as xs:integer?) as node()* {
-    log:report-submits($maxSubmissions)
+%templates:default("max-detail", 15)
+function backoffice:submission-status($node as node(), $model as map(*), $maxSubmissions as xs:integer?, $max-detail as xs:integer?) as node()* {
+    log:report-submits($maxSubmissions,  $max-detail)
 };
 
 (:~
