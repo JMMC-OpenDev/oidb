@@ -27,10 +27,16 @@
             </ul>
         </change>
         -->
+        <change xmlns="" version="1.11">
+            <h3>V1.11 release</h3>
+            <ul>
+              <li>Enhance  <a href="http://obs.jmmc.fr">obsportal</a> update using incremental mode.</li>
+            </ul>
+        </change>
         <change xmlns="" version="1.10">
             <h3>V1.10 release</h3>
             <ul>
-              <li>Enhance VLTI L0 update using <a href="http://obs.jmmc.fr">obsportal</a> as datasource.</li>
+              <li>Change VLTI L0 update using <a href="http://obs.jmmc.fr">obsportal</a> as datasource.</li>
             </ul>
         </change>
         <change xmlns="" version="1.9">
