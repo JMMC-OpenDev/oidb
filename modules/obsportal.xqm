@@ -4,6 +4,7 @@ xquery version "3.0";
  : This modules interacts with the Obsportal Web service to query and retrieve
  : data from their database.
  :)
+ 
 module namespace obsportal="http://apps.jmmc.fr/exist/apps/oidb/obsportal";
 
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "/db/apps/oidb/modules/collection.xqm";
@@ -165,7 +166,7 @@ declare function obsportal:upload($handle as xs:long, $collection as xs:string, 
     
     let $ret := for $o in $observations
     return try {
-        <id>{ granule:create(obsportal:metadata($o, $collection), $handle) }</id>
+        <id>{ granule:create-or-update(obsportal:metadata($o, $collection), $handle) }</id>
     } catch * {
         (
 	        <warning>Failed to convert observation log to granule (ObsPortal ID { $o/ID/text() }): { $err:description } { $err:value }</warning>,
@@ -181,56 +182,60 @@ declare function obsportal:get-last-mod-date($col-id as xs:string) as xs:dateTim
     let $collection := collection:retrieve($col-id)
     return 
         try {
-            xs:dateTime($collection//last-mod-date)    
+            xs:dateTime($collection//em[@id='last-mod-date'])    
         } catch * {
             ()
         }
 };
 
-declare function obsportal:set-last-mod-date($col-id as xs:string, $last-mod-date as xs:dateTime) {
-    let $collection := collection:retrieve($col-id)
-    let $log := util:log("info", "set '"|| $last-mod-date ||"' as last-mod-date of '"||$col-id||"' collection")
-    return 
-        update replace $collection//last-mod-date/text() with $last-mod-date
+declare function obsportal:get-last-exp_date_updated($observations as node()*) as xs:dateTime ? {
+    let $last-mod-date := (for $obs in $observations let $d := xs:dateTime(translate(normalize-space($obs/exp_date_updated), " ", "T")) order by $d descending return $d)[1]
+    return $last-mod-date
 };
 
-declare function obsportal:sync-last($subcollection as xs:string, $last-mod-date as xs:dateTime) as item()* {
-    let $log := util:log("info", "start sync from last-mod-date '"|| $last-mod-date ||"'")
-    (:    TODO   :)
-    let $log := util:log("info", "TODO")
-    return ()
+declare function obsportal:set-last-mod-date($col-id as xs:string, $last-mod-date as xs:dateTime?) {
+    if(exists($last-mod-date)) then 
+        let $collection := collection:retrieve($col-id)
+        let $log := util:log("info", "set '"|| $last-mod-date ||"' as last-mod-date of '"||$col-id||"' collection")
+        return 
+            update replace $collection//em[@id='last-mod-date']/text() with $last-mod-date
+    else
+        ()
 };
 
-declare function obsportal:sync-loop($col-id as xs:string) as item()* {
-    (: remove old data from db :)
-    let $delete := obsportal:delete-collection-records($handle, $col-id)
-    let $from-year := 2000
-    let $to-year := year-from-date(current-date())
-    let $log := util:log("info", "start sync without last-mod-date : loop from '"|| $from-year ||"' to '"|| $to-year ||"'")
-
-    let $loop-ids  := for $year in $from-year to $to-year
-                    let $from := xs:dateTime($year||"-01-01T00:00:00")
-                    let $to := $from + xs:yearMonthDuration('P1Y')
-                    let $log := util:log("info", "start sync loop for "|| $col-id || " on year '"|| $year ||"' : "|| string-join(($from, $to), "-"))
-                    let $new := obsportal:get-observations($from, $to)
-                    let $ids := sql-utils:within-transaction(obsportal:upload(?, $col-id, $new))
-                    (: TODO store last_mod_date:)
-(:                    let $ids := ():)
-                    return (<period>{string-join(($from, $to), "-")}</period>,$ids)
-    return 
-        $loop-ids
-};
 
 declare function obsportal:sync($collection as xs:string) as item()* {
-    (: convert obs collection to oidb one :)
+    (: convert obs collection name to oidb one :)
     let $collection := obsportal:get-collection-id($collection)
     (: try to get associated last_mod_date :)
     let $last-mod-date := obsportal:get-last-mod-date($collection)
-(:    let $last-mod-date := xs:dateTime("2020-04-03T20:20:20"):)
-    (: do full sync by year chunk if last_mod_date does not exist else do incremental update :)
+    let $from-date := if (exists($last-mod-date)) then $last-mod-date else xs:dateTime("2000-01-01T00:00:00")
     return 
-        if (exists($last-mod-date)) then
-            obsportal:sync-last($collection, $last-mod-date)
-        else
-            obsportal:sync-loop($collection)
+        obsportal:sync($collection, $from-date, current-dateTime())
 };
+
+declare %private function obsportal:sync($col-id as xs:string,  $from as xs:dateTime, $to as xs:dateTime) as item()* {
+    (: remove old data from db :)
+    (: let $delete := obsportal:delete-collection-records($handle, $col-id):)
+    if ($from > current-dateTime()) 
+    then
+        () (: ignore exp in the future for this collection :)
+    else if ($from > $to) 
+    then
+        util:log("error", "obsportal:sync() $from > $to")
+    else 
+        let $max-to := $from + xs:yearMonthDuration('P1Y')
+        return 
+            if($to > $max-to )
+            then 
+                (util:log("info", "timespan too long ("|| $from ||" - " || $to ||"): spliting requests"), obsportal:sync($col-id, $from, $max-to),obsportal:sync($col-id, $max-to, $to))
+            else 
+                let $log := util:log("info", "start sync  from '"|| $from ||"' to '"|| $to ||"'")
+                let $new := obsportal:get-observations($from, $to)
+                let $log := util:log("info", "with "|| count($new) ||" obs.")
+                let $ids := sql-utils:within-transaction(obsportal:upload(?, $col-id, $new))
+                let $set-last_mod_date :=  obsportal:set-last-mod-date($col-id, obsportal:get-last-exp_date_updated($new))
+                return 
+                    (<period>{string-join(($from, $to), "-")}</period>,$ids)[exists($new)]
+};
+
