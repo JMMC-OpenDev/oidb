@@ -83,6 +83,7 @@ CREATE TABLE oidb (
 
     -- Limit duplicates on the same collection
     -- was setup for obsportal incremental sync that can carry updates or repeated records to handle duplicates comming with date margin
+    -- we must put column considered as composit key so that changing attribute can be updated by UPSERT (e.g. release_date)
     CONSTRAINT dup_granule_same_col UNIQUE ( calib_level, obs_id, obs_collection, s_ra, s_dec, t_min, t_max, instrument_name, instrument_mode)
 );
 
