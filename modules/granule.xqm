@@ -15,17 +15,7 @@ import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateu
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 
 
-(:~
- : Format a SQL INSERT statement for saving granule.
- : 
- : The name of each node in input data is turned into a column name. The text 
- : of each node is taken as the new value for the field.
- : 
- : @param $data a sequence of nodes with row values
- : @return a SQL INSERT statement
- :)
-declare %private function granule:insert-statement($data as node()*) {
-    
+declare %private function granule:format-nodes-for-sql-statement($data as node()*) as node()*{
     (: filter out the empty fields and datalink(s): keep default value for them :)
     let $nodes := ( $data[./node() and not(name()='datalink')] )
     
@@ -50,18 +40,44 @@ declare %private function granule:insert-statement($data as node()*) {
                         if( $value ) then element {$elname} {number($value)} else ()
     
     let $nodes := ( $nodes[not(name() = $el-names)], $nb-els )
+    
+    return $nodes
+};
 
+(:~
+ : Format a SQL INSERT statement for saving granule.
+ : 
+ : The name of each node in input data is turned into a column name. The text 
+ : of each node is taken as the new value for the field.
+ : 
+ : @param $data a sequence of nodes with row values
+ : @param @try-update-on-conflict indicates to execute an update if "dup_granule_same_col" constraint of oidb db is thrown else keep simple insert statement.
+ : @return a SQL INSERT statement
+ :)
+declare %private function granule:insert-statement($data as node()*, $try-update-on-conflict as xs:boolean) {
+    let $nodes := granule:format-nodes-for-sql-statement($data)
+   
     let $columns := for $x in $nodes return name($x)
+    let $columns := "( " || string-join($columns, ', ') || " )"
     let $values  := for $x in $nodes return "'" || sql-utils:escape($x) || "'"
+    let $values  := "( " || string-join($values,  ', ') || " )"
+    
+    let $update-on-conflict := if($try-update-on-conflict) then 
+            "ON CONFLICT ON CONSTRAINT dup_granule_same_col DO UPDATE SET " || $columns || " = " || $values || ", subdate = DEFAULT"
+        else
+            ()
+            
     return
-        concat(
-            "INSERT INTO ",
+        string-join((
+            "INSERT INTO",
             $config:sql-table,
-            " ( " || string-join($columns, ', ') || " ) ",
+            $columns, 
             "VALUES",
-            " ( " || string-join($values,  ', ') || " ) ",
+            $values,
+            $update-on-conflict,
             (: Note: PostgreSQL extension :)
-            "RETURNING id")
+            "RETURNING id"
+            )," ")
 };
 
 
@@ -119,6 +135,7 @@ declare function granule:create($granule as node()) as xs:integer {
     granule:create($granule, sql:get-jndi-connection($config:jndi-name))
 };
 
+
 (:~
  : Save a new granule in the SQL database and return the ID of the row.
  : 
@@ -128,11 +145,28 @@ declare function granule:create($granule as node()) as xs:integer {
  : @error failed to save, unauthorized
  :)
 declare function granule:create($granule as node(), $handle as xs:long) as xs:integer {
+    granule:do-create($granule, false(), $handle)
+};
+
+declare function granule:create-or-update($granule as node(), $handle as xs:long) as xs:integer {
+    granule:do-create($granule, true(), $handle)
+};
+
+
+(:~
+ : Save a new granule in the SQL database and return the ID of the row.
+ : 
+ : @param $granule the granule contents
+ : @param $try-update-on-conflict indicates if sql should add update code on conflict or not
+ : @param $handle  the SQL database handle
+ : @return the id of the new granule
+ : @error failed to save, unauthorized
+ :)
+declare function granule:do-create($granule as node(), $try-update-on-conflict as xs:boolean, $handle as xs:long) as xs:integer {
     let $collection := xs:string($granule/obs_collection/text())
     let $check-collection := if(exists($collection)) then true() else error(xs:QName('granule:error'), 'obs_collection is not present in given granule.')
     let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into ' || $collection ||'.')
     
-
 (:  
  :  if coltype != 'public' then 
  :  1/    set data_rights to 'secure'
@@ -180,24 +214,25 @@ declare function granule:create($granule as node(), $handle as xs:long) as xs:in
                                 else
                                     ()
     
-    let $statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date))
-    let $result := sql-utils:execute($handle, $statement, false())
+    let $insert-statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date), $try-update-on-conflict)
+    
+    let $result := sql-utils:execute($handle, $insert-statement, false())
     let $id := if ($result/name() = "sql:exception") 
         then
             let $info :=  string-join( ("", "granule metadata where:", for $e in $granule/* return name($e)||"="||$e, ""), "&#10;")
             return 
-            error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $statement || $info)
+            error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $insert-statement || $info)
         else
             let $clear-cache :=  app:clear-cache()
             return
                 (: return the id of the inserted row :)
                 $result//sql:field[@name='id'][1]
     let $datalinks := for $datalink in $granule/datalink
-            let $statement := granule:insert-datalink-statement($id, $datalink/*)
-            let $result := sql-utils:execute($handle, $statement, false())
+            let $insert-statement := granule:insert-datalink-statement($id, $datalink/*)
+            let $result := sql-utils:execute($handle, $insert-statement, false())
             return 
                 if ($result/name() = "sql:exception") then
-                    error(xs:QName('granule:error'), 'Failed to upload datalink: ' || $result//sql:message/text() || ', query: ' || $statement)
+                    error(xs:QName('granule:error'), 'Failed to upload datalink: ' || $result//sql:message/text() || ', query: ' || $insert-statement)
                 else 
                     ()
     
