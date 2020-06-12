@@ -142,13 +142,18 @@ declare function log:visit()  {
 
 (:~
  : Add an event to the submits log.
+ : Record is ignored if success/id error warning are missing.
  : 
  : @param $request
  : @param $response
  : @return empty
  :)
 declare function log:submit($request as node()?, $response as node()) {
-    log:log($log:submits, <submit>{ $request, $response }</submit>)
+    if( $response//success//id | $response//error | $response//warning )
+    then
+        log:log($log:submits, <submit>{ $request, $response }</submit>)
+    else
+        util:log("info", "no response save for submit on request :" || serialize($request))
 };
 
 (:~
@@ -165,12 +170,13 @@ declare function log:submit($response as node()) {
     return log:submit($request, $response)
 };
 
-declare %private function log:report-submits($max as xs:integer, $successful as xs:boolean)as node()*{
+declare %private function log:report-submits($max-submits as xs:integer, $max-subitems as xs:integer)as node()*{
     let $thead := <tr><th>Date</th><th>#Stored granules</th><th>Method</th><th>Submit by</th></tr>
     let $nbCols := count($thead//th)
-    let $submits := if($successful) then doc($log:submits)//submit[.//success] else doc($log:submits)//submit[.//error or .//warning]
-    let $items := subsequence(reverse($submits),1,$max)
-    let $trs := for $item in $items
+(:    let $submits := if($successful) then doc($log:submits)//submit[.//success] else doc($log:submits)//submit[.//error or .//warning]:)
+    let $submits := doc($log:submits)//submit
+    let $items := subsequence(reverse($submits),1,$max-submits)
+    let $trs := for $item at $pos in $items
         let $time := data($item/@time)
         let $time := if($item//info) then  <span>{$time} <br/>({data($item//info)})</span> else $time 
         let $errors := count($item//error)
@@ -181,35 +187,35 @@ declare %private function log:report-submits($max as xs:integer, $successful as 
         let $granulesOk := count($item//id) + (xs:int($item//granuleOkCount),0)[1] 
         let $method := if($item//method) then data($item//method) else if($item//file) then "xml" else if ($item//urls) then "Oifits uploads" else "VizieR"
         return (
-            <tr class="{$class}"> <td>{$time}</td> <td>{$granulesOk} / {$errors} errors / {$warnings} warnings</td> <td>{$method}</td> <td>{$by}</td> </tr>,
-            if($success) then ()  else <tr class="{$class}"> <td colspan="{$nbCols}"> 
-            <ol>{for $e in $item//error return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}</ol>
+            <tr class="{$class}" data-toggle="collapse" data-target="#collapseExample{$pos}"> <td>{$time}&#160;{if($success) then () else <span class="glyphicon glyphicon-plus-sign"/>} </td> <td>{$granulesOk} / {$errors} errors / {$warnings} warnings</td> <td>{$method}</td> <td>{$by}</td> </tr>,
+            if($success) then ()  else <tr class="{$class}"> <td colspan="{$nbCols}">
+            <div class="collapse" id="collapseExample{$pos}"> 
+            <ol>
+                {for $e in subsequence($item//error, 1, $max-subitems) return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}
+            </ol>
+            {if (count($item//error) > $max-subitems) then <pre>Please have a look in the xml logs for more details ...</pre> else ()}        
             
             { 
                 let $unknown-targets := for $e in $item//warning let $v := substring-after($e, "target:") return if($v) then <a>{$v}</a> else ()
+                let $unknown-targets := string-join( for $e in $unknown-targets group by $v := $e/text()    return count($e) || " " ||$v ," , ") 
                 let $unknown-modes := for $e in $item//warning let $v := substring-after($e, "mode:") return if($v) then <a>{$v}</a> else ()
+                let $unknown-modes := string-join( for $e in $unknown-modes group by $v := $e/text()    return count($e) || " " ||$v ," , ")
+                
                 return
-                    <ul>
-                        <li>
-                            {
-                                let $str := string-join( for $e in $unknown-targets group by $v := $e/text()    return count($e) || " " ||$v ," , ") 
-                                return if ($str) then "Unknown targets : "|| $str else ()
-                            }
-                        </li>
-                        <li>
-                            {
-                                let $str := string-join( for $e in $unknown-modes group by $v := $e/text()    return count($e) || " " ||$v ," , ") 
-                                return if ($str) then "Unknown modes : "|| $str else ()
-                            }
-                        </li>
-                    </ul>
+                    ( 
+                        if ($unknown-targets) then <ul><li>Unknown targets : { $unknown-targets }</li></ul> else () ,
+                        if ($unknown-modes) then <ul><li>Unknown targets : { $unknown-modes }</li></ul> else ()
+                    )
             }
             
             <ol>
-                {for $e in $item//warning return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}</ol>
+                {for $e in subsequence($item//warning, 1, $max-subitems) return <li>{data($e)} {let $url := data($e/@url) return if($url) then <a href="{data($url)}">({data($url)})</a> else ()}</li>}
+            </ol>
+            {if (count($item//warning) > $max-subitems) then <pre>Please have a look in the xml logs for more details ...</pre> else ()}    
+            </div>
             </td> </tr>
         )
-    return (<h4>{if($successful) then "Successful" else "Failed"} submits ({count($items)} over {count($submits)})</h4>,<table class="table table-condensed">{$thead,$trs}</table>)
+    return (<h4>Showing ({count($items)} submits over {count($submits)})</h4>,<table class="table table-condensed">{$thead,$trs}</table>)
 };
 (:~
  : Generate a report on last recorded submissions
@@ -219,10 +225,9 @@ declare %private function log:report-submits($max as xs:integer, $successful as 
  : @param $max define the max number of record to report
  : @return ignore
  :)
-declare function log:report-submits($max as xs:integer)as node(){
+declare function log:report-submits($max-submits as xs:integer, $max-details as xs:integer)as node(){
     <div>
-        {log:report-submits($max, true())}
-        {log:report-submits($max, false())}
+        {log:report-submits($max-submits, $max-details)}
     </div>
 };
 
