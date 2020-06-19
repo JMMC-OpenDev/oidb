@@ -76,10 +76,11 @@ declare function obsportal:get-observations( $date_updated_from as xs:dateTime?,
     
     let $date-range := if(exists($date_updated_from) or exists($date_updated_to)) then string-join(($date_updated_from,$date_updated_to), "&amp;") else ()
     
-(:    let $votable-url := $obsportal:OBSPORTAL_URL||"?maxrec=10&amp;"||$date-range:)
     let $votable-url := $obsportal:OBSPORTAL_URL||"?"||$date-range
-    let $log := util:log("info", "votable url : " || $votable-url)
+
     let $votable := doc($votable-url)
+    let $log := util:log("info", "received votable from url : " || $votable-url)
+    
     return 
         obsportal:votable-observations($votable)
 };
@@ -95,13 +96,13 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
     for $observation in $observations
         return 
         let $calib_level := "0"
-        let $target-name := data($observation/target_name)
-        let $target-name := if (exists($target-name)) then $target-name else '-' (: WORKARROUND so target_name always present :)
-        let $obs_id := data($observation/exp_header_id)
+        let $target-name := normalize-space(data($observation/target_name))
+        let $target-name := if (string-length($target-name) > 0) then $target-name else '-' (: WORKARROUND so target_name always present :)
+        let $obs_id := data($observation/exp_id) (: WARNING stored obs_id is the one prepared by obsportal and not ESO compatible :)
         let $obs_creator_name := "jmmc-tech-group - Bourgès"
         let $obs_release_date := data($observation/exp_date_release)
         let $data_rights := "secure"
-        let $access_url := "http://archive.eso.org/wdb/wdb/eso/eso_archive_main/query?dp_id="||$observation/exp_header_id
+        let $access_url := "http://archive.eso.org/wdb/wdb/eso/eso_archive_main/query?dp_id="||$observation/exp_header_id (: use forwared original obs_id :)
         let $s_ra := data($observation/target_ra)
         let $s_dec := data($observation/target_dec)
         let $t_min := data($observation/exp_mjd_start)
@@ -152,7 +153,6 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
         } </metadata>
 };
 
-
 (:~
  : Push observation logs in the database.
  : 
@@ -161,17 +161,17 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
  : @return a list of the ids of the new granules
  :)
 declare function obsportal:upload($handle as xs:long, $collection as xs:string, $observations as node()*) as item()* {
-    let $log := util:log("info", "start of obsportal collection upload for "||count($observations)||" records")
     (: insert new granules in db :)
-    
-    let $ret := for $o in $observations
+    let $nb-observations := count($observations)
+    let $each := $nb-observations / 10
+    let $ret := for $o at $pos in $observations
     return try {
-        <id>{ granule:create-or-update(obsportal:metadata($o, $collection), $handle) }</id>
-    } catch * {
         (
-	        <warning>Failed to convert observation log to granule (ObsPortal ID { $o/ID/text() }): { $err:description } { $err:value }</warning>,
-            util:log("error", serialize(<warning>Failed to convert observation log to granule (ObsPortal ID { $o/exp_id/text() }): { $err:description } { $err:value }</warning>))
-	    )
+            if($pos mod $each = 1) then log("info", $pos || " sql insert done over "||$nb-observations||" records")
+            <id>{ granule:create-or-update(obsportal:metadata($o, $collection), $handle) }</id>
+        )
+    } catch * {
+        <warning>Failed to convert observation log to granule (ObsPortal ID { $o/exp_id/text() }): { $err:description } { $err:value }</warning>
     }
     
     let $log := util:log("info", "end of obsportal collection upload")
@@ -228,14 +228,23 @@ declare %private function obsportal:sync($col-id as xs:string,  $from as xs:date
         return 
             if($to > $max-to )
             then 
-                (util:log("info", "timespan too long ("|| $from ||" - " || $to ||"): spliting requests"), obsportal:sync($col-id, $from, $max-to),obsportal:sync($col-id, $max-to, $to))
+                (
+                    util:log("info", "timespan too long ("|| $from ||" - " || $to ||"): spliting requests"),
+                    obsportal:sync($col-id, $from, $max-to),
+                    obsportal:sync($col-id, $max-to, $to)
+                )
             else 
-                let $log := util:log("info", "start sync  from '"|| $from ||"' to '"|| $to ||"'")
                 let $new := obsportal:get-observations($from, $to)
-                let $log := util:log("info", "with "|| count($new) ||" obs.")
-                let $ids := sql-utils:within-transaction(obsportal:upload(?, $col-id, $new))
-                let $set-last_mod_date :=  obsportal:set-last-mod-date($col-id, obsportal:get-last-exp_date_updated($new))
+                
                 return 
-                    (<period>{string-join(($from, $to), "-")}</period>,$ids)[exists($new)]
+                    if(exists($new)) then 
+                        let $log := util:log("info", "start sync  from '"|| $from ||"' to '"|| $to ||"' with "|| count($new))
+                        let $ids := sql-utils:within-transaction(obsportal:upload(?, $col-id, $new))
+                        let $new-last_mod_date := obsportal:get-last-exp_date_updated($new)
+                        let $set-last_mod_date :=  obsportal:set-last-mod-date($col-id, $new-last_mod_date)
+                        return 
+                            (<period>{string-join(($from, $to), "-")}</period>,$ids)
+                    else
+                        ()
 };
 
