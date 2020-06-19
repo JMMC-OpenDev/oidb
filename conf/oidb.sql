@@ -81,10 +81,9 @@ CREATE TABLE oidb (
 
     access_md5              VARCHAR(32),
 
-    -- Limit duplicates on the same collection
-    -- was setup for obsportal incremental sync that can carry updates or repeated records to handle duplicates comming with date margin
-    -- we must put column considered as composit key so that changing attribute can be updated by UPSERT (e.g. release_date)
-    CONSTRAINT dup_granule_same_col UNIQUE ( calib_level, obs_id, obs_collection, s_ra, s_dec, t_min, t_max, instrument_name, instrument_mode)
+    -- Limit duplicates on the same collection for a given obs_id and offer UPSERT mode
+    -- was setup for obsportal incremental sync that can carry updates on past records
+    CONSTRAINT dup_granule_same_col UNIQUE ( obs_id, obs_collection)
 );
 
 -- copy doc instead of using BIGSERIAL ( that does not work in my previous (bad?) tests )
