@@ -167,8 +167,8 @@ declare function obsportal:upload($handle as xs:long, $collection as xs:string, 
     let $ret := for $o at $pos in $observations
     return try {
         (
-            if($pos mod $each = 1) then log("info", $pos || " sql insert done over "||$nb-observations||" records")
-            <id>{ granule:create-or-update(obsportal:metadata($o, $collection), $handle) }</id>
+            <id>{ granule:create-or-update(obsportal:metadata($o, $collection), $handle) }</id>,
+            if($pos mod $each = 1) then util:log("info", $pos || " sql insert done over "||$nb-observations||" records") else ()
         )
     } catch * {
         <warning>Failed to convert observation log to granule (ObsPortal ID { $o/exp_id/text() }): { $err:description } { $err:value }</warning>
