@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>beta</status><!-- one of alpha beta stable -->
+    <status>stable</status><!-- one of alpha beta stable -->
     <license/>
     <copyright>true</copyright>
     <type>application</type>
@@ -27,73 +27,28 @@
             </ul>
         </change>
         -->
-        <change xmlns="" version="1.11">
-            <h3>V1.11 release</h3>
+        <change xmlns="" version="2.0">
+            <h3>V2.0 release</h3>
             <ul>
-              <li>Enhance  <a href="http://obs.jmmc.fr">obsportal</a> update using incremental mode.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.10">
-            <h3>V1.10 release</h3>
-            <ul>
-              <li>Change VLTI L0 update using <a href="http://obs.jmmc.fr">obsportal</a> as datasource.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.9">
-            <h3>V1.9 release</h3>
-            <ul>
-              <li>Fix result order according default form values.</li>
-              <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over HTTP.</li>
-              <li type="dev"></li>
+              <li>ESO VLTI obs log harvesting (L0) on top of <a href="http://obs.jmmc.fr">obsportal</a> datasource using incremental mode.</li>
+              <li>Provide first basic support for private collection handled by <a href="//www.jmmc.fr/suv">SUV.</a></li>
+              <li>Fix uploaded filename to avoid some non reliable escaping (":" replaced by "_").</li>
+              <li>Highlight global download links in the result's table header top right corner.</li>
+              <li>Add first quickplots in the tooltip of oifits result lines if any (async update).</li>
+              <li>Display sibling granules in the granule's detail page.</li>
+              <li>Display list of instruments by collection in the collections page.</li>
+              <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over <a href="http://oidb.jmmc.fr">HTTP</a>.</li>
+              <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side (improvement still remains to ensure sync with L2 data).</li>
+              <li>Move ADQL query below the result table.</li>
+              <li>Improve default results's order using date.</li>
+              <li>Extend too short persistent login session duration to 7 days.</li>
+              <li type="bugfix" >Fix cache handling of tap requests.</li>
               <li type="bugfix">Fix permission issue during the OIFits upload.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.8">
-            <h3>V1.8 release</h3>
-            <ul>
-              <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side.</li>
+              <li type="dev">Updates to bump on eXistDB V5.2.</li>
               <li type="dev">Fix code to handle ESO's wdb output change.</li>
               <li type="dev">Add more logs on SQL side</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.7">
-            <h3>V1.7 release</h3>
-            <ul>
-                <li>Highlight global download link in the result's table header top right corner.</li>
-                <li>Move ADQL query below the result table.</li>
-                <li>Change default results's order using date.</li>
-                <li>Extend too short persistent login session duration to 7 days.</li>
-                <li>Add first quickplot in the tooltip of oifits result lines if any.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.6">
-            <h3>V1.6 release</h3>
-            <ul>
-                <li type="bugfix">Replace uncompatible code.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.5">
-            <h3>V1.5 release</h3>
-            <ul>
-                <li type="dev">Minor updates to bump on eXistDB V5.2.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.4">
-            <h3>V1.4 release</h3>
-            <ul>
-                <li>Handle private collection for <a href="//www.jmmc.fr/suv">SUV.</a></li>
-                <li>Fix uploaded filename to avoid some non reliable escaping (":" replaced by "_").</li>
-                <li type="bugfix" >Fix cache handling of tap requests.</li>
-                <li type="dev">Major updates required by new eXistDB V5.</li>
-            </ul>
-        </change>
-        <change xmlns="" version="1.3">
-            <h3>V1.3 release</h3>
-            <ul>
-                <li>ESO VLTI obs log harvesting (L0).</li>
-                <li>Display sibling granules in the granule's detail page.</li>
-                <li>Display list of instruments by collection in the collections page.</li>
-                <!-- robots.txt added -->
+              <!-- robots.txt added -->
+              <!-- try to use semver with 3 blocks -->
             </ul>
         </change>
         <change xmlns="" version="1.2">
