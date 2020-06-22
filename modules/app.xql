@@ -179,7 +179,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                         return <a href="{ app:adsbib-url($cell) }">{ data($cell) }</a>
                     case "em_min"
                     case "em_max"
-                        return app:format-wavelengths(number(data($cell)))
+                        return app:format-wavelengths(data($cell))
                     case "obs_collection"
                         return
                             let $obs-collection := data($cell)
@@ -191,12 +191,12 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                         return <a href="show.html?id={$cell}">{data($cell)}</a>
                     case "keywords"
                         return if(exists(data($cell)) and data($cell)!="") then
-                                <div class="bootstrap-tagsinput"> {
-                                    let $keywords := tokenize($cell, ";")
-                                    for $kw in $keywords
-                                        return <span class="tag label label-info">{ $kw }</span>
-                                }</div>
-                    else ''
+                            <div class="bootstrap-tagsinput"> {
+                                let $keywords := tokenize($cell, ";")
+                                for $kw in $keywords
+                                    return <span class="tag label label-info">{ $kw }</span>
+                            }</div>
+                            else ''
                     case "s_ra"
                         return jmmc-astro:to-hms($cell)
                     case "s_dec"
@@ -353,8 +353,8 @@ declare function app:format-collection-url($node as node(), $model as map(*), $k
  : @param $wl the wavelength in meters
  : @return the same wavelength in micrometers
  :)
-declare %private function app:format-wavelengths($wl as xs:double) {
-    format-number($wl * 1e6, ".00000000")
+declare %private function app:format-wavelengths($wl) {
+    <span title="{$wl} m">{ format-number(xs:double($wl) * 1e6, ".00000000")}</span>
 };
 
 (:~
@@ -364,7 +364,7 @@ declare %private function app:format-wavelengths($wl as xs:double) {
  : @return the date in a datetime format
  :)
 declare %private function app:format-mjd($mjd as xs:double) {
-    <span title="{$mjd}">{substring(string(jmmc-dateutil:MJDtoISO8601($mjd)),0,20)}</span>
+    <span title="{$mjd} mjd">{substring(string(jmmc-dateutil:MJDtoISO8601($mjd)),0,20)}</span>
 };
 
 (:~
