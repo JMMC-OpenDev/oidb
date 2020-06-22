@@ -407,28 +407,23 @@ declare function granule:delete($id as xs:integer, $handle as xs:long)  {
  : @param $handle the SQL database handle
  : @return true() if current user has access to granule for the mode
  :)
-declare function granule:has-access($id-or-granule as item(), $mode as xs:string, $handle as xs:long) {
-    let $granule :=
-        if ($id-or-granule instance of node()) then
-            $id-or-granule
-        else if ($id-or-granule instance of xs:integer) then
-            granule:retrieve($id-or-granule, $handle)
-        else
-            error(xs:QName('granule:error'), 'Bad granule id ' || $id-or-granule || '.')
-    return
-        if ($granule/obs_collection/node()) then
-            (: granule part of a collection: apply permissions from collection :)
-            let $collection := $granule/obs_collection/text()
-            return collection:has-access($collection, $mode)
-        (: authorize dba :)
-        (: FIXME stick with old API until fix for upstream bug #388 is released :)
-        else if (sm:is-dba(sm:id())) then
-            true()
-        (: authorize the application admins :)
-        (: FIXME use sm:id() instead when fix for upstream bug #388 is released :)
-        else if (sm:get-user-groups(sm:id()) = 'oidb') then
-            true()
-        else
-            (: TODO check datapi column and current user? store owner? :)
-            false()
+declare function granule:has-access($id-or-granule as item(), $mode as xs:string, $handle as xs:long) {    
+    if (app:user-admin()) then
+        true()
+    else
+        let $granule :=
+            if ($id-or-granule instance of node()) then
+                $id-or-granule
+            else if ($id-or-granule instance of xs:integer) then
+                granule:retrieve($id-or-granule, $handle)
+            else
+                error(xs:QName('granule:error'), 'Bad granule id ' || $id-or-granule || '.')
+        return
+            if ($granule/obs_collection/node()) then
+                (: granule part of a collection: apply permissions from collection :)
+                let $collection := $granule/obs_collection/text()
+                return collection:has-access($collection, $mode)
+            else
+                (: TODO check datapi column and current user? store owner? :)
+                false()
 };
