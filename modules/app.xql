@@ -26,6 +26,8 @@ import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
 import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
 import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
 
+declare namespace sm="http://exist-db.org/xquery/securitymanager";
+
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 (: Store main metadata to present in the search result table, granule summary, etc... :)
 declare variable $app:main-metadata := ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' );
@@ -47,10 +49,12 @@ declare function app:user-allowed() as xs:boolean {
  :)
 declare function app:user-admin() as xs:boolean {
     try{
-    request:get-attribute($app:domain || '.superuser')
-    or
-    (: allow offline developpement :)
-    exists ( ("guillaume.mella@","admin")[matches( request:get-attribute($app:domain || '.user') , .)] )
+        sm:id()//sm:group[.='oidb']
+        or
+        request:get-attribute($app:domain || '.superuser')
+        or
+        (: allow offline developpement :)
+        exists ( ("guillaume.mella@","admin")[matches( request:get-attribute($app:domain || '.user') , .)] )
     }catch *{
         false()
     }
