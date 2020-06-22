@@ -71,8 +71,8 @@ declare function obsportal:get-observations( $date_updated_from as xs:dateTime?,
     (: We have to add tzinfo to avoid a 500 crash :)
     let $tzinfo := "%2B00:00"
     
-    let $date_updated_from := if(exists($date_updated_from)) then "date_updated_from="||adjust-dateTime-to-timezone($date_updated_from, ())||$tzinfo else ()
-    let $date_updated_to := if(exists($date_updated_to)) then "date_updated_to="||adjust-dateTime-to-timezone($date_updated_to, ())||$tzinfo else ()
+    let $date_updated_from := if(exists($date_updated_from)) then "date_updated_from="||adjust-dateTime-to-timezone(tokenize($date_updated_from,"\.")[1], ())||$tzinfo else ()
+    let $date_updated_to := if(exists($date_updated_to)) then "date_updated_to="||adjust-dateTime-to-timezone(tokenize($date_updated_to,"\.")[1], ())||$tzinfo else ()
     
     let $date-range := if(exists($date_updated_from) or exists($date_updated_to)) then string-join(($date_updated_from,$date_updated_to), "&amp;") else ()
     
