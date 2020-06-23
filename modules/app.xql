@@ -1470,7 +1470,7 @@ function app:homepage-header($node as node(), $model as map(*)) as map(*) {
         'n_instruments' : count(app:instruments($node,$model)('instruments')),
         'n_data_pis'    : count($persons) + count($missings),
         'n_collections' : $count(( 'distinct', 'col=obs_collection' )),
-        'n_oifits'      : $count(( 'distinct', 'col=access_url' )) - 1,
+        'n_oifits'      : $count(( 'distinct', 'col=access_url', 'caliblevel=1,2,3' )) - 1,
         'n_granules'    : $count(( 'caliblevel=1,2,3' )),
         'n_obs_logs'    : $count(( 'caliblevel=0' ))
     }
