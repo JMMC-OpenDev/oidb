@@ -318,7 +318,7 @@ declare function app:fix-relative-url($url as xs:string) as xs:string {
 (:~
  : Format a cell for the obs_collection column.
  :
- : It builds an anchor element redirecting to the collection page.
+ : It builds an anchor element redirecting to the collection page. VizieR link is appent if relevant.
  :
  : @param $id the ID of the collection
  : @return an <a> element
@@ -339,9 +339,9 @@ declare function app:format-collection-url($id as xs:string) {
 (:~
  : Format a cell for the obs_collection column.
  :
- : It builds an anchor element redirecting to the collection page.
+ : It builds an anchor element redirecting to the collection page. VizieR link is appent if relevant.
  :
-  : @param $node
+ : @param $node
  : @param $model the current model
  : @param $key the entry name in model with collection id
  : @return an <a> element
@@ -349,6 +349,42 @@ declare function app:format-collection-url($id as xs:string) {
 declare function app:format-collection-url($node as node(), $model as map(*), $key as xs:string) {
     let $id := helpers:get($model, $key)
     return app:format-collection-url($id)
+};
+
+(:~
+ : Format a link to search data of given collection id.
+ :
+ : It builds an anchor element redirecting to the search page. VizieR link is appent if relevant.
+ :
+ : @param $node
+ : @param $model the current model
+ : @param $key the entry name in model with collection id
+ : @return an <a> element
+ :)
+declare function app:format-search-collection-url($node as node(), $model as map(*), $key as xs:string) {
+    let $id := helpers:get($model, $key)
+    return app:format-search-collection-url($id)
+};
+
+(:~
+ : Format a link to search data of given collection id.
+ :
+ : It builds an anchor element redirecting to the search page. VizieR link is appent if relevant.
+ :
+ : @param $id the ID of the collection
+ : @return an <a> element
+ :)
+declare function app:format-search-collection-url($id as xs:string) {
+    let $collection := collection("/db/apps/oidb-data/collections")/collection[@id eq $id]/name/text()
+    return (
+        element { "a" } {
+        attribute { "href" } { "search.html?collection=~" || encode-for-uri($id) },
+        if ($collection) then $collection else $id
+            },
+        if (starts-with($id, 'J/')) then
+            (",&#160;",<a href="{ app:vizcat-url($id) }">VizieR&#160;<span class="glyphicon glyphicon-new-window"></span></a>)
+        else ()
+    )
 };
 
 (:~
