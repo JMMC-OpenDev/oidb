@@ -911,7 +911,7 @@ function app:search($node as node(), $model as map(*),
         (: clean up pagination stuff, recovered later from function parameters :)
         let $params := adql:clear-pagination(adql:split-query-string())
 
-        return if (empty($params)) then map {}
+        return if (empty($params)) then map {'empty-search':'-'}
         else
         (: append default order param if not present  :)    
         let $params := ($params,("order="||$order)[not($params[starts-with(., "order=")])] )
