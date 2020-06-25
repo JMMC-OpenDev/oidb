@@ -1022,48 +1022,47 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
                 'cs_radius_unit' : $tokens[4]
             }
         else
-        (
-            (: observationdate=[<start>]..[<end>] :)
-            map {
-                'date_start'  : substring-before(request:get-parameter('observationdate', ''), '..'),
-                'date_end'    : substring-after(request:get-parameter('observationdate', ''), '..')
-            },
-            (: instrument=[!]<data> :)
-            map {
-                'instrument'  : request:get-parameter('instrument', '')
-            },
-            (: wavelengthband=<band>[,<band>]* :)
-            map {
-                'band'        : tokenize(request:get-parameter('wavelengthband', ''), ',')
-            },
-            (: collection=[!][~]<data> :)
-            map {
-                'collection'  : substring-after(request:get-parameter('collection', ''), '~')
-            },
-            (: datapi=[!][~]<data> :)
-            map {
-                'datapi'      : substring-after(request:get-parameter('datapi', ''), '~')
-            },
-            (: caliblevel=<level>[,<level>]* :)
-            map {
-                'reduction'   : tokenize(request:get-parameter('caliblevel', ''), ',')
-            },
-            (: public=yes|no|all :)
-            map {
-                'available'   : request:get-parameter('public', 'all')
-            },
-            (: --- ORDERING --- :)
-            let $order := request:get-parameter('order', '')[1]
-            let $desc := starts-with($order, '^')
-            return map {
-                'sortby'     : if($desc) then substring($order, 2) else $order,
-                'descending' : if($desc) then () else 'yes'
-            },
-            (: --- PAGINATION --- :)
-            map {
-                'perpage'    : request:get-parameter('perpage', '25')
-            }
-        )
+        (),
+        (: observationdate=[<start>]..[<end>] :)
+        map {
+            'date_start'  : substring-before(request:get-parameter('observationdate', ''), '..'),
+            'date_end'    : substring-after(request:get-parameter('observationdate', ''), '..')
+        },
+        (: instrument=[!]<data> :)
+        map {
+            'instrument'  : request:get-parameter('instrument', '')
+        },
+        (: wavelengthband=<band>[,<band>]* :)
+        map {
+            'band'        : tokenize(request:get-parameter('wavelengthband', ''), ',')
+        },
+        (: collection=[!][~]<data> :)
+        map {
+            'collection'  : substring-after(request:get-parameter('collection', ''), '~')
+        },
+        (: datapi=[!][~]<data> :)
+        map {
+            'datapi'      : substring-after(request:get-parameter('datapi', ''), '~')
+        },
+        (: caliblevel=<level>[,<level>]* :)
+        map {
+            'reduction'   : tokenize(request:get-parameter('caliblevel', ''), ',')
+        },
+        (: public=yes|no|all :)
+        map {
+            'available'   : request:get-parameter('public', 'all')
+        },
+        (: --- ORDERING --- :)
+        let $order := request:get-parameter('order', '')[1]
+        let $desc := starts-with($order, '^')
+        return map {
+            'sortby'     : if($desc) then substring($order, 2) else $order,
+            'descending' : if($desc) then () else 'yes'
+        },
+        (: --- PAGINATION --- :)
+        map {
+            'perpage'    : request:get-parameter('perpage', '25')
+        }
     ))
 };
 
