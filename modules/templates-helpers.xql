@@ -358,7 +358,7 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
                 element { node-name($node) } {
                     $node/@*,
                     for $node in $children
-                    return if ($node[local-name(.) = "option"] and ($node[@value = $value] or $node/string() = $value) and string-length($value)>0 ) then
+                    return if ($node[local-name(.) = "option"] and ($node[@value = $value] or $node/string() = $value) and string-length(string-join($value))>0 ) then
                             (: add the checked attribute to this element :)
                             element { node-name($node) } {
                                 $node/@*,
