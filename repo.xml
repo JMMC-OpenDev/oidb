@@ -27,6 +27,11 @@
             </ul>
         </change>
         -->
+        <!-- 
+        TODO:
+          - move aspro-conf from oidb-data to oidb
+          
+        -->
         <change xmlns="" version="2.0">
             <h3>V2.0 release</h3>
             <ul>
@@ -65,7 +70,6 @@
                 <li>Use abstract section of readme for catalog submissions instead of description.</li>
                 <li>Data Management Plan link put in the help menu.</li>
                 <li>Cache main requests to get faster responses.</li>
-                <!-- robots.txt added -->
             </ul>
         </change>
         <change xmlns="" version="1.0">
