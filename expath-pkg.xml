@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://expath.org/ns/pkg" spec="1.0" name="http://exist.jmmc.fr/apps/oidb" abbrev="oidb" version="2.0.2">
+<package xmlns="http://expath.org/ns/pkg" spec="1.0" name="http://exist.jmmc.fr/apps/oidb" abbrev="oidb" version="2.0.4">
     <title>OIData portal</title>
     <dependency processor="http://exist-db.org" semver-min="5.2.0"/>
     <dependency package="http://exist-db.org/apps/shared"/>
-    <dependency package="http://exist.jmmc.fr/jmmc-resources" semver-min="0.27"/>
+    <dependency package="http://exist.jmmc.fr/jmmc-resources" semver-min="0.28"/>
 </package>

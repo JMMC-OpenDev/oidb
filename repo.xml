@@ -32,7 +32,8 @@
           - move aspro-conf from oidb-data to oidb
           
         -->
-        <change xmlns="" version="2.0">
+        <change xmlns="" version="2.0.4">
+          <!-- 2.0.4 OiDBTAPServlet can use TAP_BASE_URL param -->
             <h3>V2.0 release</h3>
             <ul>
               <li>ESO VLTI obs log harvesting (L0) on top of <a href="http://obs.jmmc.fr">obsportal</a> datasource using incremental mode.</li>
