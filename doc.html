@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
     <div data-template="app:doc"/>
+    
+    <div vocab="ivo://ivoa.net/std/DALI-examples">
+        <h1>ADQL examples</h1>
+        <div resource="#example1" typeof="example" id="example1">
+            <h2 property="name">Get records of a collection given its id</h2>
+            <pre property="query">SELECT ALL  * FROM oidb AS t WHERE t.obs_collection LIKE '%3d64620d-a152-4e75-9bc4-c68735d293b1%' </pre>
+        </div>
+    </div>
+    
 </div>

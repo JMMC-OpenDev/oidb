@@ -30,6 +30,7 @@
         <!-- 
         TODO:
           - move aspro-conf from oidb-data to oidb
+          - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           
         -->
         <change xmlns="" version="2.0.4">
