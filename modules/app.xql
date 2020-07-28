@@ -6,6 +6,7 @@ import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
 import module namespace math="http://www.w3.org/2005/xpath-functions/math";
+import module namespace facilities="http://apps.jmmc.fr/exist/apps/oidb/facilities" at "facilities.xqm";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 import module namespace filters="http://apps.jmmc.fr/exist/apps/oidb/filters" at "filters.xqm";
@@ -647,43 +648,8 @@ declare
 function app:facilities($node as node(), $model as map(*)) as map(*) {
     let $data := tap:retrieve-or-execute($app:facilities-query)
     let $tap-facilities := distinct-values($data//*:TD/text())
-
-    let $aspro-table := <table class="table table-striped table-bordered table-hover">
-    <tr><th>Name</th><th>Description</th><th>X,Y,Z coordinates</th><th>Lat,Lon approximation </th><th>records in the database</th></tr>
-        {
-            for $facility in collection($config:aspro-conf-root)/*:interferometerSetting
-                let $name := data($facility/*:description/*:name)
-                let $desc := data($facility/*:description/*:description)
-                (: http://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates :)
-                let $coords := data($facility/*:description/*:position/*)
-                let $x := xs:double($coords[1])
-                let $y := xs:double($coords[2])
-                let $z := xs:double($coords[3])
-                let $r := xs:double(6371000)
-                let $lat := math:asin( $z div $r ) * 180 div math:pi()
-                let $lon := math:atan2($y, $x) * 180 div math:pi()
-
-                let $has-records := for $f in $tap-facilities return matches( $f, $name)
-                let $has-records := if( true() = $has-records) then <i class="glyphicon glyphicon-ok"/> else ()
-
-                where  not($name = ("DEMO", "Paranal", "Sutherland") )
-                return
-                    <tr>
-                        <th><a href="search.html?facility={$name}">{$name}</a></th><td>{$desc}</td><td>{string-join($coords,",")}</td><td>{$lat},{$lon} </td><td>{$has-records}</td>
-                    </tr>
-        }
-        {
-            let $aspro-facilities := distinct-values(data(collection($config:aspro-conf-root)/*:interferometerSetting/*:description/*:name))
-            for $facility in $tap-facilities
-                where  not( $facility = $aspro-facilities )
-                return
-                    <tr>
-                        <th><a href="search.html?facility={$facility}">{$facility}</a></th><td></td><td></td><td></td><td><i class="glyphicon glyphicon-ok"/></td>
-                    </tr>
-        }
-        </table>
-
-    return map { 'tap-facilities' : $tap-facilities , 'facilities' : $aspro-table }
+    let $facilities-table := facilities:table($tap-facilities)
+    return map { 'tap-facilities' : $tap-facilities , 'facilities' : $facilities-table }
 };
 
 declare variable $app:data-pis-query := adql:build-query(( 'col=datapi', 'distinct' ));

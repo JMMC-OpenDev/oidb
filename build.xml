@@ -25,8 +25,19 @@
         </replace>
     </target>
 
+    <!-- retrieve last aspro conf -->
+    <target name="dl-aspro-conf">
+      <delete dir="instruments" failonerror="false"/>
+      <mkdir dir="instruments"/>
+      <exec executable="svn">
+        <arg value="export"/>
+        <arg value="https://svn.jmmc.fr/jmmc-sw/ASPRO2/trunk/aspro-conf/src/main/resources/fr/jmmc/aspro/model"/>
+        <arg value="instruments/AsproConf"/>
+        </exec>
+    </target>
+
     <!-- Build a .XAR with custom config -->
-    <target name="xar" depends="config">
+    <target name="xar" depends="config,dl-aspro-conf">
         <mkdir dir="${build.dir}"/>
         <delete dir="${build.dir}" includes="*.xar"/>
 

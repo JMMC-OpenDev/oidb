@@ -33,7 +33,8 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           
         -->
-        <change xmlns="" version="2.0.4">
+        <change xmlns="" version="2.0.5">
+          <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->
           <!-- 2.0.4 OiDBTAPServlet can use TAP_BASE_URL param -->
             <h3>V2.0 release</h3>
             <ul>
@@ -44,11 +45,12 @@
               <li>Add first quickplots in the tooltip of oifits result lines if any (async update).</li>
               <li>Display sibling granules in the granule's detail page.</li>
               <li>Display list of instruments by collection in the collections page.</li>
-              <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over <a href="http://oidb.jmmc.fr">HTTP</a>.</li>
-              <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side (improvement still remains to ensure sync with L2 data).</li>
               <li>Move ADQL query below the result table.</li>
               <li>Improve default results's order using date.</li>
               <li>Extend too short persistent login session duration to 7 days.</li>
+              <li>Add hyperlinks for facilities.</li>
+              <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over <a href="http://oidb.jmmc.fr">HTTP</a>.</li>
+              <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side (improvement still remains to ensure sync with L2 data).</li>
               <li type="bugfix" >Fix cache handling of tap requests.</li>
               <li type="bugfix">Fix permission issue during the OIFits upload.</li>
               <li type="dev">Updates to bump on eXistDB V5.2.</li>
