@@ -94,13 +94,12 @@ declare function facilities:table($tap-facilities as xs:string*) {
         <facilities>
             {
                 for $lname in distinct-values(($tap-facilities, $facilities:aspro/*:description/*:name, $facilities:oidb//name)) 
-                group by $name := if (matches($lname,"\.")) then substring-after($lname,".") else if (matches($lname,"_")) then substring-before($lname,"_")else $lname 
-                order by $name 
-                
+                group by $name := upper-case(if (matches($lname,"\.")) then substring-after($lname,".") else if (matches($lname,"_")) then substring-before($lname,"_")else $lname) 
+                order by $name
                 let $coords := facilities:coords($name)
                 return 
                     <facility>
-                        { for $n in $lname return <name>{$n}</name> }
+                        { for $n in $lname order by $n return <name>{$n}</name> }
                         <description>{facilities:description($name)}</description>
                         <homepage>{facilities:homepage($name)}</homepage>
                         <coords>{$coords[1]}</coords>
@@ -117,7 +116,7 @@ declare function facilities:table($tap-facilities as xs:string*) {
                 let $names :=  for $name in $facility/name return (<a href="search.html?facility={$name}">{$name}</a>,<br/>)
                 let $desc := $facility/description/*
                 let $homepage := $facility/homepage
-                let $homepage := if ($homepage) then <a href="{$homepage}"><i class="glyphicon glyphicon-link"/></a> else ()
+                let $homepage := if (string-length($homepage)>0) then <a href="{$homepage}"><i class="glyphicon glyphicon-link"/></a> else ()
                 let $coords := data($facility/coords)
 (:                let $latlon := $facility/latlon/*:)
                 let $has-records := if( $facility/name=$tap-facilities) then <i class="glyphicon glyphicon-ok"/> else ()

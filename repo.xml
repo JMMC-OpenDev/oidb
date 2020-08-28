@@ -29,9 +29,8 @@
         -->
         <!-- 
         TODO:
-          - move aspro-conf from oidb-data to oidb
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
-          
+          - use obsportal records (L0) to retrieve datapis
         -->
         <change xmlns="" version="2.0.5">
           <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->
@@ -51,8 +50,11 @@
               <li>Add hyperlinks for facilities.</li>
               <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over <a href="http://oidb.jmmc.fr">HTTP</a>.</li>
               <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side (improvement still remains to ensure sync with L2 data).</li>
-              <li type="bugfix" >Fix cache handling of tap requests.</li>
+              <li>Improve facility page and provide pointer to most facility home pages.</li>
+              <li>Improve generated htaccess to provide creator credential instead of default admin value (used by PIONIER collection).</li>
+              <li type="bugfix">Fix cache handling of tap requests.</li>
               <li type="bugfix">Fix permission issue during the OIFits upload.</li>
+              <li type="bugfix">Fix download scripts (curl&amp;OIFitsExplorer) to filter L0 out.</li>
               <li type="dev">Updates to bump on eXistDB V5.2.</li>
               <li type="dev">Fix code to handle ESO's wdb output change.</li>
               <li type="dev">Add more logs on SQL side</li>

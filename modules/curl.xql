@@ -30,6 +30,7 @@ let $response :=
                                     adql:split-query-string()))),
                         (: select columns of interest :)
                         for $c in $columns return 'col=' || $c,
+                        'caliblevel=1,2,3', (: filter out L0 :)
                         'distinct'
                     )
                 )
@@ -48,14 +49,14 @@ let $response :=
                     '# $HOME/.netrc file with following template (see man curl / man netrc for more details) :',
                     '# machine <host.domain.net> login <myself> password <secret>',
                     '#',
-                    "# A contact is given for every private files",                    
+                    "# A contact is given for every private files if any",                    
                     '',
-                    let $fields := data($data//*:TABLE/*:FIELD/@name)
+                    let $fields           := data($data//*:TABLE/*:FIELD/@name)
                     let $access-url-idx   := index-of($fields, 'access_url')
                     let $data-rights-idx  := index-of($fields, 'data_rights')
                     let $obs-release-date := index-of($fields, 'obs_release_date')
                     let $obs-creator-name := index-of($fields, 'obs_creator_name')
-                    let $datapi := index-of($fields, 'datapi')
+                    let $datapi           := index-of($fields, 'datapi')
 
                     for $row in $data//*:TR
                     (: get only first url of the group and force it to be a string to avoid empty param :)
@@ -70,7 +71,7 @@ let $response :=
                         return if ($public) then 
                             ()
                         else
-                            '# Note: the following file is not public, contact ' || $row/*:TD[$obs-creator-name] || ' for availability',
+                            '# Note: the following file is not public, contact ' || $row/*:TD[$datapi] || ' or ' || $row/*:TD[$obs-creator-name] || ' for availability',
                         concat('url = ', $url-group),
                         'remote-name'
                     ))

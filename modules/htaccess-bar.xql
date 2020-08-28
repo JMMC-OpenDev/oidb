@@ -19,9 +19,8 @@ declare option output:media-type "text/plain";
 declare option output:omit-xml-declaration "yes";
 
 let $collection := request:get-parameter("obs_collection", "", true())
-let $admin-login := "pionier"
 let $query := adql:build-query((
-    'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date', 'col=datapi',
+    'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date', 'col=datapi', 'col=obs_creator_name',
     'collection=' || $collection,
     'public=no' ))
     
@@ -38,12 +37,14 @@ for $row at $pos in $rows//*:TR
     let $obs_release_date := $data[3]
     let $datapi := $data[4]
     let $email := data(doc($config:data-root||"/people/people.xml")//alias[.=$datapi]/@email)
-    where exists($email)
+    let $obs_creator-name := $data[5]
+    let $obs_creator-email := data(doc($config:data-root||"/people/people.xml")//alias[.=$obs_creator-name]/@email)
+    where exists($email) or exists($obs_creator-email)
     return
     <p>
 # {$pos} obs_release_date:{ $obs_release_date } data_right:{ $data_rights }  datapi:{$datapi}
 &lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;
-    Require user {string-join( ($admin-login, $datapi, $email), " ")}
+    Require user {string-join( ($obs_creator-email, $datapi, $email), " ")}
 &lt;/Files&gt;
 
     </p>
