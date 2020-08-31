@@ -171,6 +171,9 @@ $(function () {
             if (data.target_name)
                 // create links to SIMBAD
                 $dropdown.dropdownAppend(dropdownMenuitem('View in SIMBAD', 'globe', 'http://simbad.u-strasbg.fr/simbad/sim-id?Ident=' + encodeURIComponent(data.target_name)));
+            if (data.calib_level>0 && data.access_url)
+                // create link to oival
+                $dropdown.dropdownAppend(dropdownMenuitem('View in OIFits Validator', 'ok', 'http://oival.jmmc.fr/validate.xql?urls=' + data.access_url));
             if (data.bib_reference)
                 // create links to ADS
                 $dropdown.dropdownAppend(dropdownMenuitem('Paper at ADS', 'book', 'http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?' + encodeURIComponent(data.bib_reference)));
