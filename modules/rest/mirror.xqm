@@ -27,9 +27,6 @@ declare
     %rest:GET
     %rest:path("/oidb/mirror/granules")
 function mirror:access_urls() {
-(:    let $query := "SELECT access_url, obs_collection FROM oidb WHERE (NOT obs_collection='PIONIER' AND calib_level > 1)"
-      {app:granules(('caliblevel=1', "!obs_collection=PIONIER"))} TODO: FIX BUG which prevents the use of ! modifier
- : :)
     <granules>
         {app:granules(('caliblevel=1,2,3'))}
     </granules>
