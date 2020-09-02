@@ -32,7 +32,7 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.0.5">
+        <change xmlns="" version="2.0.7">
           <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->
           <!-- 2.0.4 OiDBTAPServlet can use TAP_BASE_URL param -->
             <h3>V2.0 release</h3>
@@ -40,14 +40,15 @@
               <li>ESO VLTI obs log harvesting (L0) on top of <a href="http://obs.jmmc.fr">obsportal</a> datasource using incremental mode.</li>
               <li>Provide first basic support for private collection handled by <a href="//www.jmmc.fr/suv">SUV.</a></li>
               <li>Fix uploaded filename to avoid some non reliable escaping (":" replaced by "_").</li>
-              <li>Highlight global download links in the result's table header top right corner.</li>
-              <li>Add first quickplots in the tooltip of oifits result lines if any (async update).</li>
+              <li>Enhance result's tabble display : highlight global download links in it's top right corner, add calibration level with different text styles per row.</li>
+              <li>Add first quickplots in the tooltip of oifits result lines if any (datalinks are generated and updated asynchronously).</li>
               <li>Display sibling granules in the granule's detail page.</li>
               <li>Display list of instruments by collection in the collections page.</li>
               <li>Move ADQL query below the result table.</li>
               <li>Improve default results's order using date.</li>
               <li>Extend too short persistent login session duration to 7 days.</li>
-              <li>Add hyperlinks for facilities.</li>
+              <li>Add hyperlinks for facilities and progids.</li>
+              <li>Add OIFits Validator link for L,1,2,3 data (so user can get details, e.g. primary header keywords...) .</li>
               <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over <a href="http://oidb.jmmc.fr">HTTP</a>.</li>
               <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side (improvement still remains to ensure sync with L2 data).</li>
               <li>Improve facility page and provide pointer to most facility home pages.</li>
