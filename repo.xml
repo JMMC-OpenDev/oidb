@@ -47,8 +47,9 @@
               <li>Move ADQL query below the result table.</li>
               <li>Improve default results's order using date.</li>
               <li>Extend too short persistent login session duration to 7 days.</li>
-              <li>Add hyperlinks for facilities and progids.</li>
-              <li>Add OIFits Validator link for L,1,2,3 data (so user can get details, e.g. primary header keywords...) .</li>
+              <li>Add hyperlinks for facilities and progids to search for.</li>
+              <li>Add external links onto ObsPortal for given program or obs ids.</li>
+              <li>Add OIFits Validator link for L,1,2,3 data (so user can get details, e.g. primary header keywords...).</li>
               <li>Accept SAMP over HTTPS connection on a limited recent browser list (chrome is ready, firefox still is working on this, safari does not work, others not tested). Else prefer SAMP over <a href="http://oidb.jmmc.fr">HTTP</a>.</li>
               <li>Clean and fix dynamic release_date computation according data_rights and associated collection's embargo period on OiDB side (improvement still remains to ensure sync with L2 data).</li>
               <li>Improve facility page and provide pointer to most facility home pages.</li>
