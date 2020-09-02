@@ -31,7 +31,7 @@ declare namespace sm="http://exist-db.org/xquery/securitymanager";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 (: Store main metadata to present in the search result table, granule summary, etc... :)
-declare variable $app:main-metadata := ( 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' );
+declare variable $app:main-metadata := ( 'calib_level', 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' );
 
 (: UCD (Unified Content Descriptor) description service :)
 declare variable $app:UCD_URL := "http://cdsws.u-strasbg.fr/axis/services/UCD?method=explain&amp;ucd=";
@@ -80,18 +80,19 @@ declare function app:user-name() as xs:string {
  : @return a sequence of 'data-' attributes
  :)
 declare %private function app:row-data($row as node()) {
-    let $data := ( 'id', 'target_name', 'bib_reference', 'access_url' )
+    let $data := ( 'id', 'target_name', 'bib_reference', 'access_url', 'calib_level' )
     for $x in $row/td[@colname=$data]
-    (: no data- attribute if cell is empty :)
-    where $x/text()
-    return attribute { 'data-' || $x/@colname } { $x/text() }
+        (: no data- attribute if cell is empty :)
+        where $x/text()
+        return attribute { 'data-' || $x/@colname } { $x/text() }
 };
 
 (:~
  : Iterate over each data row, updating the model for subsequent templating.
  :
  : It creates a new node for each row and template processes
- : each extending the model with the row data and urls.
+ : each extending the model with the row data and urls. 
+ : calib_level_LN class attribute alo is appended so we can change CSS.
  :
  : @note
  : This function differs from templates:each in that it adds row-specific data
@@ -107,6 +108,7 @@ declare function app:each-row($node as node(), $model as map(*)) as node()* {
         element { node-name($node) } {
             $node/@*,
             app:row-data($row),
+            attribute {'class'} { 'calib_level_' || $row/td[@colname='calib_level'] },
             templates:process($node/node(), map:merge(($model, map:entry('row', $row))))
         }
 };
@@ -171,11 +173,14 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                 switch ($cell/@colname)
                     case "access_url"
                         return
-                            let $access-url := data($cell)
-                            let $id := $row/td[@colname='id']
-                            let $data-rights := $row/td[@colname='data_rights']
-                            let $obs-release-date := $row/td[@colname='obs_release_date']
-                            return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'], $row/td[@colname='calib_level'])
+                            if (string-length($cell)>5) then 
+                                let $access-url := data($cell)
+                                let $id := $row/td[@colname='id']
+                                let $data-rights := $row/td[@colname='data_rights']
+                                let $obs-release-date := $row/td[@colname='obs_release_date']
+                                return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'], $row/td[@colname='calib_level'])
+                            else 
+                                translate(data($cell)," ","&#160;")
                     case "datapi"
                         return
                             let $id := $row/td[@colname='id']
@@ -214,6 +219,9 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                     case "nb_vis2"
                     case "nb_t3"
                         return if($cell = "" or data($cell) = -1) then '-' else data($cell)
+                        
+                    case "progid"
+                        return <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>
                     case "quality_level"
                         return if($cell = "") then "Unknown" else map:get($app:data-quality-levels, data($cell))
                     default
@@ -848,8 +856,9 @@ declare %private function app:data-stats($params as xs:string*) as node() {
     return <stats> {
         attribute { "nobservations" } { $count(adql:build-query(( $base-query, 'count=*' ))) },
         attribute { "nprivatefiles" } { $count(adql:build-query(( $base-query, 'count=*', 'public=no' ))) },
+        attribute { "nlogs" }  { $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=0')) || ') AS urls') },
         (: FIXME even worse... can you believe it? :)
-        attribute { "noifitsfiles" }  { $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url')) || ') AS urls') }
+        attribute { "noifitsfiles" }  { $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url','caliblevel=1,2,3')) || ') AS urls') }
     } </stats>
 };
 
@@ -907,10 +916,11 @@ function app:search($node as node(), $model as map(*),
                 'name'    : $name,
 (:                'ucd'     : $th/a/text(),:)
 (:                'ucd-url' : data($th/a/@href),:)
-                'description' : data($th/@description) || $unit,
+                'description' : $name || " : "|| data($th/@description) || $unit,
                 'label'   : switch ($name)
                     case "em_min" return "wlen_min"
                     case "em_max" return "wlen_max"
+                    case "calib_level" return "L"
                     default return $name
             }
 
