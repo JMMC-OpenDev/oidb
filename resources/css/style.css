@@ -62,3 +62,15 @@ input {
 {
    transform:  scale(1.1) rotate(-3deg);
 }
+
+
+/* calib_levels highlight table of result / search seleectors ... */
+.calib_level_0
+{
+    font-style: italic;
+}
+
+.calib_level_3
+{
+    font-weight: bold;
+}
