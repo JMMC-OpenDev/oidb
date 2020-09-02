@@ -1028,6 +1028,10 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         map {
             'available'   : request:get-parameter('public', 'all')
         },
+        (: progid=<data> :)
+        map {
+            'progid'   : request:get-parameter('progid', ())
+        },
         (: --- ORDERING --- :)
         let $order := request:get-parameter('order', '')[1]
         let $desc := starts-with($order, '^')
@@ -1092,6 +1096,7 @@ declare function app:serialize-query-string() as xs:string* {
                 )
 
             case "perpage"     return "perpage=" || $value
+            case "progid"     return "progid=" || $value
 
             default            return ()
     )
@@ -1193,7 +1198,7 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
                 <table class="table table-striped table-bordered table-hover">
                 {
                     let $row := ($granule//tr[td], $granule)[1] (: use tr if votable is provided else the given node is supposed to be a tr :)
-                    let $columns := ($app:main-metadata , "obs_creator_name", "quality_level", "obs_collection")
+                    let $columns := ($app:main-metadata , "obs_creator_name", "quality_level", "obs_collection", "progid")
                     return app:tr-cells($row, $columns)
                 }
                 </table>
@@ -1347,21 +1352,43 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     let $facility-name := string($granule//td[@colname='facility_name'])
 
     let $prog_id := string($granule//td[@colname='progid'])
-    (: add a fallback using obs_id to retrieve PIONIER collection's granules :)
-    (: would be good to change the db content, isn't it ? :)
-    let $prog_id := if ($prog_id!='') then $prog_id else string($granule//td[@colname='obs_id'])
-
     let $data_rights := $granule//td[@colname='data_rights']
     let $release_date := $granule//td[@colname='obs_release_date']
+    let $obs_collection := string($granule//td[@colname='obs_collection'])
+    let $calib_level := string($granule//td[@colname='calib_level'])
+    
+    
 
     let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
 
     let $ext-res := if($facility-name="VLTI" and $prog_id!='') then
-        let $url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($prog_id)
+        let $eso-url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($prog_id)
+        let $obs-url := $config:obsportal-url||"search?program_id="||encode-for-uri($prog_id)
         return
-            <a href="{$url}">Jump to ESO archive for progid <em>{$prog_id}</em></a>
+            (<a href="{$eso-url}">Details progid <em>{$prog_id}</em> on ESO archive</a>,
+            <a href="{$obs-url}">Details progid <em>{$prog_id}</em> on JMMC ObsPortal</a>)
         else
             ()
+            
+    let $ext-res := if ( $obs_collection = 'eso_vlti_import' )
+        then 
+        let $obs_id := string($granule//td[@colname='obs_id'])
+        let $obs-url := $config:obsportal-url||"detail/exposure/"||encode-for-uri($obs_id)
+        return 
+            ($ext-res,
+            <a href="{$obs-url}">Details exposure <em>{$obs_id}</em> on JMMC ObsPortal</a>)
+        else
+            $ext-res
+    
+    let $ext-res := if ( $public and number($calib_level)>0 )
+        then 
+        let $access_url := $granule//td[@colname='access_url']
+        let $oival-url := $config:oival-url||"validate.xql?urls="||encode-for-uri($access_url)
+        return 
+            ($ext-res,
+            <a href="{$oival-url}">Check or display content in OIFitsValidator</a>)
+        else
+            $ext-res
 
     let $datalink-res :=
         let $datalink-vot := app:transform-votable( datalink:datalink($granule_id) )
