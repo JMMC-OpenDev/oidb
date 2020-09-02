@@ -61,5 +61,6 @@
             </mappedresources>
         </zip>
         <delete file="${build.dir}/config.xqm" />
+        <delete dir="instruments"/>
     </target>
 </project>
