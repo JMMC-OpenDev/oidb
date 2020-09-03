@@ -36,6 +36,12 @@ declare variable $config:data-root := $config:app-root || "-data";
  :)
 declare variable $config:aspro-conf-root := $config:data-root ||"/instruments/AsproConf/";
 
+(:~
+ : The base urls of jmmc services.
+ :)
+declare variable $config:obsportal-url := "http://obs.jmmc.fr/";
+declare variable $config:oival-url := "http://oival.jmmc.fr/";
+
 
 declare variable $config:repo-descriptor := doc(concat($config:app-root, "/repo.xml"))/repo:meta;
 
