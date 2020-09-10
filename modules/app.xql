@@ -84,7 +84,7 @@ declare %private function app:row-data($row as node()) {
     for $x in $row/td[@colname=$data]
         (: no data- attribute if cell is empty :)
         where $x/text()
-        return attribute { 'data-' || $x/@colname } { $x/text() }
+        return attribute { 'data-' || $x/@colname } { if($x/@colname = 'access_url') then data(app:format-access-url($row/td[@colname='id'], $x, (), (), (), (), ())/@href) else $x/text() }
 };
 
 (:~
@@ -181,6 +181,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                                 let $obs-release-date := $row/td[@colname='obs_release_date']
                                 return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'], $row/td[@colname='calib_level'])
                             else 
+                                
                                 translate(data($cell)," ","&#160;")
                     case "datapi"
                         return
@@ -288,7 +289,7 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
     let $contact := serialize($contact)
     return
         element { "a" } {
-            attribute { "href" } { if (exists($id)) then req:scheme() || "://" || req:hostname() || "get-data.html?id=" || $id else $url },
+            attribute { "href" } { if (exists($id)) then request:get-scheme() || "://" || request:get-server-name() || "/get-data.html?id=" || $id else $url },
             if (not($calib_level < 1) and string-length($url) > 3 and ($public or $creator_name = '')) then
                 let $dfpu := datalink:datalink-first-png-url($id)
                 let $img := if (exists($dfpu)) then serialize(<img src="{ $dfpu }" width="400%"/>) else ()
@@ -1023,7 +1024,7 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         map {
             'available'   : request:get-parameter('public', 'all')
         },
-        (: progid=<data> :)
+        (: progid=.... :)
         map {
             'progid'   : request:get-parameter('progid', ())
         },
@@ -1345,8 +1346,10 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     let $granule := map:get($model, $key)
     let $granule_id := xs:integer($granule//td[@colname='id'])
     let $facility-name := string($granule//td[@colname='facility_name'])
+    
 
     let $prog_id := string($granule//td[@colname='progid'])
+    
     let $data_rights := $granule//td[@colname='data_rights']
     let $release_date := $granule//td[@colname='obs_release_date']
     let $obs_collection := string($granule//td[@colname='obs_collection'])
