@@ -173,6 +173,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                 switch ($cell/@colname)
                     case "access_url"
                         return
+                            (: filter out text values that are not urls:)
                             if (string-length($cell)>5) then 
                                 let $access-url := data($cell)
                                 let $id := $row/td[@colname='id']
@@ -281,32 +282,26 @@ declare function app:public-status($data_rights as xs:string?, $obs_release_date
  :)
 declare %private function app:format-access-url($id as xs:string?, $url as xs:string, $data_rights as xs:string?, $release_date as xs:string?, $creator_name as xs:string?, $datapi as xs:string?, $calib_level as xs:integer ?) {
     let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
-    let $c := if($creator_name) then <li>{$creator_name||" (data creator)"}</li> else ()
-    let $d := if($datapi) then <li>{$datapi||" (data PI)"}</li> else ()
-    let $contact := <span><b>Contact:</b><ul>{$c, $d}</ul></span>
+    let $c := if ($creator_name) then <li>{ $creator_name || " (data creator)" }</li> else ()
+    let $d := if ($datapi) then <li>{ $datapi || " (data PI)" }</li> else ()
+    let $contact := <span><b>Contact:</b><ul>{ $c, $d }</ul></span>
     let $contact := serialize($contact)
     return
-        element {"a"} {
-        attribute { "href" } { if(exists($id)) then "get-data.html?id="||$id else $url },
-        if ( not ( $calib_level < 1 ) and string-length($url)>3 and ( $public or $creator_name = '' )) then
-            
-            let $dfpu := datalink:datalink-first-png-url($id)
-            let $img     := if(exists($dfpu)) then serialize(<img src="{$dfpu}" width="400%"/>) else ()
-            return
-            (
-                attribute { "rel" }                 { "tooltip" },
-(:                attribute { "data-placement"}       { "right" },:)
-                attribute { "data-original-title" } { "&lt;div&gt;"||$contact||$img||"&lt;/div&gt;" },
-                attribute { "data-html" } { "true" }
-            )
-          else
-            (
-                attribute { "rel" }                 { "tooltip" },
-                attribute { "data-original-title" } { $contact },
-                attribute { "data-html" } { "true" }
-            ),
-         tokenize($url, "/")[last()] ! xmldb:decode(.) ,
-         if ($public) then () else <i class="glyphicon glyphicon-lock"/>
+        element { "a" } {
+            attribute { "href" } { if (exists($id)) then req:scheme() || "://" || req:hostname() || "get-data.html?id=" || $id else $url },
+            if (not($calib_level < 1) and string-length($url) > 3 and ($public or $creator_name = '')) then
+                let $dfpu := datalink:datalink-first-png-url($id)
+                let $img := if (exists($dfpu)) then serialize(<img src="{ $dfpu }" width="400%"/>) else ()
+                return
+                    (attribute { "rel" } { "tooltip" }, (: attribute { "data-placement"}       { "right" }, :)
+                    attribute { "data-original-title" } { "&lt;div&gt;" || $contact || $img || "&lt;/div&gt;" },
+                    attribute { "data-html" } { "true" })
+            else
+                (attribute { "rel" } { "tooltip" }, attribute { "data-original-title" } { $contact },
+                attribute { "data-html" } { "true" })
+            ,
+            tokenize($url, "/")[last()] ! xmldb:decode(.),
+            if ($public) then () else <i class="glyphicon glyphicon-lock"/>
         }
 };
 
