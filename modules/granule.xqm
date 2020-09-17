@@ -10,9 +10,12 @@ import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "
 import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xqm";
+import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "login.xqm";
+
 
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
+import module namespace jmmc-eso = "http://exist.jmmc.fr/jmmc-resources/eso";
 
 
 declare %private function granule:format-nodes-for-sql-statement($data as node()*) as node()*{
@@ -191,6 +194,7 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
     let $obs_release_date :=    if( $granule/obs_release_date ) then
                                     () (: keep verbatim metadata  :)
                                 else if( ($granule/data_rights, $data_rights)="secure" ) then
+                                    (: FIXME try to get release_date from L0 or fall back to t_max :)
                                     <obs_release_date>
                                         {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
                                     </obs_release_date>
@@ -213,8 +217,15 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
                                             ()
                                 else
                                     ()
+                                    
+    let $datapi := if (exists($granule/datapi/text())) then () else
+        let $progid := $granule/progid/text()
+        (: assume that we are on a eso case with a given progid :)
+        let $pi := if($progid) then jmmc-eso:get-pi-from-progid($progid) else login:user-name()
+        return if($pi) then element {"datapi"} {$pi} else ()
+                                    
     
-    let $insert-statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date), $try-update-on-conflict)
+    let $insert-statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date, $datapi), $try-update-on-conflict)
     
     let $result := sql-utils:execute($handle, $insert-statement, false())
     let $id := if ($result/name() = "sql:exception") 

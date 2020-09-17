@@ -57,31 +57,6 @@ function granule:put-granule($id as xs:integer, $granule-doc as document-node())
 };
 
 (:~
- : Sanitise the given granule.
- : TODO move this code to gran-create
- : <ul>
- :    <li>ESO case : if datapi is not present and obs_id is provided, retrieve PI from ESO archive and add new datapi element</li>    
- :    <li>TODO handle other rules if any</li>
- : </ul>
- :
- : @param $granule a XML granule description
- : @return the sanitysed granule copy of the given one
- :)
-declare %private function granule:sanitize($granule as node()) as node() {
-    let $datapi := $granule/datapi/text()
-    let $progid := $granule/obs_id/text()
-    (: assume that we are on a eso case with a given progid :)
-    let $pi := if(empty($datapi) and $progid) then jmmc-eso:get-pi-from-progid($progid) else ()
-    
-    (: FIXME add here the current user as data-pi   :)
-    
-    return element {name($granule)} {
-        for $e in $granule/* return $e,
-        if($pi) then element {"datapi"} {$pi} else ()
-    }
-};
-
-(:~
  : Push one or more XML granules into the database.
  : 
  : The set of granules is passed as an XML document either as data in the
@@ -108,7 +83,7 @@ function granule:save-granules($granules as document-node()?) {
                 sql-utils:within-transaction(
                     function($handle as xs:long) as element(id)* {
                         for $granule in $granules//granule
-                        let $id := gran:create(granule:sanitize($granule), $handle)
+                        let $id := gran:create($granule, $handle)
                         return <id>{ $id }</id>
                     }),
                     <success>Successfully uploaded {count($granules//granule)} granule(s)</success>
