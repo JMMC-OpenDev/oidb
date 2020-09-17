@@ -32,7 +32,7 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.0.7">
+        <change xmlns="" version="2.0.8">
           <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->
           <!-- 2.0.4 OiDBTAPServlet can use TAP_BASE_URL param -->
             <h3>V2.0 release</h3>
@@ -42,7 +42,7 @@
               <li>Fix uploaded filename to avoid some non reliable escaping (":" replaced by "_").</li>
               <li>Enhance result's tabble display : highlight global download links in it's top right corner, add calibration level with different text styles per row.</li>
               <li>Add first quickplots in the tooltip of oifits result lines if any (datalinks are generated and updated asynchronously).</li>
-              <li>Display sibling granules in the granule's detail page.</li>
+              <li>Display sibling granules and ancillary records in the detail page.</li>
               <li>Display list of instruments by collection in the collections page.</li>
               <li>Move ADQL query below the result table.</li>
               <li>Improve default results's order using date.</li>
