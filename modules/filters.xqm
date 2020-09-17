@@ -107,6 +107,17 @@ declare function filters:progid($params as xs:string) {
     filters:like-text($params, 'progid')
 };
 
+(:~
+ : Format an ADQL condition for matching/not matching a obs_id
+ : name.
+ : 
+ : @param $params the pattern for the facility name
+ : @return an ADQL condition or ()
+ :)
+declare function filters:obs_id($params as xs:string) {
+    filters:like-text($params, 'obs_id')
+};
+
 
 (:~
  : Format an ADQL condition matching rows with calibration levels. 

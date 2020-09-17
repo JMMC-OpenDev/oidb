@@ -221,9 +221,10 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                     case "nb_vis2"
                     case "nb_t3"
                         return if($cell = "" or data($cell) = -1) then '-' else data($cell)
-                        
                     case "progid"
-                        return <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>
+                        return <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>    
+                    case "obs_id"
+                        return <a href="search.html?obs_id={data($cell)}">{translate(data($cell)," ","&#160;")}</a>
                     case "quality_level"
                         return if($cell = "") then "Unknown" else map:get($app:data-quality-levels, data($cell))
                     default
@@ -285,7 +286,8 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
     let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
     let $c := if ($creator_name) then <li>{ $creator_name || " (data creator)" }</li> else ()
     let $d := if ($datapi) then <li>{ $datapi || " (data PI)" }</li> else ()
-    let $contact := <span><b>Contact:</b><ul>{ $c, $d }</ul></span>
+    let $r := if ($release_date) then <li>Release date: <b>{$release_date}</b></li> else ()
+    let $contact := <span><b>Contact:</b><ul>{ $c, $d, $r }</ul></span>
     let $contact := serialize($contact)
     return
         element { "a" } {
@@ -1028,6 +1030,10 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         map {
             'progid'   : request:get-parameter('progid', ())
         },
+        (: obs_id=.... :)
+        map {
+            'obs_id'   : request:get-parameter('obs_id', ())
+        },
         (: --- ORDERING --- :)
         let $order := request:get-parameter('order', '')[1]
         let $desc := starts-with($order, '^')
@@ -1092,8 +1098,8 @@ declare function app:serialize-query-string() as xs:string* {
                 )
 
             case "perpage"     return "perpage=" || $value
-            case "progid"     return "progid=" || $value
-
+            case "progid"      return "progid=" || $value
+            case "obs_id"      return "obs_id=" || $value
             default            return ()
     )
 };
