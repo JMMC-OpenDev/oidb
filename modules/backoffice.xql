@@ -366,7 +366,7 @@ declare function backoffice:check-permissions($target as xs:string)  {
         return
         <span>Permissions OK</span>
     } catch * {
-        <span>Error checking permissions : please ask admin to run backoffice:check-permissions("{$target}")</span>
+        <span>Error checking permissions : please ask admin to run backoffice:check-permissions("{$target}") / {string-join(($err:code, $err:description, $err:value), ", ")}</span>
     }
 };
 

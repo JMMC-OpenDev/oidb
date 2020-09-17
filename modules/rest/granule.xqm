@@ -99,7 +99,7 @@ function granule:save-granules($granules as document-node()?) {
                 <error>Failed to parse granule file: { $err:description } { $err:value }.</error>
             } catch * {
                 response:set-status-code(500), (: Internal Server Error :)
-                <error>{ $err:description } { $err:value }</error>
+                <error>{ $err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" }  </error>
             }
         } </response>
     return ( log:submit($response), $response )
