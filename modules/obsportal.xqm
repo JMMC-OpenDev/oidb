@@ -212,6 +212,12 @@ declare function obsportal:sync($collection as xs:string) as item()* {
     let $from-date := if (exists($last-mod-date)) then $last-mod-date else xs:dateTime("2000-01-01T00:00:00")
     return 
         obsportal:sync($collection, $from-date, current-dateTime())
+        
+    (: TODO if we get new records, perform a global update  ? :)
+    (: If required, do remove private collection or select only automatic ones :)
+    (: UPDATE oidb as granule SET obs_release_date = obslog.obs_release_date FROM oidb AS obslog WHERE granule.obs_id=SPLIT_PART(obslog.obs_id,'_',1) AND granule.progid = obslog.progid AND granule.calib_level>0 AND obslog.calib_level=0 ;:)
+        
+        
 };
 
 declare %private function obsportal:sync($col-id as xs:string,  $from as xs:dateTime, $to as xs:dateTime) as item()* {
