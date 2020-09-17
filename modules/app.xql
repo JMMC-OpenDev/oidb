@@ -853,10 +853,12 @@ declare %private function app:data-stats($params as xs:string*) as node() {
     (: FIXME 3 requests... nasty, nasty :)
     return <stats> {
         attribute { "nobservations" } { $count(adql:build-query(( $base-query, 'count=*' ))) },
-        attribute { "nprivatefiles" } { $count(adql:build-query(( $base-query, 'count=*', 'public=no' ))) },
+        let $nprivatefiles := $count(adql:build-query(( $base-query, 'count=*', 'caliblevel=1,2,3', 'public=no' ))) return 
+        if ( $nprivatefiles > 0) then attribute { "nprivatefiles" } { $nprivatefiles } else (),
         attribute { "nlogs" }  { $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=0')) || ') AS urls') },
         (: FIXME even worse... can you believe it? :)
-        attribute { "noifitsfiles" }  { $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url','caliblevel=1,2,3')) || ') AS urls') }
+        let $noifitsfiles :=  $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'distinct', 'col=access_url','caliblevel=1,2,3')) || ') AS urls') return
+            if ($noifitsfiles > 0) then attribute { "noifitsfiles" }  { $noifitsfiles } else ()
     } </stats>
 };
 
@@ -898,7 +900,7 @@ function app:search($node as node(), $model as map(*),
         let $data := app:transform-votable($votable)
 
         (: default columns to display :)
-        let $column-names := if($all) then
+        let $column-names := if(exists($all)) then
                 $data//th/@name/string()
             else
                 $app:main-metadata
@@ -1154,8 +1156,10 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                 <strong>No granule found with id={$id}</strong>
             </div>
         else
+            let $objtype := if ( $data//td[@colname="calib_level"][1] >=1 ) then "Granule" else "Observation log"
+            return 
             <div>
-                <h1> Granule {$data//td[@colname='id']/text()}</h1>
+                <h1> {$objtype}&#160;{$data//td[@colname='id']/text()}</h1>
                 {()(: app:show-granule-summary($node,  map {'granule' : app:granules($query) }, "granule") :)}
                 <div class="row">
                     <div class="col-md-6">
@@ -1220,19 +1224,29 @@ declare function app:show-granule-siblings($node as node(), $model as map(*), $k
     let $granule := map:get($model, $key)
 
 
-    let $query := "SELECT id FROM " || $config:sql-table || " AS t WHERE t.access_url='" || $granule//td[@colname='access_url'] || "'"
+    let $query := "SELECT target_name, id, obs_id, t_min FROM " || $config:sql-table || " AS t WHERE t.access_url='" || $granule//td[@colname='access_url'] || "'"
     (: send query by TAP :)
     let $votable := tap:execute($query)
     let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
+    let $log := util:log("info", serialize($data))
     let $nb-granules := count($data//tr[td])
     where $nb-granules >= 2
     return
         <div id="external_resources">
             <h2>Granules in the same OIFITS</h2>
             <table class="table table-striped table-bordered table-hover">
+                <tr>
+                {
+                    for $th at $i in $data//th[@name]
+                        let $td := $data//td[position()=index-of($data//th, $th)]
+                        let $tr := $td/..
+                        let $tt := data($th/@description)
+                        let $tt := if($th/@unit) then $tt || " co[" || $th/@unit || "]" else $tt
+                        return  <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th>
+                }</tr>
                 {
                     for $row in $data//tr[td] return
-                    <tr>{app:td-cell($row//td, $row)}</tr>
+                    <tr>{for $td in $row//td return app:td-cell($td, $row)}</tr>
                 }
             </table>
         </div>
