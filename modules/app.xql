@@ -1172,7 +1172,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     </div>
                 </div>
 
-                <h2><i class="glyphicon glyphicon-align-justify"/> Table of metadata for granule {$data//td[@colname='id']/text()}</h2>
+                <h2><i class="glyphicon glyphicon-align-justify"/>&#160;{$objtype}'s table of metadata <small>id={$data//td[@colname='id']/text()}</small></h2>
 
                 <table class="table table-striped table-bordered table-hover table-condensed">
                 <!-- <caption> Details for { $id } </caption> -->
@@ -1228,7 +1228,6 @@ declare function app:show-granule-siblings($node as node(), $model as map(*), $k
     (: send query by TAP :)
     let $votable := tap:execute($query)
     let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
-    let $log := util:log("info", serialize($data))
     let $nb-granules := count($data//tr[td])
     where $nb-granules >= 2
     return
@@ -1369,15 +1368,53 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     
 
     let $prog_id := string($granule//td[@colname='progid'])
+    let $obs_id := string($granule//td[@colname='obs_id'])
     
     let $data_rights := $granule//td[@colname='data_rights']
     let $release_date := $granule//td[@colname='obs_release_date']
     let $obs_collection := string($granule//td[@colname='obs_collection'])
     let $calib_level := string($granule//td[@colname='calib_level'])
-    
-    
 
     let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
+    
+    (: hack since obsportal add _N for exposures :)
+    let $tweaked-obs_id := if ( $obs_collection = 'eso_vlti_import' ) then substring-before($obs_id, "_") else $obs_id
+    
+    let $query := adql:build-query(( 
+(:            'col=access_url', 'col=data_rights', 'col=obs_release_date', 'col=datapi', 'col=obs_creator_name', 'col=id', :)
+                'col=id', 'col=obs_collection','col=datapi',
+                'progid='||$prog_id, 'obs_id=~'||$tweaked-obs_id ,
+            if (number($calib_level) > 0) then 'caliblevel=0' else 'caliblevel=1,2,3'
+    ))
+    
+    (: send query by TAP :)
+    let $votable := tap:execute($query)
+    let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
+    let $nb-granules := count($data//tr[td])
+ 
+ 
+    let $ancillary-records := if ($nb-granules > 0 ) then 
+            <div id="external_resources">
+                <h2><i class='glyphicon glyphicon-resize-small'/> Ancillary data</h2>
+                <table class="table table-striped table-bordered table-hover">
+                    <tr>{
+                        for $th at $i in $data//th[@name]
+                            let $td := $data//td[position()=index-of($data//th, $th)]
+                            let $tr := $td/..
+                            let $tt := data($th/@description)
+                            let $tt := if($th/@unit) then $tt || " co[" || $th/@unit || "]" else $tt
+                            return  <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th>
+                    }</tr>
+                    {
+                        for $row in $data//tr[td] return
+                        <tr>{for $td in $row//td return app:td-cell($td, $row)}</tr>
+                    }
+                </table>
+            </div>
+        else 
+            ()
+(:            <div>{$query}</div> :)
+
 
     let $ext-res := if($facility-name="VLTI" and $prog_id!='') then
         let $eso-url := $jmmc-eso:eos-url||"?progid="||encode-for-uri($prog_id)
@@ -1390,7 +1427,6 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
             
     let $ext-res := if ( $obs_collection = 'eso_vlti_import' )
         then 
-        let $obs_id := string($granule//td[@colname='obs_id'])
         let $obs-url := $config:obsportal-url||"detail/exposure/"||encode-for-uri($obs_id)
         return 
             ($ext-res,
@@ -1437,6 +1473,7 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
                     { $datalink-res }
                 </table>
             </div>,
+            $ancillary-records,
         if (empty($ext-res)) then () else
         <div id="external_resources">
             <h2><i class="glyphicon glyphicon-new-window"/> External resources</h2>
