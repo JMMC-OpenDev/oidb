@@ -1333,12 +1333,16 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                             {$obs_creator_name-link}
                         </address>
                     else
-                        let $datapi-email := user:get-email($datapi)
-                        let $datapi-link := if($datapi-email) then
-                                let $js :=  app:get-encoded-email-array($datapi-email)
+                        let $datapi-link := if(string-length($datapi)<2) then "Not present in metadata"
+                                else 
+                                    let $datapi-email := user:get-email($datapi)
+                                    return 
+                                    if($datapi-email) then
+                                    let $js :=  app:get-encoded-email-array($datapi-email)
                                     return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
-                                else <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
-                                If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user may contact the creator of the resource just below.</span>
+                                    else 
+                                        <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
+                                    If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user may contact the creator of the resource just below.</span>
                         return
                         <address>
                             <strong>Data PI</strong><br/>
@@ -1382,14 +1386,18 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     
     let $query := adql:build-query(( 
 (:            'col=access_url', 'col=data_rights', 'col=obs_release_date', 'col=datapi', 'col=obs_creator_name', 'col=id', :)
-                'col=id', 'col=obs_collection','col=datapi',
+                'col=calib_level', 'col=id', 'col=obs_collection','col=datapi',
                 'progid='||$prog_id, 'obs_id=~'||$tweaked-obs_id ,
             if (number($calib_level) > 0) then 'caliblevel=0' else 'caliblevel=1,2,3'
     ))
     
     (: send query by TAP :)
-    let $votable := tap:execute($query)
-    let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
+    
+    let $data := if(string-length($tweaked-obs_id)<2) then ()
+        else
+            let $votable := tap:execute($query)
+            return 
+                app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
     let $nb-granules := count($data//tr[td])
  
  
@@ -1399,11 +1407,9 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
                 <table class="table table-striped table-bordered table-hover">
                     <tr>{
                         for $th at $i in $data//th[@name]
-                            let $td := $data//td[position()=index-of($data//th, $th)]
-                            let $tr := $td/..
                             let $tt := data($th/@description)
-                            let $tt := if($th/@unit) then $tt || " co[" || $th/@unit || "]" else $tt
-                            return  <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th>
+                            let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
+                            return  <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/text() } </th>
                     }</tr>
                     {
                         for $row in $data//tr[td] return
@@ -1413,7 +1419,6 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
             </div>
         else 
             ()
-(:            <div>{$query}</div> :)
 
 
     let $ext-res := if($facility-name="VLTI" and $prog_id!='') then
