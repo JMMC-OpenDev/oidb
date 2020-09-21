@@ -1442,6 +1442,7 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     let $ext-res := if ( $public and number($calib_level)>0 )
         then 
         let $access_url := $granule//td[@colname='access_url']
+        let $access_url := if (starts-with($access_url, "/exist" )) then request:get-scheme() || "://" || request:get-hostname() || $access_url else $access_url   
         let $oival-url := $config:oival-url||"validate.xql?urls="||encode-for-uri($access_url)
         return 
             ($ext-res,
