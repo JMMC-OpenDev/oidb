@@ -141,7 +141,8 @@ declare function oifits:hidden-inputs($node as node(), $model as map(*)) as node
  :)
 declare function oifits:date($node as node(), $model as map(*), $key as xs:string) as xs:string {
     let $date := helpers:get($model, $key)
-    return format-dateTime(jmmc-dateutil:MJDtoISO8601($date), "[Y0001]-[M01]-[D01] [H01]:[m01]:[s01]")
+    return if( string(number($date) ) != 'NaN' ) then format-dateTime(jmmc-dateutil:MJDtoISO8601($date), "[Y0001]-[M01]-[D01] [H01]:[m01]:[s01]") else ""
+
 };
 
 (:~

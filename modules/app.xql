@@ -215,7 +215,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                         return jmmc-astro:to-dms($cell)
                     case "t_min"
                     case "t_max"
-                        return app:format-mjd($cell)
+                        return if(string-length($cell)=0) then $cell else app:format-mjd($cell)
                     case "nb_channels"
                     case "nb_vis"
                     case "nb_vis2"
