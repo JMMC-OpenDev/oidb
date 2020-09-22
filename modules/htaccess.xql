@@ -6,7 +6,9 @@ xquery version "3.0";
  : It outputs a .htaccess file that would allow access to public files of the
  : collection when this file is saved to the directory of the machine serving
  : the files.
- : It opens released oifits and associated 
+ : It opens released oifits and associated datalinks. Public datalink have a post filter so we do not publish these which also are associated to a private oifits ( PIONIER's pdf e.g. ).
+ : 
+ : Another approach could be to add release_date to datalinks so we can generate the list much faster.
  :)
 
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
@@ -21,74 +23,108 @@ declare option output:omit-xml-declaration "yes";
 
 let $collection := request:get-parameter("obs_collection", "", true())
 
-for $public in (true(), false()) return 
-let $yesno := if ($public) then "yes" else "no"
-let $query := adql:build-query((
-    'distinct', 'col=access_url', 'col=data_rights', 'col=obs_release_date', 
-    ('col=datapi', 'col=obs_creator_name')[not($public)],
-    'collection=' || $collection,
-    'caliblevel=1,2,3',
-    'public='||$yesno ))
-
-let $rows := tap:execute($query, -1) 
-
-let $datalink-query := 'SELECT distinct(d.access_url) FROM oidb_datalink as d, ' || substring-after($query, "FROM ") || ' AND d.id=t.id' 
-let $datalink-rows := tap:execute($datalink-query, -1) 
-
-return (
-<p># request performed on {current-dateTime()} for collection={$collection} and public={$yesno}&#10;</p>,
-<p># {$datalink-query}&#10;&#10;</p>,
-<p># {count($datalink-rows//*:TR)} url need to be released for datalinks&#10;&#10;</p>,
-<p># {count($rows//*:TR)} url need to be released for granules&#10;&#10;</p>,
-<p># {$query}&#10;&#10;</p>,
-
-for $row at $pos in $rows//*:TR
-    let $data := $row/*:TD
-    let $access_url := $data[1]
-    let $data_rights := $data[2]
-    let $obs_release_date := $data[3]
-    let $datapi := $data[4]
-    
-    let $email := if ($public) then ()  else data(doc($config:data-root||"/people/people.xml")//alias[.=$datapi]/@email)
-    let $obs_creator-name := $data[5]
-    let $obs_creator-email := if($public) then () else data(doc($config:data-root||"/people/people.xml")//alias[.=$obs_creator-name]/@email)
-    
+let $all :=
+    for $public in (true(), false())
     return
-        (<p>
-# {$pos} obs_release_date:{ $obs_release_date } data_right:{ $data_rights } datapi:{$datapi}
-&lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;</p>,
-if($public) then 
-<p>
-    Allow from all
-    Satisfy any</p>
-else 
-    <p>
-    Require user {string-join( ($obs_creator-email, $datapi, $email), " ")}</p>
-,
-<p>
-&lt;/Files&gt;
-</p>)
-    ,
-    for $row at $pos in $datalink-rows//*:TR
-    let $data := $row/*:TD
-    let $access_url := $data[1]
-(:    let $data_rights := $data[2]:)
-(:    let $obs_release_date := $data[3]:)
-(:    let $datapi := $data[4]:)
+        let $yesno := if ($public) then "yes" else "no"
+        let $query :=
+            adql:build-query(('distinct', 'col=access_url', 'col=obs_release_date', 'col=datapi', 'col=obs_creator_name',
+                             'collection=' || $collection, 'caliblevel=1,2,3', 'public=' || $yesno, 'order=^obs_release_date'))
+        (: FIXME distinct is not perfect enough, we should ask for DISTINCT on (access_url) .... order by access_url, obs_release_date DESC ; :)
+        (: as supported by postgres so we take for a file with multiple granules the latest release date :)
+        (: do that in buld-query engine ? distinct=access_url with order=obs_release_date)
+        :)
+        let $rows := tap:execute($query, -1)
+        (: use JOIN to get shared info for associated datalinks :) 
+        let $datalink-query := replace($query, "FROM oidb AS t WHERE",
+                    ", oidb_datalink.access_url FROM oidb AS t JOIN oidb_datalink on t.id = oidb_datalink.id AND")
+        let $datalink-rows := tap:execute($datalink-query, -1)
+        let $header :=
+            (<p></p>,<p># request performed on { current-dateTime() } for collection={ $collection } and public={ $yesno
+                }&#10;</p>,
+                        <p># Normal query : { $query }&#10;&#10;</p>,
+                                                                   <p># Join query : { $datalink-query }&#10;&#10;</p>)
+        return
+                <acl public='{ $yesno }'>
+                    <header>{ $header }</header>
+                    <rows>{ $rows//*:TR }</rows>
+                    <datalink-rows>{$datalink-rows//*:TR}</datalink-rows>
+                </acl>
+            
+let $ok := $all[@public = 'yes']/datalink-rows/*/*:TD[5]
+let $bad := $all[@public = 'no']/datalink-rows/*/*:TD[5]
+let $common := $bad[. = $ok]
+
+
+for $public in (true(), false())
+return
+    let $yesno := if ($public) then "yes" else "no"
+    let $acl := $all[@public = $yesno]
+    let $rows := $acl/rows/*
+    let $datalink-rows := $acl/datalink-rows/*
+    let $log := util:log("info", "before filtering:" || count($datalink-rows))
+    let $datalink-access_urls := $datalink-rows/*:TD[5]
+    
+    (: Fix shared permissions:
+       a datalink may be linked to two oifits . avoid giving access if still under embargo by another one but leave access with auth :) 
+    let $datalink-rows :=
+        if ($yesno = 'no') then
+            $acl/datalink-rows/* | $all[@public = 'yes']/datalink-rows/*[./*:TD[5] = $acl/datalink-rows/*/*:TD[5]]
+        else
+             $acl/datalink-rows/*[not(./*:TD[5] = $all[@public = 'no']/datalink-rows/*/*:TD[5])]
+            
+(:    let $new-datalink-access_urls := $datalink-rows/*:TD[5]:)
+(: let $log  := util:log("info", "after filtering:" || count($datalink-rows)) :)
+(: let $log  := util:log("info", "common:" || count($common)) :)
+(: let $log  := util:log("info", count($datalink-access_urls)||" non filtered (" ||count(distinct-values($datalink-access_urls))||" distinct)") :)
+(: let $log  := util:log("info", count($new-datalink-access_urls)||" filtered (" ||count(distinct-values($new-datalink-access_urls))||" distinct)") :)
+    
+(: Prepare oifits access list :)
+    let $oifits-lines := for $group-row at $pos in $rows  group  by $access_url := tokenize($group-row/*:TD[1] , "/")[last()]
+        let $row := $group-row[1]
+(:  avoid group by if 'distinct on' (see before) is set up :)
+(:    let $row-lines := for $row at $pos in $rows :)
+        let $data := $row/*:TD
+        let $access_url := $data[1]
+        let $obs_release_date := $data[2]
+        let $datapi := $data[3]
+        let $obs_creator-name := $data[4]
+        
+        let $email := if ($public) then ()  else data(doc($config:data-root||"/people/people.xml")//alias[.=$datapi]/@email)
+        let $obs_creator-email := if($public) then () else data(doc($config:data-root||"/people/people.xml")//alias[.=$obs_creator-name]/@email)
+        
+        return
+            (
+                <p>&#10;# {$pos} obs_release_date:{ $obs_release_date } datapi:{$datapi}&#10;&lt;Files "{ $access_url }"&gt;&#10;</p>,
+                if($public) then 
+                    <p>    Allow from all&#10;    Satisfy any</p>
+                else 
+                    <p>    Require user {string-join( ($obs_creator-email, $datapi, $email), " ")}</p>,
+                <p>&#10;&lt;/Files&gt;&#10;</p>
+            )
+(: Prepare datalink access list :)
+    let $datalink-lines := for $row at $pos in $datalink-rows 
+        let $data := $row/*:TD
+        let $access_url := $data[1]
+        let $obs_release_date := $data[2]
+        let $datapi := $data[3]
+        let $obs_creator-name := $data[4]
+        let $datalink_access_url := $data[5]   
+        
+        let $email := if ($public) then ()  else data(doc($config:data-root||"/people/people.xml")//alias[.=$datapi]/@email)
+        let $obs_creator-email := if($public) then () else data(doc($config:data-root||"/people/people.xml")//alias[.=$obs_creator-name]/@email)
+        
+        return
+            (
+                <p>&#10;# {$pos} datalink&#10;</p>,
+                <p>&lt;Files "{ tokenize($datalink_access_url, "/")[last()] }"&gt;&#10;</p>,
+                if($public) then 
+                    <p>    Allow from all&#10;    Satisfy any</p>
+                else 
+                    <p>    Require user {string-join( ($obs_creator-email, $datapi, $email), " ")}</p>,
+                <p>&#10;&lt;/Files&gt;&#10;</p>
+            )
+     
     return
-    (<p>
-# {$pos} datalink
-&lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;</p>,
-if($public) then 
-    <p>
-    Allow from all
-    Satisfy any
-</p>
-    else 
-    <p>
-    Require user TBD
-</p>
-    ,<p>&lt;/Files&gt;
-</p>)
-)
+        ($acl/header, $oifits-lines, $datalink-lines)
 
