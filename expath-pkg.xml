@@ -3,5 +3,5 @@
     <title>OIData portal</title>
     <dependency processor="http://exist-db.org" semver-min="5.2.0"/>
     <dependency package="http://exist-db.org/apps/shared"/>
-    <dependency package="http://exist.jmmc.fr/jmmc-resources" semver-min="0.28"/>
+    <dependency package="http://exist.jmmc.fr/jmmc-resources" semver-min="0.29"/>
 </package>
