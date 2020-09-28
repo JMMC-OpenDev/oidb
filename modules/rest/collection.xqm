@@ -136,8 +136,10 @@ function coll:delete-collection($id as xs:string) {
     let $status := try {
             collection:delete(xmldb:decode($id)), 204 (: No Content :)
         } catch collection:error {
+            util:log("info", "error " ||  $err:code  || "-" || $err:description ),
             404 (: Not Found :)
         } catch collection:unauthorized {
+            util:log("info", "error " ||  $err:code  || "-" || $err:description ),
             401 (: Unauthorized :)
         } catch * {
             util:log("info", "error " ||  $err:code  || "-" || $err:description ),

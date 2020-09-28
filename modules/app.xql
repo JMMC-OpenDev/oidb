@@ -21,10 +21,11 @@ import module namespace datalink="http://apps.jmmc.fr/exist/apps/oidb/restxq/dat
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 import module namespace jmmc-simbad="http://exist.jmmc.fr/jmmc-resources/simbad";
+import module namespace jmmc-vizier="http://exist.jmmc.fr/jmmc-resources/vizier" at "/db/apps/jmmc-resources/content/jmmc-vizier.xql";
 
 import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql";
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
-import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
+import module namespace adsabs="http://exist.jmmc.fr/jmmc-resources/adsabs" at "/db/apps/jmmc-resources/content/jmmc-adsabs.xql";
 import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
 
 declare namespace sm="http://exist-db.org/xquery/securitymanager";
@@ -188,7 +189,7 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                             let $id := $row/td[@colname='id']
                             return <span>{data($cell)}<a href="show.html?id={$id}#contact">&#160;<i class="glyphicon glyphicon-envelope"/> </a></span>
                     case "bib_reference"
-                        return <a href="{ app:adsbib-url($cell) }">{ data($cell) }</a>
+                        return adsabs:get-link($cell,()) 
                     case "em_min"
                     case "em_max"
                         return app:format-wavelengths(data($cell))
@@ -338,7 +339,7 @@ declare function app:format-collection-url($id as xs:string) {
         if ($collection) then $collection else $id
             },
         if (starts-with($id, 'J/')) then
-            (",&#160;",<a href="{ app:vizcat-url($id) }">VizieR&#160;<span class="glyphicon glyphicon-new-window"></span></a>)
+            (",&#160;", jmmc-vizier:get-link($id, ("VizieR&#160;",<span class="glyphicon glyphicon-new-window"></span>)))
         else ()
     )
 };
@@ -389,7 +390,7 @@ declare function app:format-search-collection-url($id as xs:string) {
         if ($collection) then $collection else $id
             },
         if (starts-with($id, 'J/')) then
-            (",&#160;",<a href="{ app:vizcat-url($id) }">VizieR&#160;<span class="glyphicon glyphicon-new-window"></span></a>)
+            (",&#160;", jmmc-vizier:get-link($id, ("VizieR&#160;",<span class="glyphicon glyphicon-new-window"></span>)))
         else ()
     )
 };
@@ -423,28 +424,6 @@ declare %private function app:format-mjd($mjd as xs:double) {
 declare %private function app:simbad-url($name as xs:string) as xs:string {
     concat('http://simbad.u-strasbg.fr/simbad/sim-id?Ident=', encode-for-uri($name))
 };
-
-(:~
- : Helper to build an URL for the page at the ADS abstract service for
- : the given bibliographic reference.
- :
- : @param $bibref
- : @return an URL to CDS's ADS as string
- :)
-declare %private function app:adsbib-url($bibref as xs:string) as xs:string {
-    concat("http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?", encode-for-uri($bibref))
-};
-
-(:~
- : Helper to build an URL to a given catalogue on VizieR.
- :
- : @param $catalogue catalogue name
- : @return an URL to the VizieR astronomical catalogue as string
- :)
-declare %private function app:vizcat-url($catalogue as xs:string) as xs:string {
-    concat("http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=", encode-for-uri($catalogue))
-};
-
 
 declare variable $app:collections-query := adql:build-query(( 'col=obs_collection', 'distinct' ));
 
@@ -1992,7 +1971,7 @@ declare
     %templates:wrap
 function app:ads-link($node as node(), $model as map(*), $key as xs:string) as node() {
     let $bibcode := helpers:get($model, $key)
-    return jmmc-ads:get-link($bibcode, ())
+    return adsabs:get-link($bibcode, ())
 };
 
 

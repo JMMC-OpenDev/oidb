@@ -15,6 +15,11 @@ import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils
 (: Root directory where collections are stored :)
 declare variable $collection:collections-uri := $config:data-root || '/collections';
 
+declare variable $collection:VIZIER_COLTYPE := "VizieR";
+declare variable $collection:PUBLIC_COLTYPE := "public";
+
+
+
 (:~
  : Save a new collection under the specified ID.
  : 
@@ -104,18 +109,20 @@ declare function collection:delete($id as xs:string) {
     else
         (
             collection:delete-granules($id),
-        xmldb:remove(util:collection-name($collection), util:document-name($collection))
+            xmldb:remove(util:collection-name($collection), util:document-name($collection))
         )
 };
 
 
 (:~
- : Format an SQL DELETE request with the given collection id to remove associated granules.
+ : Format an SQL DELETE request with the given collection id to remove associated datalinks & granules.
  : 
  : @param $collection-id the id of the collection to delete
  : @return a SQL DELETE statement
  :)
 declare %private function collection:delete-granules-statement($collection-id as xs:string) as xs:string {
+    "DELETE FROM " || $config:sql-datalink-table || " WHERE id IN ( SELECT id FROM " || $config:sql-table || " WHERE obs_collection='" || $collection-id || "')"
+    || " ; " ||
     "DELETE FROM " || $config:sql-table || " WHERE obs_collection='" || $collection-id || "'"
 };
 
@@ -148,6 +155,7 @@ declare function collection:get-granules($collection-id as xs:string, $handle as
             error(xs:QName('collection:error'), 'Failed to get granules for collection ' || $collection-id || ': ' || serialize($result))
 };
 
+
  (:~
  : Remove the granules associated to the given collection ID.
  : 
@@ -168,15 +176,15 @@ declare function collection:delete-granules($collection-id as xs:string)  {
  : @error failed to delete
  :)
 declare function collection:delete-granules($collection-id as xs:string, $handle as xs:long)  {
-        let $statement := collection:delete-granules-statement($collection-id)
-        let $result := sql-utils:execute($handle, $statement, false())
+    let $statement := collection:delete-granules-statement($collection-id)
+    let $result := sql-utils:execute($handle, $statement, false())
 
-        return if ($result/name() = 'sql:result' and $result/@updateCount >= 0) then
-            (: rows deleted successfully :)
-            app:clear-cache()
-        else if ($result/name() = 'sql:exception') then
-            error(xs:QName('collection:error'), 'Failed to delete granules for collection , sql:exception ' || $collection-id || ': ' || $result//sql:message/text())
-        else
+    return if ($result/name() = 'sql:result' and $result/@updateCount >= 0) then
+        (: rows deleted successfully :)
+        app:clear-cache()
+    else if ($result/name() = 'sql:exception') then
+        error(xs:QName('collection:error'), 'Failed to delete granules for collection , sql:exception ' || $collection-id || ': ' || $result//sql:message/text())
+    else
             error(xs:QName('collection:error'), 'Failed to delete granules for collection ' || $collection-id || ': ' || serialize($result))
 };
 
@@ -215,15 +223,18 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
  :
  : @param $c a <collection> element
  : @return true if the collection is from a VizieR catalog
+ : 
+ : Note: first catalogs have no coltype. OiDB V2.0.9 now replace source by coltype.
+ :   We may update db content to avoir strats-with test
  :)
 declare function collection:vizier-collection($c as element(collection)) as xs:boolean {
-    starts-with(data($c/source), 'http://cdsarc.u-strasbg.fr/viz-bin/Cat')
+    $c/coltype=$collection:VIZIER_COLTYPE or starts-with(data($c/source), 'http://cdsarc.u-strasbg.fr/viz-bin/Cat')
 };
 
 (:~
  : Get collection type.
  : @param $id-or-collection the id of the collection to test or the collection as XML fragment
- : @return the value of coltype element or 'public' if not present
+ : @return the value of coltype element or $collection:PUBLIC_COLTYPE if not present
  :)
 declare function collection:get-type($id-or-collection as item()) as xs:string {
     let $collection := collection:get($id-or-collection)
@@ -235,9 +246,9 @@ declare function collection:get-type($id-or-collection as item()) as xs:string {
             if ($type) then 
                 $type 
             else if (collection:vizier-collection($collection)) then 
-                "vizier" 
+                $collection:VIZIER_COLTYPE 
             else 
-                "public"
+                $collection:PUBLIC_COLTYPE
         return $type[1]
 };
 

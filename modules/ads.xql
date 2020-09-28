@@ -8,8 +8,8 @@ module namespace ads="http://apps.jmmc.fr/exist/apps/oidb/ads";
 import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
-import module namespace jmmc-ads="http://exist.jmmc.fr/jmmc-resources/ads";
-
+import module namespace adsabs="http://exist.jmmc.fr/jmmc-resources/adsabs";
+ 
 (:~
  : Return the URL of the ADS abstract page of given bibcode.
  : 
@@ -34,7 +34,6 @@ declare
     %templates:wrap
 function ads:article($node as node(), $model as map(*)) as map(*)? {
     let $bibcode := if (map:contains($model, 'bibcode')) then map:get($model, 'bibcode') else request:get-parameter('bibcode', false())
-    let $record := jmmc-ads:get-record($bibcode)
     
     return map { 'article' :
         map:merge((
@@ -42,10 +41,10 @@ function ads:article($node as node(), $model as map(*)) as map(*)? {
             if ($record) then
                 (: turn record into model entries :)
                 map {
-                    'title'    : jmmc-ads:get-title($record),
-                    'authors'  : jmmc-ads:get-authors($record),
-                    'pubdate'  : jmmc-ads:get-pub-date($record),
-                    'keywords' : jmmc-ads:get-keywords($record),
+                    'title'    : adsabs:get-title($record),
+                    'authors'  : adsabs:get-authors($record),
+                    'pubdate'  : adsabs:get-pub-date($record),
+                    'keywords' : adsabs:get-keywords($record),
                     'ads-url'  : ads:abstract-url($bibcode)
                 }
             else

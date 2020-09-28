@@ -176,7 +176,7 @@ $(function () {
                 $dropdown.dropdownAppend(dropdownMenuitem('View in OIFits Validator', 'ok', 'http://oival.jmmc.fr/validate.xql?urls=' + data.access_url));
             if (data.bib_reference)
                 // create links to ADS
-                $dropdown.dropdownAppend(dropdownMenuitem('Paper at ADS', 'book', 'http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?' + encodeURIComponent(data.bib_reference)));
+                $dropdown.dropdownAppend(dropdownMenuitem('Paper at ADS', 'book', 'https://ui.adsabs.harvard.edu/abs/' + encodeURIComponent(data.bib_reference) + '/abstract' ));
         });
     $tr.filter('[data-access_url]').find('.dropdown')
         // prepare for SAMP table.load.fits links

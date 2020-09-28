@@ -59,7 +59,7 @@ function vizier:catalog-description($node as node(), $model as map(*)) as map(*)
     let $description := jmmc-vizier:catalog-abstract($id)
     let $description := if( string-length($description) < 10 ) then jmmc-vizier:catalog-description($id) else $description
     return map {
-        'source'        : 'http://cdsarc.u-strasbg.fr/viz-bin/Cat?cat=' || encode-for-uri($id),
+        'coltype'       : $collection:VIZIER_COLTYPE ,
         'id'            : $id,
         'name'          : $id,
         'title'         : jmmc-vizier:catalog-title($id),
