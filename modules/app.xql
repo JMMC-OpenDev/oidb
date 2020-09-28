@@ -21,11 +21,11 @@ import module namespace datalink="http://apps.jmmc.fr/exist/apps/oidb/restxq/dat
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
 import module namespace jmmc-astro="http://exist.jmmc.fr/jmmc-resources/astro";
 import module namespace jmmc-simbad="http://exist.jmmc.fr/jmmc-resources/simbad";
-import module namespace jmmc-vizier="http://exist.jmmc.fr/jmmc-resources/vizier" at "/db/apps/jmmc-resources/content/jmmc-vizier.xql";
+import module namespace jmmc-vizier="http://exist.jmmc.fr/jmmc-resources/vizier";
 
-import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at "/db/apps/jmmc-resources/content/jmmc-auth.xql";
+import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth";
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
-import module namespace adsabs="http://exist.jmmc.fr/jmmc-resources/adsabs" at "/db/apps/jmmc-resources/content/jmmc-adsabs.xql";
+import module namespace adsabs="http://exist.jmmc.fr/jmmc-resources/adsabs";
 import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
 
 declare namespace sm="http://exist-db.org/xquery/securitymanager";
