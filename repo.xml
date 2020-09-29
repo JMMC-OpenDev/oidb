@@ -32,7 +32,7 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.0.9">
+        <change xmlns="" version="2.0.10">
           <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->
           <!-- 2.0.4 OiDBTAPServlet can use TAP_BASE_URL param -->
             <h3>V2.0 release</h3>
@@ -40,7 +40,8 @@
               <li>ESO VLTI obs log harvesting (L0) on top of <a href="http://obs.jmmc.fr">obsportal</a> datasource using incremental mode.</li>
               <li>Provide first basic support for private collection handled by <a href="//www.jmmc.fr/suv">SUV.</a></li>
               <li>Fix uploaded filename to avoid some non reliable escaping (":" replaced by "_").</li>
-              <li>Enhance result's tabble display : highlight global download links in it's top right corner, add calibration level with different text styles per row.</li>
+              <li>Improve upload process to load prog and obs ids from OIFits keywords (ESO ones).</li>
+              <li>Enhance result's table display : highlight global download links in it's top right corner, add calibration level with different text styles per row.</li>
               <li>Add first quickplots in the tooltip of oifits result lines if any (datalinks are generated and updated asynchronously).</li>
               <li>Display sibling granules and ancillary records in the detail page.</li>
               <li>Display list of instruments by collection in the collections page.</li>
@@ -58,6 +59,8 @@
               <li type="bugfix">Fix permission issue during the OIFits upload.</li>
               <li type="bugfix">Fix download scripts (curl&amp;OIFitsExplorer) to filter L0 out.</li>
               <li type="dev">Updates to bump on eXistDB V5.2.</li>
+              <li type="dev">Updates to use new ADS API.</li>
+              <li type="dev">Updates to use new VizieR catalog description service.</li>
               <li type="dev">Fix code to handle ESO's wdb output change.</li>
               <li type="dev">Add more logs on SQL side</li>
               <!-- robots.txt added -->
