@@ -20,7 +20,7 @@ declare namespace rest="http://exquery.org/ns/restxq";
 :)
 
 (:~
- : Get list of granules
+ : Get list of granules. query parameters may be added to filter granules of interest.
  : @return granules grouped by files
  :)
 declare
@@ -28,6 +28,6 @@ declare
     %rest:path("/oidb/mirror/granules")
 function mirror:access_urls() {
     <granules>
-        {app:granules(('caliblevel=1,2,3'))}
+        {app:granules((('caliblevel=1,2,3'),for $p in request:get-parameter-names() return $p|| "=" || request:get-parameter($p, ()) ))}
     </granules>
 };
