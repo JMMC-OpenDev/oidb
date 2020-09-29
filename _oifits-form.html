@@ -24,9 +24,19 @@
             </a>
             &#160;
             <span data-template="helpers:model-content" data-template-key="oifits.warning"/>
-            <div>
-                <label class="col-md-2 control-label" rel="tooltip" data-original-title="program id (optional)">Proposal ID</label>
-                <input name="progid" data-template="helpers:model-value-attribute" data-template-key="oifits.progid" data-template-name="value"/>
+            <div class="row">
+                <div class="col-xs-4">
+                    <label class="col-sm-6 control-label" rel="tooltip" data-original-title="program id (optional)">Proposal ID</label>
+                    <div class="col-sm-6">
+                        <input class="col-sm-3 form-control" name="progid" data-template="helpers:model-value-attribute" data-template-key="oifits.progid" data-template-name="value"/>
+                    </div>
+                </div>
+                <div class="col-xs-4">
+                    <label class="col-sm-6 control-label" rel="tooltip" data-original-title="obs id (optional)">Observation ID</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" name="obs_id" data-template="helpers:model-value-attribute" data-template-key="oifits.obs_id" data-template-name="value"/>
+                    </div>
+                </div>
             </div>
         </td>
         <td>

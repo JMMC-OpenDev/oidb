@@ -436,9 +436,13 @@ $(function () {
                 granule.appendChild(e);
             }
 
-			// columns inherited from the oifits file
+            // columns inherited from the oifits file
             var p = $(this).parent("tbody").find('input[name="progid"]');
             $(p, this).prop('disabled', true).serializeXML(granules, granule);
+
+            p = $(this).parent("tbody").find('input[name="obs_id"]');
+            $(p, this).prop('disabled', true).serializeXML(granules, granule);
+
 
             // granule specific columns
             $(':input', this).prop('disabled', true).serializeXML(granules, granule);
