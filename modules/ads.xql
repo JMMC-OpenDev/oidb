@@ -9,16 +9,6 @@ import module namespace templates="http://exist-db.org/xquery/templates";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
 import module namespace adsabs="http://exist.jmmc.fr/jmmc-resources/adsabs";
- 
-(:~
- : Return the URL of the ADS abstract page of given bibcode.
- : 
- : @param $bibcode the article bibcode
- : @return the abstract URL at ADS
- :)
-declare %private function ads:abstract-url($bibcode as xs:string) as xs:string {
-    'http://cdsads.u-strasbg.fr/cgi-bin/nph-bib_query?' || encode-for-uri($bibcode)
-};
 
 (:~
  : Add article description from ADS to model from bibcode.
@@ -34,7 +24,7 @@ declare
     %templates:wrap
 function ads:article($node as node(), $model as map(*)) as map(*)? {
     let $bibcode := if (map:contains($model, 'bibcode')) then map:get($model, 'bibcode') else request:get-parameter('bibcode', false())
-    
+    let $record := adsabs:get-records($bibcode)
     return map { 'article' :
         map:merge((
             map:entry('bibcode', $bibcode),
@@ -45,7 +35,7 @@ function ads:article($node as node(), $model as map(*)) as map(*)? {
                     'authors'  : adsabs:get-authors($record),
                     'pubdate'  : adsabs:get-pub-date($record),
                     'keywords' : adsabs:get-keywords($record),
-                    'ads-url'  : ads:abstract-url($bibcode)
+                    'ads-url'  : adsabs:get-link($bibcode, ())/@href
                 }
             else
                 (: unknown article, return only bibcode in model :)
