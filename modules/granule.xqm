@@ -316,15 +316,17 @@ declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node
  : @param $data a sequence of nodes with new values
  : @return a SQL INSERT statement
  :)
-declare %private function granule:update-statement($id as xs:integer, $data as node()*) as xs:string {
-    let $columns := for $x in $data return name($x)
-    let $values  := for $x in $data return if ($x/node()) then "'" || sql-utils:escape($x) || "'" else "NULL"
-    (: TODO we could check that subdate is updated - or maybe add an additional column for that :)
-    return string-join((
-        "UPDATE", $config:sql-table,
-        "SET", string-join(fn:for-each-pair($columns, $values, function ($c, $v) { $c || '=' || $v } ), ', '),
-        "WHERE id='" || $id || "'"
-    ), ' ')
+declare %private function granule:update-statement($id as xs:integer, $data as node()*) as xs:string? {
+    if(empty($data)) then "SELECT 1 LIMIT 0"
+    else
+        let $columns := for $x in $data return name($x)
+        let $values  := for $x in $data return if ($x/node()) then "'" || sql-utils:escape($x) || "'" else "NULL"
+        (: TODO we could check that subdate is updated - or maybe add an additional column for that :)
+        return string-join((
+            "UPDATE", $config:sql-table,
+            "SET", string-join(fn:for-each-pair($columns, $values, function ($c, $v) { $c || '=' || $v } ), ', '),
+            "WHERE id='" || $id || "'"
+        ), ' ')
 };
 
 (:~

@@ -10,8 +10,10 @@ import module namespace log="http://apps.jmmc.fr/exist/apps/oidb/log" at "../log
 import module namespace gran="http://apps.jmmc.fr/exist/apps/oidb/granule" at "../granule.xqm";
 
 import module namespace jmmc-eso = "http://exist.jmmc.fr/jmmc-resources/eso";
+import module namespace http = "http://expath.org/ns/http-client";
 
 declare namespace rest="http://exquery.org/ns/restxq";
+
  
 (:~
  : Return a granule given its granule ID.
@@ -43,14 +45,16 @@ declare
 function granule:put-granule($id as xs:integer, $granule-doc as document-node()) {
     let $status := try {
             gran:update($id, $granule-doc/granule), 204 (: No Content :)
-        } catch granule:unknown {
+        } catch gran:unknown {
             404 (: Not Found :)
-        } catch granule:error {
+        } catch gran:error {
             400 (: Bad Request :)
-        } catch granule:unauthorized {
+        } catch gran:unauthorized {
             401 (: Unauthorized :)
         } catch * {
-            500 (: Internal Server Error :)
+            let $msg := "can't update "||$id||" : "|| string-join( ($err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" ), ", ") 
+            return 
+             ( 500 (: Internal Server Error :) , util:log("error", $msg) )
         }
 
     return <rest:response><http:response status="{ $status }"/></rest:response>
@@ -87,10 +91,10 @@ function granule:save-granules($granules as document-node()?) {
                         return <id>{ $id }</id>
                     }),
                     <success>Successfully uploaded {count($granules//granule)} granule(s)</success>
-            } catch granule:error {
+            } catch gran:error {
                 response:set-status-code(400), (: Bad Request :)
                 <error>{ $err:description } { $err:value }</error>
-            } catch granule:unauthorized {
+            } catch gran:unauthorized {
                 response:set-status-code(401), (: Unauthorized :)
                 <error>{ $err:description } { $err:value }</error>
             } catch exerr:EXXQDY0002 {
