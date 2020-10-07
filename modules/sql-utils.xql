@@ -21,6 +21,14 @@ declare function sql-utils:escape($str as xs:string) as xs:string {
     replace($str, "'", "''")
 };
 
+(:~ 
+ : Get db connection handle that must be used for other sql-utils function calls to recycle the connections.
+
+:)
+declare function sql-utils:get-jndi-connection(){
+    sql:get-jndi-connection($config:jndi-name)
+};
+
 (:~
  : Execute a function within an SQL transaction.
  : 
@@ -69,9 +77,9 @@ declare function sql-utils:within-transaction($func as function(xs:long) as item
 
 (:~
  : Wrapper of SQL execute function.
- : Executes a SQL statement against a SQL db using the connection indicated by the connection handle or use a new one using $config:jndi-nam if error or missing return.
+ : Executes a SQL statement against a SQL db using the connection indicated by the connection handle (that MUST be created with sql-utils:get-jndi-connection.
  :
- : @param $connection-handle  The connection handle
+ : @param $connection-handle  The connection handle 
  : @param $sql-statement The SQL statement
  : @param $make-node-from-column-name The flag that indicates whether the xml nodes should be formed from the column names (in this mode a space in a Column Name will be replaced by an underscore
  : @return the results
@@ -83,16 +91,17 @@ declare function sql-utils:execute($connection-handle as xs:long, $sql-statement
     let $ret := try {
                     sql:execute($connection-handle, $sql-statement, $make-node-from-column-name)
                 } catch * {
-                    let $log := util:log("error", "exception occurs using given handle (" || $connection-handle ||") :  trying with a new one ")
+                    let $log := util:log("error", "exception occurs using given handle (" || $connection-handle ||")")
                     let $log := util:log("error", $err:description)
                     return ()
                 }
         
-    let $ret := if (exists($ret)) then $ret else 
-        let $log := util:log("error", "no result using given handle (" || $connection-handle ||") :  trying with a new one ")
+(:    let $ret := if (exists($ret)) then $ret else :) 
+(:        let $log := util:log("error", "no result using given handle (" || $connection-handle ||") :  trying with a new one ") :) 
         (: Next line MUST NOT USE  config:get-db-connection else we are out of context after and lose connection :)
-        return 
-            sql:execute(sql:get-jndi-connection($config:jndi-name), $sql-statement, $make-node-from-column-name)
+(:        return  :)
+(:            sql:execute(sql:get-jndi-connection($config:jndi-name), $sql-statement, $make-node-from-column-name) :)
+
     let $ret := if (exists($ret)) then $ret else util:log("error", "Fatal case can't execute : " || $sql-statement)
     
     return 

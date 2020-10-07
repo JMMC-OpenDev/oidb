@@ -135,7 +135,7 @@ declare function granule:add-datalink($id as xs:integer, $datalink as node(), $h
  : @error failed to save, unauthorized
  :)
 declare function granule:create($granule as node()) as xs:integer {
-    granule:create($granule, sql:get-jndi-connection($config:jndi-name))
+    granule:create($granule, sql-utils:get-jndi-connection())
 };
 
 
@@ -273,7 +273,7 @@ declare %private function granule:select-statement($id as xs:integer) as xs:stri
  : @error no such granule
  :)
 declare function granule:retrieve($id as xs:integer) {
-    granule:retrieve($id, sql:get-jndi-connection($config:jndi-name))
+    granule:retrieve($id, sql-utils:get-jndi-connection())
 };
 
 (:~
@@ -338,7 +338,7 @@ declare %private function granule:update-statement($id as xs:integer, $data as n
  : @error failed to update granule, unauthorized
  :)
 declare function granule:update($id as xs:integer, $data as node())  {
-    granule:update($id, $data, sql:get-jndi-connection($config:jndi-name))
+    granule:update($id, $data, sql-utils:get-jndi-connection())
 };
 
 (:~
@@ -385,7 +385,7 @@ declare %private function granule:delete-statement($id as xs:integer) as xs:stri
  : @error failed to delete, unauthorized
  :)
 declare function granule:delete($id as xs:integer)  {
-    granule:delete($id, sql:get-jndi-connection($config:jndi-name))
+    granule:delete($id, sql-utils:get-jndi-connection())
 };
 
 (:~
