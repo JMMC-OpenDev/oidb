@@ -170,7 +170,7 @@ declare function log:submit($response as node()) {
     return log:submit($request, $response)
 };
 
-declare %private function log:report-submits($max-submits as xs:integer, $max-subitems as xs:integer)as node()*{
+declare %private function log:my-report-submits($max-submits as xs:integer, $max-subitems as xs:integer)as node()*{
     let $thead := <tr><th>Date</th><th>#Stored granules</th><th>Method</th><th>Submit by</th></tr>
     let $nbCols := count($thead//th)
 (:    let $submits := if($successful) then doc($log:submits)//submit[.//success] else doc($log:submits)//submit[.//error or .//warning]:)
@@ -227,7 +227,7 @@ declare %private function log:report-submits($max-submits as xs:integer, $max-su
  :)
 declare function log:report-submits($max-submits as xs:integer, $max-details as xs:integer)as node(){
     <div>
-        {log:report-submits($max-submits, $max-details)}
+        {log:my-report-submits($max-submits, $max-details)}
     </div>
 };
 
