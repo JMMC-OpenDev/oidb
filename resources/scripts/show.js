@@ -40,6 +40,8 @@ $(function () {
     // hide the form on startup, connect action
     $('form', $commentForm).submit(function (e) {
         e.preventDefault();
+        $commentForm.hide();
+                
 
         var $form = $(this);
         var comment = serializeComment($form);

@@ -1215,7 +1215,8 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     {if ($data//td[@colname='calib_level'] = '0' ) then () else app:show-granule-siblings($node,  map {'granule' : $data }, "granule")}
                     </div>
                     <div class="col-md-6 acol-md-offset-1">
-                    {app:show-granule-contact($node,  map {'granule' : $data }, "granule")}
+                    {app:show-granule-contact($node,  map {'granule' : $data }, "granule")}                    
+                    {app:show-granule-comments($node,  $model, "granule")}
                     {app:show-granule-externals($node,  map {'granule' : $data }, "granule")}
                     </div>
                 </div>
@@ -1399,6 +1400,30 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                             {$obs_creator_name-link}
                         </address>
             }
+        </div>
+};
+(:~
+ : Display the comment summary information for a given granule.
+ :
+ : @param $node
+ : @param $model
+ : @return a <div> summary for comments
+ :)
+declare function app:show-granule-comments($node as node(), $model as map(*), $key as xs:string)
+{    
+       <div id="comments-summary">
+            <h2><i class="glyphicon glyphicon-comment"/> Comments</h2>
+            <a href="#comments" class="btn add-comment" role="button">{
+                let $comments := $model?comments
+                let $count := count($comments) + count($comments//comment)
+                return if($count = 0) then 
+                    <span> <i class="glyphicon glyphicon-plus"/> Add the first comment</span> 
+                else if($count = 1) then 
+                    "View the comment"
+                else
+                    <span>View the <span class="badge">{$count}</span> comments</span>
+            }</a> 
+            
         </div>
 };
 
