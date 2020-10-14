@@ -6,16 +6,30 @@
     <div class="form-group" data-template="helpers:if-model-key" data-template-key="ask_coltype">
         <label class="control-label col-md-2">Collection type</label>
         <div class="col-md-8">
-            <div class="form-check radio-inline">
-              <input class="form-check-input" type="radio" name="coltype" id="coltype_public" value="public" data-template="helpers:form-control" checked="checked"/>
-              <label class="form-check-label" for="coltype_public">public</label>
+            <div class="radio">
+                <label>
+                    <i class="glyphicon glyphicon-folder-open"/>&#160;
+                    <input type="radio" name="coltype" id="coltype_public" value="public" data-template="helpers:form-control" checked="checked"/>
+                    public
+                </label>
             </div>
-            <div class="form-check radio-inline">
-              <input class="form-check-input" type="radio" name="coltype" id="coltype_suv" value="suv" data-template="helpers:form-control"/>
-              <label class="form-check-label" for="coltype_suv">SUV</label>
-                <a href="./doc.html#SUV" target="suv">
-                    <span class="glyphicon glyphicon-question-sign"/>
-                </a>
+            <div class="radio">
+                <label>
+                    <i class="glyphicon glyphicon-eye-close"/>&#160;
+                    <input type="radio" name="coltype" id="coltype_simulation" value="simulation" data-template="helpers:form-control"/>
+                    simulation
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <i class="glyphicon glyphicon-lock"/>&#160;
+                    <input type="radio" name="coltype" id="coltype_suv" value="suv" data-template="helpers:form-control"/>
+                    SUV
+                    <a href="./doc.html#SUV" target="suv">
+                        <span class="glyphicon glyphicon-question-sign"/>
+                    </a>    
+                </label>
+                
             </div>
         </div>
     </div>

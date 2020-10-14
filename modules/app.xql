@@ -172,6 +172,11 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
 {
     <td> {
                 switch ($cell/@colname)
+                    case "calib_level"
+                    case "quality_level"
+                    case "progid"
+                    case "instrument_name"
+                        return app:td-cell-warning($cell, $row)
                     case "access_url"
                         return
                             (: filter out text values that are not urls:)
@@ -182,7 +187,6 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                                 let $obs-release-date := $row/td[@colname='obs_release_date']
                                 return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'], $row/td[@colname='calib_level'])
                             else 
-                                
                                 translate(data($cell)," ","&#160;")
                     case "datapi"
                         return
@@ -222,16 +226,46 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                     case "nb_vis2"
                     case "nb_t3"
                         return if($cell = "" or data($cell) = -1) then '-' else data($cell)
-                    case "progid"
-                        return <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>    
                     case "obs_id"
                         return <a href="search.html?obs_id={data($cell)}">{translate(data($cell)," ","&#160;")}</a>
-                    case "quality_level"
-                        return if($cell = "") then "Unknown" else map:get($app:data-quality-levels, data($cell))
                     default
                         return translate(data($cell)," ","&#160;")
                 } </td>
 };
+
+declare function app:td-cell-warning($cell as node(), $row as node()* ) 
+{
+    let $progid := $row/td[@colname='progid']
+    let $collection-type := try{collection:get-type(string($row/td[@colname='obs_collection']))}catch * {()}
+    let $is-simulated := $collection-type=$collection:SIMULATION_COLTYPE
+    return 
+        if(string-length($cell)=0) then () else
+            let $icons :=
+        (
+        if($is-simulated) 
+        then 
+            (<i class="glyphicon glyphicon-eye-close text-danger" rel="tooltip" data-original-title="Data are part of a simulation collection"/>,"&#160;") 
+        else
+            ()
+        ,if(starts-with($progid,"60.A")) 
+        then 
+            (<i class="glyphicon glyphicon-warning-sign text-warning" rel="tooltip" data-original-title="Low quality record or technical time"/>,"&#160;") 
+        else
+            ()
+        )
+        return 
+        switch ($cell/@colname)
+            case 'progid'
+                return ($icons, <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>)
+            case "quality_level"
+                return ($icons, map:get($app:data-quality-levels-display, data($cell)))
+            case "instrument_name"
+                return if($is-simulated) then (translate(data($cell)," ","&#160;"),<span class="text-warning">_SIMULATED</span>) else translate(data($cell)," ","&#160;")
+            default
+                return ($icons, translate(data($cell)," ","&#160;"))
+        
+};
+
 
 (:~
  : Given curation data, check if data is public or not.
@@ -425,7 +459,7 @@ declare %private function app:simbad-url($name as xs:string) as xs:string {
     concat('http://simbad.u-strasbg.fr/simbad/sim-id?Ident=', encode-for-uri($name))
 };
 
-declare variable $app:collections-query := adql:build-query(( 'col=obs_collection', 'distinct' ));
+declare variable $app:collections-query := adql:build-query(( 'col=obs_collection', 'col=calib_level', 'distinct' ));
 
 (:~
  : Build a map for collections and put it in the model for templating.
@@ -440,14 +474,40 @@ declare
     %templates:wrap
 function app:collections-options($node as node(), $model as map(*)) as map(*) {
     let $data := tap:retrieve-or-execute($app:collections-query)
-    let $ids := $data//*:TD/text()
+    let $ids := $data//*:TR/*:TD[1]/text()
+    let $calib_levels := $data//*:TR/*:TD[2]/text()
+    let $calib_level-of-id := map:merge( (for $id at $pos in $ids return map:entry($id, $calib_levels[$pos]) , map:entry("","Unknown calib_level")))
+    let $calib_level-labels := map{0:"L0 - Observation logs", 1:"L1 - Uncalibrated OIFITS", 2:"L2 - Calibrated OIFITS", 3:"L3 - Published calibrated OIFITS"}
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
-        'collections' : map:merge(
-            for $id in $ids
-            let $name := $collections[@id=$id]/name/text()
-            return map:entry($id, $name)
-        )
+        'collections' : map:merge((
+            map:entry("Missing collection description", map:merge( 
+                for $id in $ids[not(.=$collections/@id)] return map:entry($id, $id)
+            )),
+            for $c_collections in $collections[@id=$ids] group by $calib_level := map:get($calib_level-of-id, string($c_collections/@id) ) return 
+                (:return map:entry( map:get($calib_level-labels, $calib_level), :)
+                map:merge( 
+                    for $t_collections in $c_collections group by $type := collection:get-type($t_collections)
+                        return map:entry(  map:get($calib_level-labels, $calib_level)  || " / " || $type, 
+                            map:merge( 
+                                for $collection in $t_collections     
+                                let $id := data($collection/@id)
+                                
+                                let $title := $collection/title/text()
+                                let $label := tokenize($title, "\.")[1]
+                                (: let $name := $collection/name/text()
+                                let $name := if($name) then $title|| ":" || $name else "/!\ "||$id :)                                               
+                                return map:entry($id, $label)
+                            )                            
+                        )
+                    )
+                (: ) :)
+            ))        
+        ,'collections-default-keys-order' :
+            for $c_collections in $collections[@id=$ids] group by $calib_level := map:get($calib_level-of-id, $c_collections/@id) 
+                order by $calib_level descending return 
+                for $t_collections in $c_collections group by $type := collection:get-type($t_collections)                
+                 return map:get($calib_level-labels, $calib_level)  || " / " || $type            
     }
 };
 
@@ -741,9 +801,10 @@ function app:sort-by($node as node(), $model as map(*)) as map(*) {
                 (: column name       displayed text :)
                 't_min'           : "Date",
                 'target_name'     : "Target name",
-                'instrument_name' : "Instrument"
+                'instrument_name' : "Instrument",
+                'subdate' : "Submission date"
             }),
-        map:entry('sortbys-default-keys-order', ('t_min', 'instrument_name', 'target_name'))
+        map:entry('sortbys-default-keys-order', ('t_min', 'instrument_name', 'target_name', 'subdate'))
     ))
 };
 
@@ -793,13 +854,21 @@ declare function app:wavelength-divisions($node as node(), $model as map(*)) as 
     map:merge(($model, map:entry('wavelength-divisions', jmmc-astro:wavelength-division-names())))
 };
 
+declare variable $app:data-quality-levels-display := map {
+                                "": "Unknown",
+                                "0":"Unknown",
+                                "1":"Trash",
+                                "2":"To&#160;be&#160;reduced&#160;again",
+                                "3":"Quick&#160;look&#160;(risky&#160;to&#160;publish)",
+                                "4":"Science&#160;ready",
+                                "5":"Outstanding&#160;quality" };
 declare variable $app:data-quality-levels := map {
-                                0:"Unknown",
-                                1:"Trash",
-                                2:"To be reduced again",
-                                3:"Quick look (risky to publish)",
-                                4:"Science ready",
-                                5:"Outstanding quality" };
+                                "0":"Unknown",
+                                "1":"Trash",
+                                "2":"To be reduced again",
+                                "3":"Quick look (risky to publish)",
+                                "4":"Science ready",
+                                "5":"Outstanding quality" };
 
 (:~
  : Put a map for data quality levels in the model for templating.
@@ -881,8 +950,8 @@ function app:search($node as node(), $model as map(*),
         (: default columns to display :)
         let $column-names := if(exists($all)) then
                 $data//th/@name/string()
-            else
-                $app:main-metadata
+            else 
+                distinct-values( ($app:main-metadata, translate($order,"^~!","")[$order] ) )
 
         let $stats   := app:data-stats($params)
 
@@ -1151,7 +1220,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     </div>
                 </div>
 
-                <h2><i class="glyphicon glyphicon-align-justify"/>&#160;{$objtype}'s table of metadata <small>id={$data//td[@colname='id']/text()}</small></h2>
+                <h2><i class="glyphicon glyphicon-align-justify"/>&#160;{$objtype}&apos;s table of metadata <small>id={$data//td[@colname='id']/text()}</small></h2>
 
                 <table class="table table-striped table-bordered table-hover table-condensed">
                 <!-- <caption> Details for { $id } </caption> -->
