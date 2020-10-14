@@ -17,6 +17,8 @@ declare variable $collection:collections-uri := $config:data-root || '/collectio
 
 declare variable $collection:VIZIER_COLTYPE := "VizieR";
 declare variable $collection:PUBLIC_COLTYPE := "public";
+declare variable $collection:SIMULATION_COLTYPE := "simulation";
+
 
 
 

@@ -32,7 +32,8 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.0.11">
+        <change xmlns="" version="2.0.12">
+          <!-- 2.0.11 fix sql connection use / no more leaks -->
           <!-- 2.0.11 fix granule rest endpoints -->
           <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->
           <!-- 2.0.4 OiDBTAPServlet can use TAP_BASE_URL param -->
@@ -40,6 +41,7 @@
             <ul>
               <li>ESO VLTI obs log harvesting (L0) on top of <a href="http://obs.jmmc.fr">obsportal</a> datasource using incremental mode.</li>
               <li>Provide first basic support for private collection handled by <a href="//www.jmmc.fr/suv">SUV.</a></li>
+              <li>Simulation collections can be created to host non observed OIFits. Warning icons highlight these results.</a></li>
               <li>Fix uploaded filename to avoid some non reliable escaping (":" replaced by "_").</li>
               <li>Improve upload process to load prog and obs ids from OIFits keywords (ESO ones).</li>
               <li>Enhance result's table display : highlight global download links in it's top right corner, add calibration level with different text styles per row.</li>
