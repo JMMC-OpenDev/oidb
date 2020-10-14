@@ -260,7 +260,7 @@ declare function helpers:pagination($node as node(), $model as map(*)) as node()
 (:~
  : Return a list of <option> elements for an HTML dropdown list.
  :
- : The option values and texts are retrieved from the the model entry for the
+ : The option values and texts are retrieved from the model entry for the
  : given key. The entry value can be:
  :  - a map, the value attributes are taken from the map keys and the texts
  :    from the model values
@@ -280,13 +280,21 @@ declare
 function helpers:select-options($node as node(), $model as map(*), $key as xs:string, $sorted as xs:string?) as node()* {
     let $options := $model($key)
     let $ret := if ($options instance of map(*)) then
+        (: let $log := util:log("info", "searching for " || $key||"-default-keys-order :" || string-join($model($key||"-default-keys-order"), ", ") ) :)
         let $map-default-keys-order := $model($key||"-default-keys-order")
         return
             for $key at $pos in map:keys($options)
-            order by if ($sorted="no") then
-                if (exists($map-default-keys-order) ) then index-of($map-default-keys-order, $key) else  $pos 
+            order by 
+                if (exists($map-default-keys-order) ) then index-of($map-default-keys-order, $key) else
+                if ($sorted="no") then
+                    $pos 
                 else upper-case($key) ascending
-            return <option value="{ $key }">{ map:get($options, $key) }</option>
+            let $option := map:get($options, $key)
+            return 
+                if ($option instance of map(*)) then 
+                    <optgroup label="{$key}">{helpers:select-options($node,map{$key:$option}, $key, $sorted)}</optgroup>
+                else
+                    <option value="{ $key }">{ $option }</option>
     else
         for $value at $pos in $options
         order by if ($sorted="no") then $pos else upper-case($value) ascending
@@ -302,26 +310,28 @@ function helpers:select-options($node as node(), $model as map(*), $key as xs:st
  : 'templates' has a similar function (templates:form-control) that:
  :  - search for values in the request parameters.
  :  - does not template process the children of the node
- : 
- : @todo
- :    handle optgroup children of select
  :
  : @param $node
  : @param $model
  : @return the processed node
  :)
 declare function helpers:form-control($node as node(), $model as map(*)) as node()* {
+    helpers:form-control($node, $model, ())
+};
+
+declare %private function helpers:form-control($node as node(), $model as map(*), $value as xs:string?) as node()* {
     (: template process the children :)
-    let $children := templates:process($node/node()[not(name()="optgroup")], $model)
+    let $children := templates:process($node/node(), $model)
+
+    let $type := $node/@type
+    let $name := $node/@name
+    (: try to get value from the model (instead of request parameters) :)
+    let $value := if($value) then $value else if($name) then map:get($model, $name) else ()
 
     let $control := local-name($node)
     return
     switch ($control)
-        case "input" return
-            let $type := $node/@type
-            let $name := $node/@name
-            (: try to get value from the model (instead of request parameters) :)
-            let $value := map:get($model, $name)
+        case "input" return            
             (: look for request params of the given name to let decide which checked attribute to set below :)
             let $params-values := request:get-parameter($name, ())
             return
@@ -351,31 +361,35 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
                             }
                 else
                     $node
-        case "select" return
-            (: try to get value from the model (instead of request parameters) :)
-            let $value := map:get($model, $node/@name/string())
-            return
-                element { node-name($node) } {
-                    $node/@*,
-                    for $node in $children
-                    return if ($node[local-name(.) = "option"] and ($node[@value = $value] or $node/string() = $value) and string-length(string-join($value))>0 ) then
-                            (: add the checked attribute to this element :)
-                            element { node-name($node) } {
-                                $node/@*,
-                                attribute selected { "selected" },
-                                $node/node()
-                            }
-                        else
-                            $node
-                    }
-        case "textarea" return
-            (: try to get value from the model (instead of request parameters) :)
-            let $value := map:get($model, $node/@name/string())
-            return
-                element { node-name($node) } {
-                    $node/@*,
-                    if (exists($value)) then $value else $node/text()
+        case "select" return            
+            element { node-name($node) } {
+                $node/@*,
+                for $node in $children 
+                    return if ( not( $node/local-name(.) = ("option", "optgroup") ) ) then $node else
+                    helpers:form-control($node, $model, $value)
+                }        
+        case "optgroup" return             
+            element { node-name($node) } {
+                $node/@*,
+                for $node in $children 
+                    return if ( not( $node/local-name(.) = ("option", "optgroup") ) ) then $node else
+                    helpers:form-control($node, $model, $value)
                 }
+        case "option" return                       
+            if (($node[@value = $value] or $node/string() = $value) and string-length(string-join($value))>0 ) then
+                (: add the checked attribute to this element :)
+                element { node-name($node) } {
+                    $node/@*,
+                    attribute selected { "selected" },
+                    $node/node()
+                }
+            else
+                $node
+        case "textarea" return            
+            element { node-name($node) } {
+                $node/@*,
+                if (exists($value)) then $value else $node/text()
+            }
         default return
             element { node-name($node) } {
                 $node/@*,
