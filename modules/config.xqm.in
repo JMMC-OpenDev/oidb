@@ -113,21 +113,10 @@ declare function config:app-info($node as node(), $model as map(*)) {
 };
 
 
-import module namespace sql="http://exist-db.org/xquery/sql";
-
 (:~
- : Database configuration
+ : Database configuration. Look at jetty config for pool details.
  :)
 declare variable $config:jndi-name := "@jndi-name@";
-
-(:~
- : Provide a db handle to access SQL database with XQuery sql module
- : 
- : @return a connection handle
- :)
-declare function sql:get-jndi-connection($config:jndi-name) as xs:long{
-    sql:get-jndi-connection($config:jndi-name)
-};
 
 (:~
  : The table in the database where to save the metadata.
