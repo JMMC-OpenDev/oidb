@@ -34,7 +34,7 @@ declare variable $config:data-root := $config:app-root || "-data";
 (:~
  : The path to the ASPRO XML configurations in the database.
  :)
-declare variable $config:aspro-conf-root := $config:data-root ||"/instruments/AsproConf/";
+declare variable $config:aspro-conf-root := $config:app-root ||"/instruments/AsproConf/";
 
 (:~
  : The base urls of jmmc services.
