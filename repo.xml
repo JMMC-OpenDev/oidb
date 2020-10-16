@@ -32,7 +32,7 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.0.12">
+        <change xmlns="" version="2.0.13">
           <!-- 2.0.11 fix sql connection use / no more leaks -->
           <!-- 2.0.11 fix granule rest endpoints -->
           <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->

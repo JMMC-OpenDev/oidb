@@ -249,7 +249,7 @@ declare function app:td-cell-warning($cell as node(), $row as node()* )
             ()
         ,if(starts-with($progid,"60.A")) 
         then 
-            (<i class="glyphicon glyphicon-warning-sign text-warning" rel="tooltip" data-original-title="Low quality record or technical time"/>,"&#160;") 
+            (<i class="glyphicon glyphicon-warning-sign text-warning" rel="tooltip" data-original-title="No quality control / technical time"/>,"&#160;") 
         else
             ()
         )
@@ -468,11 +468,13 @@ declare variable $app:collections-query := adql:build-query(( 'col=obs_collectio
  :
  : @param $node the current node
  : @param $model the current model
+ : @param $length max-length of label
  : @return a new map as model with collections details
  :)
 declare
     %templates:wrap
-function app:collections-options($node as node(), $model as map(*)) as map(*) {
+    %templates:default("length", "79")
+function app:collections-options($node as node(), $model as map(*), $length as xs:integer) as map(*) {
     let $data := tap:retrieve-or-execute($app:collections-query)
     let $ids := $data//*:TR/*:TD[1]/text()
     let $calib_levels := $data//*:TR/*:TD[2]/text()
@@ -481,9 +483,10 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
         'collections' : map:merge((
+            if ($ids[not(.=$collections/@id)]) then 
             map:entry("Missing collection description", map:merge( 
                 for $id in $ids[not(.=$collections/@id)] return map:entry($id, $id)
-            )),
+            )) else (),
             for $c_collections in $collections[@id=$ids] group by $calib_level := map:get($calib_level-of-id, string($c_collections/@id) ) return 
                 (:return map:entry( map:get($calib_level-labels, $calib_level), :)
                 map:merge( 
@@ -493,10 +496,13 @@ function app:collections-options($node as node(), $model as map(*)) as map(*) {
                                 for $collection in $t_collections     
                                 let $id := data($collection/@id)
                                 
-                                let $title := $collection/title/text()
-                                let $label := tokenize($title, "\.")[1]
-                                (: let $name := $collection/name/text()
-                                let $name := if($name) then $title|| ":" || $name else "/!\ "||$id :)                                               
+                                let $label := $collection/title/text()
+                                let $label-length := string-length($label)                                
+                                let $label := if ( $label-length > $length) then
+                                        (: substring($label, 1, 3*$length div 4) || '…' || substring($label, $label-length - ($length div 4), $label-length) :)
+                                        substring($label, 1, $length) || '…'
+                                    else
+                                        $label
                                 return map:entry($id, $label)
                             )                            
                         )
