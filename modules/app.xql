@@ -1100,6 +1100,10 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         (: --- PAGINATION --- :)
         map {
             'perpage'    : request:get-parameter('perpage', '25')
+        },
+        (: --- COLUMNS --- :)
+        map {
+            'all'    : request:get-parameter('all', ())
         }
     ))
 };
@@ -1156,6 +1160,7 @@ declare function app:serialize-query-string() as xs:string* {
             case "perpage"     return "perpage=" || $value
             case "progid"      return "progid=" || $value
             case "obs_id"      return "obs_id=" || $value
+            case "all"      return "all=" || $value
             default            return ()
     )
 };
