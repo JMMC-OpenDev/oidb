@@ -81,9 +81,7 @@ CREATE TABLE oidb (
 
     access_md5              VARCHAR(32),
 
-    -- Limit duplicates on the same collection for a given obs_id and offer UPSERT mode
-    -- was setup for obsportal incremental sync that can carry updates on past records
-    CONSTRAINT dup_granule_same_col UNIQUE ( obs_id, obs_collection)
+    -- TODO expose MULTIPLE keyword value for L2/L3
 );
 
 -- copy doc instead of using BIGSERIAL ( that does not work in my previous (bad?) tests )
@@ -91,6 +89,11 @@ ALTER SEQUENCE oidb_id_seq OWNED BY oidb.id;
 
 -- Create spatial index (pg_sphere required)
 CREATE INDEX oidb_spatial ON oidb USING GIST(spoint(radians(s_ra),radians(s_dec)));
+
+-- Limit duplicates on the same collection for a given obs_id and offer UPSERT mode
+-- was setup for obsportal incremental sync that can carry updates on past records
+-- could be applied on with partitionning / views
+CREATE UNIQUE INDEX dup_granule_same_col ON oidb ( obs_id, obs_collection) WHERE calib_level=0;
 
 --
 -- END
