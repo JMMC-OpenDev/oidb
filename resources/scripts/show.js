@@ -55,15 +55,16 @@ $(function () {
                 var $replyTo = $form.parents('.media-body').first();
 
                 var $thread;
-                if ($replyTo.length === 0) {
+                if ($replyTo.length == 0) {
                     // toplevel comment
-                    $thread = $('#comments ul.media-list');
+                    $replyTo = $('#comments ul.media-list').first();
+                    $thread = $('<ul/>', { 'class': 'media-list' }).appendTo($replyTo);
                 } else {
                     // new comment is a reply
                     $thread = $replyTo.find('> ul.media-list');
-                    if ($thread.length === 0) {
+                    if ($thread.length == 0) {
                         // no reply yet, create thread
-                        $thread = $('<ul/>', { 'class': 'media-list' }).appendTo($replyto);
+                        $thread = $('<ul/>', { 'class': 'media-list' }).appendTo($replyTo);
                     }
                 }
 
@@ -83,10 +84,21 @@ $(function () {
     // connect the reply buttons to display the comment form
     $("#comments").on('click', 'a.btn', function (e) {
         e.preventDefault();
-
-        $('#comments a.btn').addClass('disabled');
-
-        $commentForm.insertAfter($(this).hide()).show();
+        $c_area = $(this);
+        $c_button = $('#comments a.btn');
+        $c_form = $commentForm;
+        // assert we are logged in
+        $.ajax('login').done(
+            function (data, textStatus, jqXHR) {
+                if ( jqXHR.status != 401) { 
+                    $c_button.addClass('disabled');
+                    $c_form.insertAfter($c_area).show();
+                }else{
+                    alert("hey!!");
+                }
+            }
+        );
+        
     });
    
     //+ Jonas Raoni Soares Silva
