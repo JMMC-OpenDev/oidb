@@ -95,7 +95,7 @@ return
         
         return
             (
-                <p>&#10;# {$pos} obs_release_date:{ $obs_release_date } datapi:{$datapi}&#10;&lt;Files "{ $access_url }"&gt;&#10;</p>,
+                <p>&#10;# {$pos} obs_release_date:{ $obs_release_date } datapi:{$datapi}&#10;&lt;Files "{ tokenize($access_url, "/")[last()] }"&gt;&#10;</p>,
                 if($public) then 
                     <p>    Allow from all&#10;    Satisfy any</p>
                 else 
