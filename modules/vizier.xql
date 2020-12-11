@@ -48,7 +48,7 @@ function vizier:catalog-description($node as node(), $model as map(*)) as map(*)
             jmmc-vizier:catalog($id)
         } catch * {
             flash:error(
-                let $msg := if ($err:code = 'jmmc-vizier:error') then
+                let $msg := if ($err:code = xs:QName('jmmc-vizier:error')) then
                     $err:description
                 else
                     'Failed to retrieve description for catalog ' || $id || '. See log for details.'
