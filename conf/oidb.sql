@@ -93,7 +93,7 @@ CREATE INDEX oidb_spatial ON oidb USING GIST(spoint(radians(s_ra),radians(s_dec)
 -- Limit duplicates on the same collection for a given obs_id and offer UPSERT mode
 -- was setup for obsportal incremental sync that can carry updates on past records
 -- could be applied on with partitionning / views
-CREATE UNIQUE INDEX dup_granule_same_col ON oidb ( obs_id, obs_collection) WHERE calib_level=0;
+CREATE UNIQUE INDEX dup_granule_same_col ON oidb ( obs_id, obs_collection, instrument_mode) WHERE calib_level=0;
 
 --
 -- END
