@@ -66,7 +66,8 @@ declare %private function granule:insert-statement($data as node()*, $try-update
     let $values  := "( " || string-join($values,  ', ') || " )"
     
     let $update-on-conflict := if($try-update-on-conflict) then 
-            "ON CONFLICT ON CONSTRAINT dup_granule_same_col DO UPDATE SET " || $columns || " = " || $values || ", subdate = DEFAULT"
+(:            "ON CONFLICT ON CONSTRAINT dup_granule_same_col DO UPDATE SET " || $columns || " = " || $values || ", subdate = DEFAULT":)
+            "ON  CONFLICT (obs_id, obs_collection, instrument_mode) WHERE calib_level=0 DO UPDATE SET " || $columns || " = " || $values || ", subdate = DEFAULT"
         else
             ()
             
