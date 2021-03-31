@@ -79,7 +79,7 @@ CREATE TABLE oidb (
     progid                  text,
     datapi                  text,
 
-    access_md5              VARCHAR(32),
+    access_md5              VARCHAR(32)
 
     -- TODO expose MULTIPLE keyword value for L2/L3
 );
