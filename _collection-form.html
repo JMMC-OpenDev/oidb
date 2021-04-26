@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <fieldset xmlns="http://www.w3.org/1999/xhtml" id="collection" data-template="app:collection-form">
     <legend>Collection details</legend>
     <input type="hidden" name="id" data-template="helpers:form-control"/>
@@ -24,8 +23,8 @@
                 <label>
                     <i class="glyphicon glyphicon-lock"/>&#160;
                     <input type="radio" name="coltype" id="coltype_suv" value="suv" data-template="helpers:form-control"/>
-                    SUV
-                    <a href="./doc.html#SUV" target="suv">
+                    <span rel="tooltip" data-original-title="share data amongst a team during an embargo period prior to publication, store data reduced with the help of SUV ...">embargoed/private</span>
+                    <a href="./doc.html#embargoed_collection" target="embargoed">
                         <span class="glyphicon glyphicon-question-sign"/>
                     </a>    
                 </label>
@@ -76,4 +75,11 @@
             <input id="datapi" name="datapi" class="form-control input-md" required="" type="text" readonly="readonly" data-template="helpers:form-control"/>
         </div>
     </div>
+    
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("[rel='tooltip']").tooltip();
+        });
+    </script>
+    
 </fieldset>
