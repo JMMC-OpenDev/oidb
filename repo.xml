@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>stable</status><!-- one of alpha beta stable -->
+    <status>beta</status><!-- one of alpha beta stable -->
     <license/>
     <copyright>true</copyright>
     <type>application</type>
@@ -32,7 +32,17 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
+        <change xmlns="" version="2.1.1">
+            <h3>V2.1 release</h3>
+            <ul>
+              <li>Display other catalogs - experimental.</li>
+              <li type="bugfix">Fix query editor removing extra whitespaces.</li>
+              <li type="dev">Updates to bump on VOLLT tap server</li>
+	    </ul>
+	</change>
+
         <change xmlns="" version="2.0.13">
+          <!-- 2.0.14  Comment fix + minor changes  - sql still leaks... github issue -->
           <!-- 2.0.11 fix sql connection use / no more leaks -->
           <!-- 2.0.11 fix granule rest endpoints -->
           <!-- 2.0.5 no longer uses AsproConf from oidb-data but oidb -->

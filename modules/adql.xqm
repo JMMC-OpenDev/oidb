@@ -53,9 +53,9 @@ declare %private function adql:set_quantifier($params as item()*) as xs:string {
  : (OFFSET in SQL) but we use a modified one that does it
  : 
  : @param $params a sequence of parameters
- : @return a TOP fragment or an empty string
+ : @return  (TOP $limit ,OFFSET $offset) fragments or an empty string
  :)
-declare %private function adql:set_limit($params as xs:string*) as xs:string {
+declare %private function adql:set_limit($params as xs:string*) as xs:string* {
     let $page    := number(adql:get-parameter($params, 'page', ()))
     let $page := if( string($page) != 'NaN' ) then $page else ()
     
@@ -69,7 +69,7 @@ declare %private function adql:set_limit($params as xs:string*) as xs:string {
             let $limit := max(( $perpage, $limit-param ))
             let $offset  := max( ( (($page - 1) * $perpage ), xs:double(0)))
             return 
-                "TOP " || $limit || " OFFSET " || $offset
+                ("TOP " || $limit , "OFFSET " || $offset)
     else
         ""
 };
@@ -142,6 +142,7 @@ declare %private function adql:group_by($params as xs:string*) as xs:string {
  :)
 declare %private function adql:order_by_clause($params as xs:string*) as xs:string {
     let $sort-keys := adql:get-parameter($params, 'order', ())
+    let $sql-table := adql:get-parameter($params, 'catalog', $config:sql-table)
     
     let $order-by := if(exists($sort-keys)) then
             for $key in $sort-keys
@@ -157,7 +158,8 @@ declare %private function adql:order_by_clause($params as xs:string*) as xs:stri
     let $limit-param := number(adql:get-parameter($params, 'limit', ()))
     let $limit-param := if (string($limit-param) != 'NaN') then $limit-param else ()
     
-    let $order-by := if ( exists($page) or exists($limit-param) ) then ( $order-by, $adql:correlation-name || ".id" ) else $order-by
+    (: always append an order by id so that pagination works in any case :)
+    let $order-by := if ( exists($page) or exists($limit-param) ) then ( $order-by, ($adql:correlation-name || ".id")[$sql-table=$config:sql-table] ) else $order-by
     
     return 
         if ( exists($order-by) ) then 'ORDER BY ' || string-join( $order-by , ', ') else ''
@@ -169,8 +171,10 @@ declare %private function adql:order_by_clause($params as xs:string*) as xs:stri
  : 
  : @return a from clause on the application DB table
  :)
-declare %private function adql:from_clause() as xs:string {
-    'FROM ' || $config:sql-table || ' AS ' || $adql:correlation-name
+declare %private function adql:from_clause($params) as xs:string {
+    let $sql-table := adql:get-parameter($params, 'catalog', $config:sql-table)
+    return 
+        'FROM ' || $sql-table || ' AS ' || $adql:correlation-name
 };
 
 (:~
@@ -234,21 +238,6 @@ declare %private function adql:where_clause($params as xs:string*) as xs:string 
         ''
 };
 
-(:~
- : Return a set of clauses for the table expression of the query.
- : 
- : @param $params a sequence of parameters
- : @return a sequence of clauses as strings
- :)
-declare %private function adql:table_expression($params as xs:string*) as item()* {
-    (
-        adql:from_clause(),
-        adql:where_clause($params),
-        adql:group_by($params),
-        (: having_clause :)
-        adql:order_by_clause($params)
-    )    
-};
 
 (:~
  : Return the parameter identified by name.
@@ -365,12 +354,19 @@ declare function adql:build-query($params as item()*) as xs:string {
     return if ($query) then
         $query
     else 
+        let $limits := adql:set_limit($params)
+        return 
         string-join(( 
             'SELECT',
             adql:set_quantifier($params),
-            adql:set_limit($params),
+            $limits[1],
             adql:select_list($params),
-            adql:table_expression($params)
+            adql:from_clause($params),
+            adql:where_clause($params),
+            adql:group_by($params),
+            (: having_clause :)
+            adql:order_by_clause($params),
+            $limits[2]
             ), ' ')
 };
 

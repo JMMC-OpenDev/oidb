@@ -13,7 +13,7 @@ import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xq
  : @param $query an ADQL query
  : @return the number of results
  :)
-declare %private function query:count($query as xs:string) as xs:integer {
+declare function query:count($query as xs:string) as xs:integer {
     let $query := 'SELECT COUNT(*) FROM ( ' || $query || ' ) AS r'
     return tap:execute($query)//*:TD/text()
 };
@@ -35,8 +35,10 @@ function query:run($node as node(), $model as map(*),
     try {
         (: Search database, use request parameter :)
         let $query := request:get-parameter('query', false())
+        let $offset  := max( ( (($page - 1) * $perpage ), xs:double(0)))
         (: FIXME SELECT TOP 10 * FROM ... does not respond properly :)
-        let $subquery := 'SELECT TOP '|| $perpage ||' OFFSET ' || ($perpage * $page) || ' * ' || ' ' ||' FROM (' || $query || ') AS e'
+(:        let $subquery := 'SELECT TOP '|| $perpage ||' OFFSET ' || ($perpage * $page) || ' * ' || ' ' ||' FROM (' || $query || ') AS e':)
+        let $subquery := 'SELECT TOP '|| $perpage || ' * ' || ' ' ||' FROM (' || $query || ') AS e ' ||' OFFSET ' || ($offset) 
         let $votable := if ($query) then tap:execute($subquery) else ()
         let $data := if ($votable) then app:transform-votable($votable) else ()
         let $overflow := if ($votable and (count($data/tr) - 1) < $perpage) then tap:overflowed($votable) else false()
@@ -58,6 +60,7 @@ function query:run($node as node(), $model as map(*),
 
         return
             map {
+                'stats' : <stats> { attribute { "info" } { $nrows } } </stats>,
                 'columns' :    $columns,
                 'rows' :       $rows,
                 'overflow' :   if ($overflow) then true() else (),
@@ -79,5 +82,5 @@ function query:run($node as node(), $model as map(*),
  : @return a text node with the current query
  :)
 declare function query:query($node as node(), $model as map(*)) as node() {
-    text { request:get-parameter('query', '') }
+    text { normalize-space(request:get-parameter('query', '')) }
 };

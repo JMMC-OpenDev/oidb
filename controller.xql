@@ -82,7 +82,7 @@ else if ($exist:path eq '//') then
             <forward url="{$exist:controller}/modules/view.xql"/>
         </view>
     </dispatch>
-else if ($exist:path eq "/search.html" and request:get-method() = 'POST') then
+else if ($exist:path = ("/search.html", "/catalogs.html") and request:get-method() = 'POST') then
     (: interception of POST requests from search page :)
     (: serialize from form elements and redirect (303 See Other) :)
     let $query-string := adql:to-query-string(app:serialize-query-string())

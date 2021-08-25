@@ -317,3 +317,12 @@ declare function filters:public($params as xs:string) {
             $adql:correlation-name || ".obs_release_date < '" || string(current-dateTime()) || "'" ||
         " )"
 };
+(:~
+ : Format an ADQL condition for a given record given its id.
+ : 
+ : @param $id to return only given id
+ : @return an ADQL condition selecting items id
+ :)
+declare function filters:id($params as xs:string) {
+    $adql:correlation-name || ".id=" || $params
+};

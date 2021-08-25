@@ -24,11 +24,21 @@ declare function sql-utils:escape($str as xs:string) as xs:string {
 (:~ 
  : Get db connection handle that must be used for other sql-utils function calls to recycle the connections.
 
-:)
+ : WARNING !! this connection will be associated to this xql and cached then it will not be released after each executation of xquery that would call it. 
+ :  This method must not be used anylonger since it may starve connection pool. Prefer to get the jndi connection from callin code using get-jndi-name.
+ :)
 declare function sql-utils:get-jndi-connection(){
+    util:log("info", "please replace this code by sql:get-jndi-connection(sql-utils:get-jndi-name()) and use sql:execute in caller code"),
     sql:get-jndi-connection($config:jndi-name)
 };
 
+(:~ 
+ : Get jndi name so the caller can get the connection handle on it's side, so it will be removed '
+
+:)
+declare function sql-utils:get-jndi-name(){
+    $config:jndi-name
+};
 (:~
  : Execute a function within an SQL transaction.
  : 
@@ -71,7 +81,6 @@ declare function sql-utils:within-transaction($db_handle as xs:long, $func as fu
  : @error any error thrown by the function
  :)
 declare function sql-utils:within-transaction($func as function(xs:long) as item()*) as item()* {
-    (: sql-utils:within-transaction(sql:get-jndi-connection($config:jndi-name), $func) :)
     sql-utils:within-transaction(sql:get-jndi-connection($config:jndi-name), $func)
 };
 

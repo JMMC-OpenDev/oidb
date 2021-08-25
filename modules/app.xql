@@ -30,7 +30,7 @@ import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
 
 declare namespace sm="http://exist-db.org/xquery/securitymanager";
 
-declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
+(: * is now use bellow to support multiple NS versions declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";:)
 (: Store main metadata to present in the search result table, granule summary, etc... :)
 declare variable $app:main-metadata := ( 'calib_level', 'target_name', 'access_url', 't_min', 'instrument_name', 'em_min', 'em_max', 'nb_channels', 'datapi' );
 
@@ -660,7 +660,7 @@ declare function app:statistics($node as node(), $model as map(*)) as map(*) {
             $cached
         else
             let $vot       := tap:retrieve-or-execute(adql:build-query( 'caliblevel=1,2,3' ))
-            let $granules := app:votable-rows-to-granules(data($vot//votable:FIELD/@name), $vot//votable:TABLEDATA/votable:TR)
+            let $granules := app:votable-rows-to-granules(data($vot//*:FIELD/@name), $vot//*:TABLEDATA/*:TR)
             let $rows := $granules//granule
             let $statistics:=
             <dev>nb_granules for calib_level >=1 :{count($rows)}<br/>
@@ -1090,6 +1090,10 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         map {
             'obs_id'   : request:get-parameter('obs_id', ())
         },
+        (: catalog=.... :)
+        map {
+            'catalog'   : request:get-parameter('catalog', ())
+        },
         (: --- ORDERING --- :)
         let $order := request:get-parameter('order', '')[1]
         let $desc := starts-with($order, '^')
@@ -1161,7 +1165,10 @@ declare function app:serialize-query-string() as xs:string* {
             case "progid"      return "progid=" || $value
             case "obs_id"      return "obs_id=" || $value
             case "all"      return "all=" || $value
-            default            return ()
+            
+            (: help to handle catalog - check if this new form may be ok for previous :)                       
+            default            return $n||"="||string-join($value, ",")
+	    (: was : default            return () :)
     )
 };
 
@@ -1206,7 +1213,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
     let $query := "SELECT * FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
     (: send query by TAP :)
     let $votable := tap:execute($query)
-    let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;") (: leave header on a single line :)
+    let $data := app:transform-votable($votable, 1, count($votable//*:TR),"&#160;") (: leave header on a single line :)
     let $nb-granules := count($data//tr[td])
 
     return if ($nb-granules=0) then
@@ -1287,7 +1294,7 @@ declare function app:show-granule-siblings($node as node(), $model as map(*), $k
     let $query := "SELECT target_name, id, obs_id, t_min FROM " || $config:sql-table || " AS t WHERE t.access_url='" || $granule//td[@colname='access_url'] || "'"
     (: send query by TAP :)
     let $votable := tap:execute($query)
-    let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
+    let $data := app:transform-votable($votable, 1, count($votable//*:TR),"&#160;")
     let $nb-granules := count($data//tr[td])
     where $nb-granules >= 2
     return
@@ -1481,7 +1488,7 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
         else
             let $votable := tap:execute($query)
             return 
-                app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;")
+                app:transform-votable($votable, 1, count($votable//*:TR),"&#160;")
     let $nb-granules := count($data//tr[td])
  
  
@@ -1618,7 +1625,7 @@ declare variable $app:latest-query := adql:build-query(( 'col=target_name', 'col
 declare function app:latest($node as node(), $model as map(*)) {
     let $data := tap:retrieve-or-execute($app:latest-query)
 
-    let $fields := data($data//votable:FIELD/@name)
+    let $fields := data($data//*:FIELD/@name)
     let $name-pos := index-of($fields, 'target_name')
     let $url-pos  := index-of($fields, 'access_url')
 
@@ -1843,7 +1850,7 @@ declare function app:transform-votable($votable as node()) as node() {
  : @return a <votable/> element
  :)
 declare function app:transform-votable($votable as node(), $start as xs:double) as node() {
-    app:transform-votable($votable, $start, count($votable//votable:TR), ())
+    app:transform-votable($votable, $start, count($votable//*:TR), ())
 };
 
 (:~
@@ -1862,26 +1869,27 @@ declare function app:transform-votable($votable as node(), $start as xs:double) 
  : @return a <votable/> element
  :)
 declare function app:transform-votable($votable as node(), $start as xs:double, $length as xs:double, $ucd-separator ) {
-    let $headers := $votable//votable:FIELD
+    let $headers := $votable//*:FIELD
+    let $has-null := exists($headers/*:VALUES/@null) (: avoid many comparison if not present :)
 
     return <votable> <tr> {
         for $field in $headers
         return <th>
             { $field/@name }
-            { attribute {"description"} {data($field/votable:DESCRIPTION)} }
+            { attribute {"description"} {data($field/*:DESCRIPTION)} }
             { $field/@unit }
             { data($field/@name) }
             { if($field/@ucd and exists($ucd-separator))  then ($ucd-separator, <a href="{ concat($app:UCD_URL,data($field/@ucd)) }"> { data($field/@ucd) } </a>) else () }
             <!-- { if($field/@unit) then ( <br/>, <span> [ { data($field/@unit) } ] </span> ) else () } -->
         </th>
         } </tr> {
-        for $row in $votable//votable:TABLEDATA/votable:TR[position() >= $start and position() < $start + $length]
+        for $row in $votable//*:TABLEDATA/*:TR[position() >= $start and position() < $start + $length]
         return <tr> {
             fn:for-each-pair(
-                $headers, $row/votable:TD,
+                $headers, $row/*:TD,
                 function ($header, $cell) {
                 (: compare value against the null for the column :)
-                let $value := if ($cell = $header/votable:VALUES/@null) then '' else $cell/text()
+                let $value := if ($has-null and $cell = $header/*:VALUES/@null) then '' else $cell/text()
                 return element { 'td' } {
                     $cell/@*,
                     attribute { "colname" } { data($header/@name) },
@@ -1898,10 +1906,10 @@ declare function app:transform-votable($votable as node(), $start as xs:double, 
  : @param $row    the VOTable row
  : @return a XML granule
  :)
-declare %private function app:votable-row-to-granule($fields as xs:string*, $row as element(votable:TR)) as element(granule){
+declare %private function app:votable-row-to-granule($fields as xs:string*, $row as element()) as element(granule){
     <granule> {
         (: turn each cell into child element whose name is the respective column name :)
-        for $td at $i in $row/votable:TD
+        for $td at $i in $row/*:TD
         return element { $fields[$i] } { $td/text() }
     } </granule>
 };
@@ -1913,11 +1921,11 @@ declare %private function app:votable-row-to-granule($fields as xs:string*, $row
  : @param $rows    the VOTable rows
  : @return the XML granules
  :)
-declare %private function app:votable-rows-to-granules($fields as xs:string*, $rows as element(votable:TR)*) as element(granules){
+declare %private function app:votable-rows-to-granules($fields as xs:string*, $rows as element()*) as element(granules){
     <granules>{for $row in $rows
     return <granule> {
         (: turn each cell into child element whose name is the respective column name :)
-        for $td at $i in $row/votable:TD
+        for $td at $i in $row/*:TD
         return element { $fields[$i] } { $td/text() }
     } </granule>
     }</granules>
@@ -1937,7 +1945,7 @@ declare function app:granules($query as item()*) as node()* {
     let $votable := tap:execute(adql:build-query($query))
 
     (: transform the VOTable :)
-    let $data := app:transform-votable($votable, 1, count($votable//votable:TR),"&#160;") (: leave header on a single line :)
+    let $data := app:transform-votable($votable, 1, count($votable//*:TR),"&#160;") (: leave header on a single line :)
 
     return (
         (: group by source file (access_url) :)

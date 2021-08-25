@@ -54,6 +54,7 @@ let $all :=
 let $ok := $all[@public = 'yes']/datalink-rows/*/*:TD[5]
 let $bad := $all[@public = 'no']/datalink-rows/*/*:TD[5]
 let $common := $bad[. = $ok]
+let $log := util:log("info", "common : "||count($common))
 
 
 for $public in (true(), false())
@@ -68,13 +69,13 @@ return
     (: Fix shared permissions:
        a datalink may be linked to two oifits . avoid giving access if still under embargo by another one but leave access with auth :) 
     let $datalink-rows :=
-        if ($yesno = 'no') then
-            $acl/datalink-rows/* | $all[@public = 'yes']/datalink-rows/*[./*:TD[5] = $acl/datalink-rows/*/*:TD[5]]
+        if ($public) then
+            $acl/datalink-rows/*[not(./*:TD[5] = $all[@public = 'no']/datalink-rows/*/*:TD[5])]
         else
-             $acl/datalink-rows/*[not(./*:TD[5] = $all[@public = 'no']/datalink-rows/*/*:TD[5])]
+            $acl/datalink-rows/* | $all[@public = 'yes']/datalink-rows/*[./*:TD[5] = $acl/datalink-rows/*/*:TD[5]]
             
 (:    let $new-datalink-access_urls := $datalink-rows/*:TD[5]:)
-(: let $log  := util:log("info", "after filtering:" || count($datalink-rows)) :)
+ let $log  := util:log("info", "after filtering:" || count($datalink-rows)) 
 (: let $log  := util:log("info", "common:" || count($common)) :)
 (: let $log  := util:log("info", count($datalink-access_urls)||" non filtered (" ||count(distinct-values($datalink-access_urls))||" distinct)") :)
 (: let $log  := util:log("info", count($new-datalink-access_urls)||" filtered (" ||count(distinct-values($new-datalink-access_urls))||" distinct)") :)

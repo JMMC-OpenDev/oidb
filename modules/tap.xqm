@@ -11,7 +11,6 @@ module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace jmmc-cache="http://exist.jmmc.fr/jmmc-resources/cache";
 
-declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.2";
 
 
 (:  prepare a cache for some classical requests :)
@@ -49,22 +48,39 @@ declare function tap:execute($adql-statement as xs:string) as node()? {
  : @error bad response or problem reported by TAP server
  :)
 declare function tap:execute($adql-statement as xs:string, $maxrec as xs:integer?) as node()? {
+    tap:execute($adql-statement, $maxrec, ())
+};
+
+(: STILL TO BE CONTINUED TO SUPPORT JSON AS RETURN VALUE :)
+(:~
+ : Executes an ADQL statement against the database with TAP and limit number of rows.
+ : 
+ : @param $adql-statement the ADQL statement
+ : @param $maxrec         the maximum number of table records to return
+ : @param $format         the expected return format to return
+ : @return a VOTABLE node as returned by the TAP service.
+ : @error bad response or problem reported by TAP server
+ :)
+declare function tap:execute($adql-statement as xs:string, $maxrec as xs:integer?, $format as xs:string?) {
     (: make the request to database :)
     let $uri     := $config:TAP_SYNC || '?' || string-join((
         'REQUEST=doQuery',
         'LANG=ADQL',
-        'FORMAT=votable',
+        'FORMAT=' || ( if( $format) then $format else 'votable/td' ) , (: votable/td replaces in vollt old votable of taplib :)
         'MAXREC=' || ( if ($maxrec) then  $maxrec else '-1' ),
         'QUERY=' || encode-for-uri($adql-statement)), '&amp;')
+        
+    (: let $log := util:log('info', "Querying TAP : " || $uri) :)
     let $data    := hc:send-request(<hc:request method="get" href="{$uri}"/> )
 
-    return if (empty($data) or empty($data/votable:VOTABLE)) then
-        error(xs:QName('tap:error'), 'Bad response from the TAP server')
-    else if ($data//votable:INFO[@name='QUERY_STATUS'][@value='ERROR']) then
-        let $error := $data//votable:INFO[@name='QUERY_STATUS']/text()
+    return if (empty($data) or empty($data/*:VOTABLE)) then
+(:        error(xs:QName('tap:error'), 'Bad response from the TAP server:'||(string-join((for $e in $data return name($e)),"-")) ):)
+        error(xs:QName('tap:error'), 'Bad response from the TAP server:'||serialize($data) )
+    else if ($data//*:INFO[@name='QUERY_STATUS'][@value='ERROR']) then
+        let $error := $data//*:INFO[@name='QUERY_STATUS']/text()
         return error(xs:QName('tap:error'), 'The TAP server reported an error', $error)
     else
-        $data/votable:VOTABLE
+        $data/*:VOTABLE
 };
 
 
@@ -108,7 +124,7 @@ declare function tap:retrieve-or-execute($adql-statement as xs:string, $maxrec a
  : @return true if the result overflowed
  :)
 declare function tap:overflowed($votable as node()) as xs:boolean {
-    exists($votable//votable:TABLE/following-sibling::votable:INFO[@name='QUERY_STATUS' and @value='OVERFLOW'])
+    exists($votable//*:TABLE/following-sibling::*:INFO[@name='QUERY_STATUS' and @value='OVERFLOW'])
 };
 
 (:~

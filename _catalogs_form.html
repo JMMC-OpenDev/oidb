@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.w3.org/1999/xhtml" action="catalogs.html" method="post" data-template="app:deserialize-query-string" class="form-inline">
+    <div class="panel-group">
+        <!-- add in style overflow:visible to leave dropdown of multiselect plugin not being cropped -->
+        <div class="panel panel-default" style="overflow:visible;">
+            <div class="panel-heading">
+                <h6 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#filters" href="#filters">
+                        <i class="indicator glyphicon glyphicon-chevron-down"/> Filters
+                    </a>
+                </h6>
+            </div>
+            <div id="filters" class="panel-body panel-collapse collapse in">
+                <fieldset>
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <label class="control-label" for="catalog">catalog:</label>
+                            <select class="form-control" name="catalog" data-template="helpers:form-control">
+                                <option>spica_2021_07_08</option>
+                                <option>spica_2021_01_19</option>
+                                <option>oidb</option>
+                            </select>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="panel-footer">
+                <div class="row form-inline">
+                    <div class="form-group col-md-7" aaadata-template="app:sort-by">
+                        <select class="form-control" aaadata-template="helpers:form-control" name="perpage">
+                            <option>10</option>
+                            <option>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                        rows max. per page
+                        <!--, sorted by 
+                        <select class="form-control" data-template="helpers:form-control" name="sortby">
+                            <option data-template="helpers:select-options" data-template-sorted="no" data-template-key="sortbys"/>
+                        </select>
+                        <input class="checkbox form-control" type="checkbox" name="descending" value="yes" data-template="helpers:form-control">&#160;descending</input>,
+                        <input class="checkbox form-control" type="checkbox" name="all" value="all" data-template="helpers:form-control"> with all columns </input>.
+                        -->
+                        
+                    </div>
+                    <div class="form-group col-md-offset-1 col-md-2">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="glyphicon glyphicon-search"/> Search </button>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <a href="catalogs.html" class="btn btn-default" role="button"> Reset <i class="glyphicon glyphicon-refresh"/>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
