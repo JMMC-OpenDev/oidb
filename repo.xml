@@ -32,7 +32,14 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.1.1">
+        <change xmlns="" version="2.1.2">
+            <h3>V2.1 release</h3>
+            <ul>
+              <li type="dev">Enhance filter.xqm to support various primary-key names</li>
+	    </ul>
+	</change>
+
+       <change xmlns="" version="2.1.1">
             <h3>V2.1 release</h3>
             <ul>
               <li>Display other catalogs - experimental.</li>
