@@ -319,10 +319,16 @@ declare function filters:public($params as xs:string) {
 };
 (:~
  : Format an ADQL condition for a given record given its id.
+ : if param id=name:value instead of id=value the given name will be used instead of 'id'.
  : 
  : @param $id to return only given id
  : @return an ADQL condition selecting items id
  :)
 declare function filters:id($params as xs:string) {
-    $adql:correlation-name || ".id=" || $params
+    let $p := tokenize($params, ":")
+    return 
+        if (count($p)=1) then 
+            $adql:correlation-name || ".id=" || $params
+        else
+            $adql:correlation-name || "." || $p[1] || "=" || $p[2]
 };
