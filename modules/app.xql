@@ -2,7 +2,8 @@ xquery version "3.0";
 
 module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates";
 
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
+import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
 import module namespace math="http://www.w3.org/2005/xpath-functions/math";

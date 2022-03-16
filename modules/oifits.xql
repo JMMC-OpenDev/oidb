@@ -8,7 +8,8 @@ module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits";
 
 import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
+import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers";
 

@@ -5,7 +5,8 @@ xquery version "3.0";
  :)
 module namespace vizier="http://apps.jmmc.fr/exist/apps/oidb/vizier";
 
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
+import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";

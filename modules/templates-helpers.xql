@@ -9,7 +9,8 @@ xquery version "3.0";
  :)
 module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers";
 
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
+import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 
 (:~
  : Evaluate and output the block if the model has a given property.

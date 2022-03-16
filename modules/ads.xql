@@ -5,7 +5,8 @@ xquery version "3.0";
  :)
 module namespace ads="http://apps.jmmc.fr/exist/apps/oidb/ads";
 
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
+import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
 import module namespace adsabs="http://exist.jmmc.fr/jmmc-resources/adsabs";

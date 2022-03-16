@@ -7,7 +7,8 @@ xquery version "3.0";
 module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments";
 
 import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "login.xqm";
-import module namespace templates="http://exist-db.org/xquery/templates";
+import module namespace templates="http://exist-db.org/xquery/html-templating";
+import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
