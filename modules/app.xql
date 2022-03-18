@@ -576,6 +576,19 @@ function app:collection-form($node as node(), $model as map(*), $id as xs:string
 };
 
 
+(:~
+ : Show a link onto current tap endpoint.
+ :
+ : @param $node the current node
+ : @param $model the current model
+ : @return a html link that use can use to reach tap endpoint
+ :)
+declare
+    %templates:wrap
+function app:tap_endpoint($node as node(), $model as map(*)) as map(*) {
+    let $url := "http://blah"
+    return <a href="{$url}">{$url}</a>
+};
 
 declare variable $app:oifits-query := adql:build-query(( 'col=access_url', 'distinct' ));
 (: TODO copy/update app:instruments for facilities + TBD oifits files , granules :)

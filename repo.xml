@@ -32,7 +32,16 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.1.3">
+        <change xmlns="" version="2.2.1">
+            <h3>V2.1 release</h3>
+            <ul>
+              <li>Add TAP endpoint's URL on homepage.</li>
+              <li>Update about page since we moved to kubernetes behind HAProxy.</li>
+              <li type="dev">Bump to eXist-db 6.</li>
+	    </ul>
+	</change>
+
+       <change xmlns="" version="2.1.3">
             <h3>V2.1 release</h3>
             <ul>
               <li type="dev">Fix conesearch query generator using new tap server.</li>
