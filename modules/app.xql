@@ -585,8 +585,8 @@ function app:collection-form($node as node(), $model as map(*), $id as xs:string
  :)
 declare
     %templates:wrap
-function app:tap_endpoint($node as node(), $model as map(*)) as map(*) {
-    let $url := "http://blah"
+function app:tap_endpoint($node as node(), $model as map(*)){
+    let $url := $config:TAP_BASEURL
     return <a href="{$url}">{$url}</a>
 };
 
