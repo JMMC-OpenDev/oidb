@@ -18,6 +18,7 @@ let $response :=
     <oixp:oiDataCollection> 
         {
             try {
+                
                 (: tweak the query string to build a custom ADQL query :)
                 let $query := adql:build-query(
                     (
@@ -28,14 +29,19 @@ let $response :=
                                     adql:split-query-string()))),
                         'distinct',
                         (: select single column with file URL :)
-                        'col=access_url'
+                        'col=access_url',
+                        'caliblevel=!0'
                     )
                 )
+                let $log := util:log("info", "Queriing for oiexplorer collection with :"||$query)
                 (: run the ADQL SELECT :)
                 let $data := tap:execute($query)
+                let $log := util:log("info", "We have got the tap result")
                 (: FIXME url for search on Web portal :)
                 let $url := substring-before(request:get-url(), '/modules/oiexplorer.xql') || '/search.html?' || request:get-query-string()
 
+                let $access-url-pos := index-of(data($data//*:TABLE/*:FIELD/@name), 'access_url')    
+                
                 return (
                     '&#xa;    ', (: poor attempt at prettyprinting the comment :)
                     comment { ' ' || $url || ' ' },
@@ -43,9 +49,10 @@ let $response :=
                     comment { ' ' || $query || ' ' },
                     (: FIXME may or may be public/available :)
                     for $row in $data//*:TR
-                    let $url := app:fix-relative-url($row/*:TD[position()=index-of(data($data//*:TABLE/*:FIELD/@name), 'access_url')]/text()) 
+                    let $url := app:fix-relative-url($row/*:TD[position()=$access-url-pos]/text())
                     where starts-with($url, 'http')
-                    return <file><file> { $url } </file></file>
+                    return <file><file> { $url } </file></file>,
+                    util:log("info", "loop done")
                 )
             } catch * {
                 comment { "Error: " || $err:description }
