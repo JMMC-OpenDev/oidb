@@ -325,9 +325,10 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
     let $r := if ($release_date) then <li>Release date: <b>{$release_date}</b></li> else ()
     let $contact := <span><b>Contact:</b><ul>{ $c, $d, $r }</ul></span>
     let $contact := serialize($contact)
+    let $filename := tokenize($url, "/")[last()]
     return
         element { "a" } {
-            attribute { "href" } { if (exists($id)) then request:get-scheme() || "://" || request:get-server-name() || "/get-data.html?id=" || $id else $url },
+            attribute { "href" } { if (exists($id)) then request:get-scheme() || "://" || request:get-server-name() || "/get-data.html?id=" || $id ||"&amp;name=/" || $filename else $url },
             if (not($calib_level < 1) and string-length($url) > 3 and ($public or $creator_name = '')) then
                 let $dfpu := datalink:datalink-first-png-url($id)
                 let $img := if (exists($dfpu)) then serialize(<img src="{ $dfpu }" width="400%"/>) else ()
