@@ -27,6 +27,12 @@ function deleteSessionCookie(name) {
 }
 
 $(function () {
+     
+    // clear selected dropdowns
+    $.fn.dropdownClear = function() {
+            $(this).find('ul.dropdown-menu:first').children().remove();
+    };
+
     // Add an item to selected dropdowns
     // arg can be a function that is evaluated on each dropdown
     $.fn.dropdownAppend = function(arg) {
@@ -81,20 +87,38 @@ $(function () {
     }
 
     // Populate the application list for the given mtype and show the modal
-    function showApplicationsModal(mtype) {
-        var $modal = $('#apps-modal');
-        // from VO Application Registry (http://voar.jmmc.fr)
-        if ($.fn.appendAppList) {
-            var $ul = $('.voar ul', $modal);
-            $ul.empty().appendAppList({ 'mtype': mtype });
-        } else {
-            $('.voar', $modal).hide();
-        }
-        $modal.modal('show');
+    function showApplicationsModal(button,mtype) {
+        button.click(
+            function(e){
+                e.preventDefault();
+                var $modal = $('#apps-modal');
+                // from VO Application Registry (http://voar.jmmc.fr)
+                if ($.fn.appendAppList) {
+                    var $ul = $('.voar ul', $modal);
+                    $ul.empty().appendAppList({ 'mtype': mtype });
+                } else {
+                    $('.voar', $modal).hide();
+                }
+                $modal.modal('show');
+            }
+        )
     }
+                    
+    function sendMessage(button, id, mtype, params,conn) {
+        button.click(
+            function(e){
+                e.preventDefault();
+                var parameters = jQuery.isFunction(params) ? params.call(e.currentTarget) : params;
+                if(parameters.url){ parameters.url=qualifyURL(parameters.url); }
+                var msg = new samp.Message(mtype, parameters);
+                conn.notify([id, msg]);
+            }
+        )
+    }
+                            
 
     // Add and remove links to relevant SAMP clients in the dropdown menu
-    $.fn.sampify = function(mtype, params) {
+    $.fn.sampify = function(mtypes) {
         this
         .bind('show.bs.dropdown', function (e) {
             var $dropdown = $(this);
@@ -106,47 +130,48 @@ $(function () {
             connector.runWithConnection(function (conn) {
                 // Persist the SAMP connection
                 saveSAMPPrivateKey(conn.regInfo['samp.private-key']);
-
-                conn.getSubscribedClients([mtype], function (res) {
-                    var parameters = jQuery.isFunction(params) ? params.call(e.currentTarget) : params;
-                    var sendMessage = function (id) {
-                        if(parameters.url){ parameters.url=qualifyURL(parameters.url); }
-                        var msg = new samp.Message(mtype, parameters);
-                        conn.notify([id, msg]);
-                    };
-                    // add an entry to the dropdown menu for the application
-                    var addLink = function (id) {
-                        return function (metadata) {
-                            var name = metadata['samp.name'];
-                            $divider.after(
-                                dropdownMenuitem('Send to ' + name, 'share', '#')
-                                    .click(function (event) { event.preventDefault(); sendMessage(id); }));
-                        };
-                    };
-
-                    for (var id in res) {
-                        var metadata = ct.metas[id];
-                        if (metadata) {
-                            addLink(id)(metadata);
-                        } else {
-                            // no metadata for this application, ask the hub
-                            conn.getMetadata([id], addLink(id));
+                
+                // refresh subscriptions so that clienTracker has every updated subscriptions
+                conn.getSubscribedClients(["was___mtype"], function (res) {});
+                //console.log("runWithConnection: "+JSON.stringify(ct));
+                
+                // for every mtypes, loop on every subs to find a client that have requested mtypes
+                for (var mtype in mtypes){
+                    var params=mtypes[mtype].params;
+                    var label=mtypes[mtype].label;
+                    for (var id in ct.subs ){
+                        if (mtype in ct.subs[id]){
+                            var name = ct.metas[id]['samp.name'];
+                            //console.log("mtype "+mtype+" supported by "+name+"("+id+")");
+                            // create, add and register an entry to the dropdown menu for the application
+                            var dmi = dropdownMenuitem('Send ' + label + ' to ' + name + " ("+id+")", 'share', '#');
+                            $divider.after(dmi);
+                            sendMessage(dmi, id,mtype, params, conn);
                         }
                     }
-
-                    // change action to close connection
-                    // Note: dropdown discarded on click, no need to delete elements
-                    $dropdown.dropdownAppend(
-                        dropdownMenuitem('Unregister from SAMP Hub', 'remove-sign', '#')
-                            .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); }));
-                });
+                }
+                
+                // change action to close connection
+                // Note: dropdown discarded on click, no need to delete elements
+                $dropdown.dropdownAppend(
+                    dropdownMenuitem('Unregister from SAMP Hub', 'remove-sign', '#')
+                    .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); }));
+                
             },
             function (error) {
                 // add status entry, no connection
-                $dropdown.dropdownAppend(
-                    dropdownMenuitem('No SAMP connection', 'info-sign', '#')
-                        .click(function (e) { showApplicationsModal(mtype); e.preventDefault(); }));
-            });
+                for (var mtype in mtypes){
+                    //var mtype=mtype;
+                    var label = mtypes[mtype].label;
+                    // Populate the application list for the given mtype and show the modal
+                    var dmi = dropdownMenuitem('No SAMP connection to handle '+ label, 'info-sign', '#');
+                    $dropdown.dropdownAppend(dmi) ;
+                    // call a function to attach data to the click event.
+                    showApplicationsModal(dmi,mtype);
+                    
+                }
+            }
+            );
         })
         .bind('hidden.bs.dropdown', function (e) {
             var $divider = $('ul li.divider:last', e.currentTarget);
@@ -179,15 +204,17 @@ $(function () {
                 $dropdown.dropdownAppend(dropdownMenuitem('Paper at ADS', 'book', 'https://ui.adsabs.harvard.edu/abs/' + encodeURIComponent(data.bib_reference) + '/abstract' ));
         });
     $tr.filter('[data-access_url]').find('.dropdown')
-        // prepare for SAMP table.load.fits links
+        // prepare dynamic menu according SAMP running app 
         .sampify(
-            'table.load.fits',
-            // prepare parameters for the 'table.load.fits'
-            function () {
-                // find the access_url for the row
-                var access_url = $(this).parents('tr').first().data('access_url');
-                return { "url": access_url };
-            });
+             {'table.load.fits':{'params':
+                     // prepare parameters for the 'table.load.fits'
+                    function () {
+                        // find the access_url for the row
+                        var access_url = $(this).parents('tr').first().data('access_url');
+                        return { "url": access_url };
+                    }
+             , 'label':"OiFits"}}
+        );
 
     // TODO trim page=, perpage=, ...
     var query_string = window.location.search;
@@ -197,15 +224,17 @@ $(function () {
     $('table thead .dropdown')
         // install non SAMP links
         .one('show.bs.dropdown', function (e) {
+            //console.log("install non SAMP links: "+JSON.stringify(e));
+
             $(e.currentTarget)
                  // create links for VOTable and OIFitsExplorer collection downloads
                 .dropdownAppend(dropdownMenuitem('Download VOTable', 'download', votable_url))
                 .dropdownAppend(dropdownMenuitem('Download OIFitsExplorer collection', 'download', oixp_url))
                 .dropdownAppend(dropdownMenuitem('Download all files with curl', 'download', curl_url));
         })
-        // prepare for SAMP table.load.votable links
-        .sampify(
-             'table.load.votable',
-             // prepare parameter for the 'table.load.votable'
-             { 'url': votable_url });
+        // prepare dynamic menu according SAMP running app 
+        .sampify( {
+            'fr.jmmc.oiexplorer.load.collection':{'params':{'url':oixp_url }, 'label':"OIFitsExplorer collection"}
+            ,'table.load.votable':{'params':{'url': votable_url }, 'label':"VOTable"}
+        });
 });
