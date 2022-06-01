@@ -126,13 +126,15 @@ declare function filters:obs_id($params as xs:string) {
  : @return an ADQL condition selecting rows by calibration level
  :)
 declare function filters:caliblevel($params as xs:string) {
+    let $not := if (starts-with($params, '!')) then 'NOT ' else ''
+    let $params := adql:escape(if ($not != '') then substring($params, 2) else $params)
     let $levels :=
         for $l in tokenize($params, ',')
         let $n := xs:integer($l)
         return if ($n ge 0 and $n lt 4) then $n else ()
     return "( " || 
         string-join(
-            for $l in $levels return $adql:correlation-name || ".calib_level=" || $l,
+            for $l in $levels return $not || $adql:correlation-name || ".calib_level=" || $l,
             " OR ")
         || " )"
 };
