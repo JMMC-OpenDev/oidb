@@ -32,8 +32,17 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.2.1">
-            <h3>V2.1 release</h3>
+        <change xmlns="" version="2.2.2">
+            <h3>2022-06-01</h3>
+            <ul>
+              <li>Export OIFitsExplorer through SAMP in the top left menu of the result table.</li>
+              <li>Speedup oiexplorer collection export.</li>
+              <li>Hack OIFITS access urls sent by SAMP so JMCS app retrieve the original filename (was get-data.fits for any file).</li>
+	    </ul>
+	</change>
+
+       <change xmlns="" version="2.2.1">
+            <h3>2022-03-21</h3>
             <ul>
               <li>Add TAP endpoint's URL on homepage.</li>
               <li>Update about page since we moved to kubernetes behind HAProxy.</li>
