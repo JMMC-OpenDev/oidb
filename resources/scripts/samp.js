@@ -144,7 +144,7 @@ $(function () {
                             var name = ct.metas[id]['samp.name'];
                             //console.log("mtype "+mtype+" supported by "+name+"("+id+")");
                             // create, add and register an entry to the dropdown menu for the application
-                            var dmi = dropdownMenuitem('Send ' + label + ' to ' + name + " ("+id+")", 'share', '#');
+                            var dmi = dropdownMenuitem('Send ' + label + ' to ' + name + " ["+id+"]", 'share', '#');
                             $divider.after(dmi);
                             sendMessage(dmi, id,mtype, params, conn);
                         }
