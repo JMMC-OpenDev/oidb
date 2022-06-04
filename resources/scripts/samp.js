@@ -132,30 +132,31 @@ $(function () {
                 saveSAMPPrivateKey(conn.regInfo['samp.private-key']);
                 
                 // refresh subscriptions so that clienTracker has every updated subscriptions
-                conn.getSubscribedClients(["was___mtype"], function (res) {});
-                //console.log("runWithConnection: "+JSON.stringify(ct));
-                
-                // for every mtypes, loop on every subs to find a client that have requested mtypes
-                for (var mtype in mtypes){
-                    var params=mtypes[mtype].params;
-                    var label=mtypes[mtype].label;
-                    for (var id in ct.subs ){
-                        if (mtype in ct.subs[id]){
-                            var name = ct.metas[id]['samp.name'];
-                            //console.log("mtype "+mtype+" supported by "+name+"("+id+")");
-                            // create, add and register an entry to the dropdown menu for the application
-                            var dmi = dropdownMenuitem('Send ' + label + ' to ' + name + " ["+id+"]", 'share', '#');
-                            $divider.after(dmi);
-                            sendMessage(dmi, id,mtype, params, conn);
+                conn.getSubscribedClients(["was___mtype"], function (res) {
+                    //console.log("runWithConnection: "+JSON.stringify(ct));
+                    
+                    // for every mtypes, loop on every subs to find a client that have requested mtypes
+                    for (var mtype in mtypes){
+                        var params=mtypes[mtype].params;
+                        var label=mtypes[mtype].label;
+                        for (var id in ct.subs ){
+                            if (mtype in ct.subs[id]){
+                                var name = ct.metas[id]['samp.name'];
+                                //console.log("mtype "+mtype+" supported by "+name+"("+id+")");
+                                // create, add and register an entry to the dropdown menu for the application
+                                var dmi = dropdownMenuitem('Send ' + label + ' to ' + name + " ["+id+"]", 'share', '#');
+                                $divider.after(dmi);
+                                sendMessage(dmi, id,mtype, params, conn);
+                            }
                         }
                     }
-                }
-                
-                // change action to close connection
-                // Note: dropdown discarded on click, no need to delete elements
-                $dropdown.dropdownAppend(
-                    dropdownMenuitem('Unregister from SAMP Hub', 'remove-sign', '#')
-                    .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); }));
+                    
+                    // change action to close connection
+                    // Note: dropdown discarded on click, no need to delete elements
+                    $dropdown.dropdownAppend(
+                        dropdownMenuitem('Unregister from SAMP Hub', 'remove-sign', '#')
+                        .click(function (e) { conn.close(); resetSAMPPrivateKey(); e.preventDefault(); }));
+                });
                 
             },
             function (error) {
