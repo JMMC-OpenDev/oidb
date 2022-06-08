@@ -23,6 +23,7 @@ import module namespace ads="http://apps.jmmc.fr/exist/apps/oidb/ads" at "ads.xq
 import module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits" at "oifits.xql";
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
+import module namespace rss="http://apps.jmmc.fr/exist/apps/oidb/rss" at "rss.xqm";
 
 import module namespace user="http://apps.jmmc.fr/exist/apps/oidb/restxq/user" at "rets/user.xqm";
 

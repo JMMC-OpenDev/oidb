@@ -38,7 +38,9 @@
               <li>Export OIFitsExplorer through SAMP in the top left menu of the result table.</li>
               <li>Speedup oiexplorer collection export.</li>
               <li>Hack OIFITS access urls sent by SAMP so JMCS app retrieve the original filename (was get-data.fits for any file).</li>
-              <li>Add support to upload L1 data</li>
+              <li>Add support to upload L1 data.</li>
+              <li>Fix exception that prevent to build a custom ADQL query.</li>
+              <li>Other small bugfixes</li>
 	    </ul>
 	</change>
 

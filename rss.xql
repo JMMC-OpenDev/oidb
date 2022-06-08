@@ -4,6 +4,7 @@ xquery version "3.0";
 
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "modules/config.xqm";
 import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "modules/app.xql";
+import module namespace rss="http://apps.jmmc.fr/exist/apps/oidb/rss" at "modules/rss.xqm";
 
 (:declare option exist:serialize "method=xml media-type=application/rss+xml";:)
 
@@ -17,7 +18,7 @@ return
             <link>{app:fix-relative-url("/")}</link>
             <description></description>
             {
-                app:rssItems($max)
+                rss:rssItems($max)
             }
         </channel>
     </rss>
