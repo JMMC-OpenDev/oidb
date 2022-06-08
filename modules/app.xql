@@ -28,6 +28,7 @@ import module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth";
 import module namespace jmmc-eso="http://exist.jmmc.fr/jmmc-resources/eso";
 import module namespace adsabs="http://exist.jmmc.fr/jmmc-resources/adsabs";
 import module namespace jmmc-xml="http://exist.jmmc.fr/jmmc-resources/xml";
+import module namespace jmmc-web="http://exist.jmmc.fr/jmmc-resources/web" at "/db/apps/jmmc-resources/content/jmmc-web.xql";
 
 declare namespace sm="http://exist-db.org/xquery/securitymanager";
 
@@ -1343,44 +1344,6 @@ declare function app:show-granule-siblings($node as node(), $model as map(*), $k
 };
 
 
-(:~
- : Provide a javascript encoded array to fill an html attribute that can display an email after client side decoding.
- : TODO move into jmmc-auth
- :)
-declare function app:get-encoded-email-array($email as xs:string) as xs:string
-{
-  let $pre := substring-before($email,"@")
-  let $pre := translate($pre, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm")
-
-  let $post := substring-after($email,"@")
-  let $post := translate($post, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm")
-  let $post := tokenize( $post , "\.")
-  let $post := reverse( $post )
-  let $mailto := translate("mailto:", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", "NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm")
-  let $mailto := $mailto ! string-to-codepoints(.) ! codepoints-to-string(.)
-
-  return "[[&apos;"||string-join($mailto, "&apos;, &apos;")||"&apos;],[&apos;"||$pre||"&apos;],[&apos;"||string-join($post, "&apos;, &apos;")|| "&apos;]]"
-};
-
-(:~
- : Provide a javascript decoder code.
- : TODO move into jmmc-auth
- :)
-declare function app:get-encoded-email-decoder() as xs:string {
-    <script>
-    <![CDATA[
-    // connect the contact links
-    $('a[data-contarr]').on('click', function (e){
-        var array = eval($(this).data('contarr'))
-        var str = array[0].join('')+array[1]+'@'+array[2].reverse().join('.');
-        location.href=str.rot13();
-        return false;
-    });
-    ]]>
-    </script>
-
-};
-
 
 (:~
  : Clear cached data. MUST BE called after TAP datasource update.
@@ -1412,7 +1375,7 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                 let $obs_creator_name := data($row//td[@colname="obs_creator_name"])
                 let $obs_creator_name-email := user:get-email($obs_creator_name)
                 let $obs_creator_name-link := if($obs_creator_name-email) then
-                                let $js :=  app:get-encoded-email-array($obs_creator_name-email)
+                                let $js :=  jmmc-web:get-encoded-email-array($obs_creator_name-email)
                                     return <a href="#" data-contarr="{$js}">{$obs_creator_name}&#160;<i class="glyphicon glyphicon-envelope"/></a>
                                 else $obs_creator_name
 
@@ -1428,7 +1391,7 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                                     let $datapi-email := user:get-email($datapi)
                                     return 
                                     if($datapi-email) then
-                                    let $js :=  app:get-encoded-email-array($datapi-email)
+                                    let $js :=  jmmc-web:get-encoded-email-array($datapi-email)
                                     return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
                                     else 
                                         <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
@@ -2262,3 +2225,4 @@ declare function app:random-vignette($node as node(), $model as map(*), $categor
         templates:process($node/node(), $model)
     }
 };
+
