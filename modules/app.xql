@@ -2202,11 +2202,12 @@ function app:upload($node as node(), $model as map(*), $staging as xs:string?, $
  :)
 declare function app:upload-check-calib-level($node as node(), $model as map(*), $calib_level as xs:integer?) as map(*) {
     let $calib_description :=
-        if ($calib_level = 2) then'calibrated'
+        if ($calib_level = 1) then'uncalibrated'
+        else if ($calib_level = 2) then'calibrated'
         else if ($calib_level = 3) then 'published'
         else ''
     return
-        if($calib_level = (2,3)) then
+        if($calib_level = (1,2,3)) then
             map{'calib_description' : $calib_description }
         else
             map{}

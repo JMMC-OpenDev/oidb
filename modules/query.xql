@@ -36,7 +36,7 @@ function query:run($node as node(), $model as map(*),
     try {
         (: Search database, use request parameter :)
         let $query := request:get-parameter('query', false())
-        let $offset  := max( ( (($page - 1) * $perpage ), xs:double(0)))
+        let $offset  := max( ( (($page - 1) * $perpage ), xs:integer(0)))
         (: FIXME SELECT TOP 10 * FROM ... does not respond properly :)
 (:        let $subquery := 'SELECT TOP '|| $perpage ||' OFFSET ' || ($perpage * $page) || ' * ' || ' ' ||' FROM (' || $query || ') AS e':)
         let $subquery := 'SELECT TOP '|| $perpage || ' * ' || ' ' ||' FROM (' || $query || ') AS e ' ||' OFFSET ' || ($offset) 

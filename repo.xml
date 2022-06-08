@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>stable</status><!-- one of alpha beta stable -->
+    <status>beta</status><!-- one of alpha beta stable -->
     <license/>
     <copyright>true</copyright>
     <type>application</type>
@@ -38,6 +38,7 @@
               <li>Export OIFitsExplorer through SAMP in the top left menu of the result table.</li>
               <li>Speedup oiexplorer collection export.</li>
               <li>Hack OIFITS access urls sent by SAMP so JMCS app retrieve the original filename (was get-data.fits for any file).</li>
+              <li>Add support to upload L1 data</li>
 	    </ul>
 	</change>
 
