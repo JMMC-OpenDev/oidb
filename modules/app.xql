@@ -330,7 +330,7 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
         element { "a" } {
             attribute { "href" } { if (exists($id)) then request:get-scheme() || "://" || request:get-server-name() || "/get-data.html?id=" || $id ||"&amp;name=/" || $filename else $url },
             if (not($calib_level < 1) and string-length($url) > 3 and ($public or $creator_name = '')) then
-                let $dfpu := datalink:datalink-first-png-url($id)
+                let $dfpu := if ( exists ($id) ) then  datalink:datalink-first-png-url($id) else ()
                 let $img := if (exists($dfpu)) then serialize(<img src="{ $dfpu }" width="400%"/>) else ()
                 return
                     (attribute { "rel" } { "tooltip" }, (: attribute { "data-placement"}       { "right" }, :)
