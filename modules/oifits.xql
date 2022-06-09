@@ -88,11 +88,18 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
             
             (: try to find a progid :)
             (: TODO propose multiple values to let the user choose one of them :)
-            let $progid := $oifits//keyword[name='HIERARCH.ESO.OBS.PROG.ID']/value
+            let $progid := $oifits//keyword[name=('HIERARCH.ESO.OBS.PROG.ID','HIERARCH.OBS.PROG.ID')]/value
             let $progid := if( exists($progid)) then map:entry('progid', $progid) else ()
 
+            
+            let $proposal_subid := $oifits//keyword[name=('HIERARCH.SPICADB-ID')]/value
+            let $proposal_subid := if( exists($proposal_subid)) then map:entry('proposal_subid', $proposal_subid) else ()
+            
             let $obs_id := substring-before($oifits//keyword[name='ARCFILE']/value, '.fits')
             let $obs_id := if( exists($obs_id)) then map:entry('obs_id', $obs_id) else ()
+            
+            (: TODO add category -oitarget.CATEGORY / HIERARCH ESO DP CATG :)
+            
             
             let $report := $oifits/checkReport/text()
             let $cnt-severe := count(tokenize($report,"SEVERE"))-1
@@ -102,6 +109,7 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
             let $reject-nonl3-severe := false() (: true rejects L1/L2 with SEVERE entry :)
             return map:merge(( 
                 $progid,
+                $proposal_subid,
                 $obs_id,
                 map:entry('report', $report),
                 if ($warn-msg) then
