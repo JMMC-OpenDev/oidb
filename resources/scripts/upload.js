@@ -440,6 +440,9 @@ $(function () {
             var p = $(this).parent("tbody").find('input[name="progid"]');
             $(p, this).prop('disabled', true).serializeXML(granules, granule);
 
+            var p = $(this).parent("tbody").find('input[name="proposal_subid"]');
+            $(p, this).prop('disabled', true).serializeXML(granules, granule);
+
             p = $(this).parent("tbody").find('input[name="obs_id"]');
             $(p, this).prop('disabled', true).serializeXML(granules, granule);
 
@@ -578,3 +581,4 @@ $(function () {
         }).end()
         .find('tr [data-toggle="checkreport"]').checkreport();
 });
+
