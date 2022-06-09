@@ -122,6 +122,7 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
     (:TODO    let $nb_channels := $todo:)
         let $nb_channels := "-1"
         let $progid := data($observation/obs_program)
+        let $dataproduct_category := upper-case($observation/obs_type)
     
     (:TODO cache programId -> datapi :)
         
@@ -149,7 +150,8 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
             <instrument_mode>{ $instrument_mode }</instrument_mode>,
             <progid>{ $progid }</progid>,
             <interferometer_stations>{ $interferometer_stations}</interferometer_stations>,
-            <nb_channels>{$nb_channels}</nb_channels>
+            <nb_channels>{$nb_channels}</nb_channels>,
+            <dataproduct_category>{$dataproduct_category}</dataproduct_category>
         } </metadata>
 };
 
