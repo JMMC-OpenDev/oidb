@@ -182,12 +182,12 @@ $(function () {
         $('[data-toggle="checkreport"]').checkreport();
 
         $('tr .dropdown', $oifits).sampify(
-            'table.load.fits',
+            {'table.load.fits':{ 'params':
             // prepare parameters for the 'table.load.fits'
             function () {
                 // set SAMP parameter to URL of the relevant OIFITS file
-                return { "url": $(this).siblings('a').attr('href') };
-            });
+                return { "url": $(this).parent().parent().siblings('a').attr('href') };
+            }, "label":"OiFits" }});
         // handle event for file deletion
         $('.remove-granule').click(function () { 
             var oifitstbody = $(this).parents("tbody");
@@ -569,16 +569,15 @@ $(function () {
             });
     });
     
+    // TODO check if next code is still usefull...
     $('#oifits')
         .find('tr .dropdown').one('click', function (e) {
             $(this).sampify(
-                'table.load.fits',
-                // prepare parameters for the 'table.load.fits'
+                {'table.load.fits':{ "params":
                 function () {
                     // set SAMP parameter to URL of the relevant OIFITS file
                     return { "url": $(this).siblings('a').attr('href') };
-                });
+                }, "label":"OIFits"}});
         }).end()
         .find('tr [data-toggle="checkreport"]').checkreport();
 });
-
