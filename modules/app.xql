@@ -1174,6 +1174,11 @@ declare function app:serialize-query-string() as xs:string* {
             case "band"        return "wavelengthband="    || string-join(for $v in $value return $v, ',')
             case "collection"  return "collection=" || "~" || $value
             case "datapi"      return "datapi=" ||     "~" || $value
+            case "category"   return if (empty($value[not(string(.)=("SCIENCE"))])) then
+                    (: default is SCIENCE :)
+                    ()
+                else
+                    "category=" || string-join(for $v in $value return $v, ',')
             case "reduction"   return if (empty(( 0, 1, 2, 3 )[not(string(.)=$value)])) then
                     (: default is all calibration level :)
                     ()
@@ -1185,12 +1190,13 @@ declare function app:serialize-query-string() as xs:string* {
                     if(request:get-parameter('descending', ())) then '' else '^', $value
                 )
 
-            case "perpage"     return "perpage=" || $value
+            case "descending"  return () (: do not propagate this combined parameter for order :)
+            case "perpage"     return if($value != "25") then  "perpage=" || $value else ()
             case "progid"      return "progid=" || $value
             case "obs_id"      return "obs_id=" || $value
             case "all"      return "all=" || $value
             
-            (: help to handle catalog - check if this new form may be ok for previous :)                       
+            (: help to handle catalog/proposal_subid - check if this new form may be ok for previous :)                       
             default            return $n||"="||string-join($value, ",")
 	    (: was : default            return () :)
     )

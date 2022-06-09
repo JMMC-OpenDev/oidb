@@ -108,6 +108,18 @@ declare function filters:progid($params as xs:string) {
 };
 
 (:~
+ : Format an ADQL condition for matching/not matching a proposal_subid
+ : name.
+ : 
+ : @param $params the pattern for the proposal_subid
+ : @return an ADQL condition or ()
+ :)
+declare function filters:proposal_subid($params as xs:string) {
+    filters:like-text($params, 'proposal_subid')
+};
+
+
+(:~
  : Format an ADQL condition for matching/not matching a obs_id
  : name.
  : 
@@ -135,6 +147,22 @@ declare function filters:caliblevel($params as xs:string) {
     return "( " || 
         string-join(
             for $l in $levels return $not || $adql:correlation-name || ".calib_level=" || $l,
+            " OR ")
+        || " )"
+};
+(:~
+ : Format an ADQL condition matching rows with dataproduct_category levels. 
+ : 
+ : @param $params the calibration levels, comma separated
+ : @return an ADQL condition selecting rows by calibration level
+ :)
+declare function filters:category($params as xs:string) {
+    let $not := if (starts-with($params, '!')) then 'NOT ' else ''
+    let $params := adql:escape(if ($not != '') then substring($params, 2) else $params)
+    let $cats :=tokenize($params, ',')
+    return "( " || 
+        string-join(
+            ( for $cat in $cats return $not || $adql:correlation-name || ".dataproduct_category='" || $cat ||"'",  $adql:correlation-name || ".dataproduct_category IS NULL" ),
             " OR ")
         || " )"
 };
