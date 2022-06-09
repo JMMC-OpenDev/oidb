@@ -243,29 +243,33 @@ declare function app:td-cell-warning($cell as node(), $row as node()* )
     return 
         if(string-length($cell)=0) then () else
             let $icons :=
-        (
-        if($is-simulated) 
-        then 
-            (<i class="glyphicon glyphicon-eye-close text-danger" rel="tooltip" data-original-title="Data are part of a simulation collection"/>,"&#160;") 
-        else
-            ()
-        ,if(starts-with($progid,"60.A")) 
-        then 
-            (<i class="glyphicon glyphicon-warning-sign text-warning" rel="tooltip" data-original-title="No quality control / technical time"/>,"&#160;") 
-        else
-            ()
-        )
-        return 
-        switch ($cell/@colname)
-            case 'progid'
-                return ($icons, <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>)
-            case "quality_level"
-                return ($icons, map:get($app:data-quality-levels-display, data($cell)))
-            case "instrument_name"
-                return if($is-simulated) then (translate(data($cell)," ","&#160;"),<span class="text-warning">_SIMULATED</span>) else translate(data($cell)," ","&#160;")
-            default
-                return ($icons, translate(data($cell)," ","&#160;"))
-        
+                (
+                if($is-simulated) 
+                then 
+                    (<i class="glyphicon glyphicon-eye-close text-danger" rel="tooltip" data-original-title="Data are part of a simulation collection"/>,"&#160;") 
+                else
+                    ()
+                ,if(starts-with($progid,"60.A")) 
+                then 
+                    (<i class="glyphicon glyphicon-warning-sign text-warning" rel="tooltip" data-original-title="No quality control / technical time"/>,"&#160;") 
+                else
+                    ()
+                )
+            return 
+            switch ($cell/@colname)
+                case 'progid'
+                    return ($icons, <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>)
+                case "quality_level"
+                    return ($icons, map:get($app:data-quality-levels-display, data($cell)))
+                case "instrument_name"
+                    return if($is-simulated) then (translate(data($cell)," ","&#160;"),<span class="text-warning">_SIMULATED</span>) else translate(data($cell)," ","&#160;")
+                case "calib_level"
+                    return 
+                        let $dpcat := upper-case ( $row/td[@colname='dataproduct_category'])
+                        let $suffix := if ( starts-with($dpcat,"CAL") ) then <em>&#160;[CAL]</em> else ()
+                        return ($icons, translate(normalize-space($cell)," ","&#160;"),$suffix)
+                default
+                    return ($icons, translate(data($cell)," ","&#160;"))
 };
 
 
@@ -1189,7 +1193,6 @@ declare function app:serialize-query-string() as xs:string* {
                 return concat("order=",
                     if(request:get-parameter('descending', ())) then '' else '^', $value
                 )
-
             case "descending"  return () (: do not propagate this combined parameter for order :)
             case "perpage"     return if($value != "25") then  "perpage=" || $value else ()
             case "progid"      return "progid=" || $value
@@ -2231,4 +2234,3 @@ declare function app:random-vignette($node as node(), $model as map(*), $categor
         templates:process($node/node(), $model)
     }
 };
-
