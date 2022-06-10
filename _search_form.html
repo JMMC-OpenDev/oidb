@@ -114,6 +114,16 @@
                             </div>
                             
                             <div class="form-group">
+                                <label class="control-label" for="category"> Data catagory: </label>
+                                <input class="checkbox form-control" name="category" value="SCIENCE" type="checkbox" checked="checked" data-template="helpers:form-control">
+                                    <a href="#" rel="tooltip" data-original-title="Any scientific object">SCIENCE</a>
+                                </input>, 
+                                <input class="checkbox form-control" name="category" value="CALIB" type="checkbox" data-template="helpers:form-control">
+                                    <a href="#" rel="tooltip" data-original-title="Any calibration source">CALIB</a>
+                                </input>.
+                            </div>
+                            
+                            <div class="form-group">
                                 <label class="control-label" for="available">Availability: </label>
                                 <input class="radio-inline form-control" name="available" value="yes" type="radio" data-template="helpers:form-control">Public</input>
                                 <input class="radio-inline form-control" name="available" value="no" type="radio" data-template="helpers:form-control">Restricted</input>
@@ -123,30 +133,40 @@
                         </div>
                         <div class="form-inline">
                         
-                            <div class="form-group" data-template="app:collections-options">
-                                <label class="control-label" for="collection">Collection: </label>
-                                <select class="form-control" name="collection" data-template="helpers:form-control">
-                                    <option value="">Any Collection</option>
-                                    <option data-template="helpers:select-options" data-template-key="collections"/>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group" data-template="app:data-pis">
-                                <label class="control-label" for="datapi">DataPI: </label>
-                                <select class="form-control" name="datapi" data-template="helpers:form-control">
-                                    <option value="">Any DataPI</option>
-                                    <option data-template="helpers:select-options" data-template-key="datapis"/>
-                                </select>
+                            <div class="form-group">
+                                <div class="form-group" data-template="app:collections-options">
+                                    <label class="control-label" for="collection">Collection: </label>
+                                    <select class="form-control" name="collection" data-template="helpers:form-control">
+                                        <option value="">Any Collection</option>
+                                        <option data-template="helpers:select-options" data-template-key="collections"/>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group" data-template="app:data-pis">
+                                    <label class="control-label" for="datapi">DataPI: </label>
+                                    <select class="form-control" name="datapi" data-template="helpers:form-control">
+                                        <option value="">Any DataPI</option>
+                                        <option data-template="helpers:select-options" data-template-key="datapis"/>
+                                    </select>
+                                </div>
                             </div>
                             
                             <div class="form-group">
-                                <label class="control-label" for="progid">Program: </label>
-                                <input class="form-control" name="progid" placeholder="program id" data-template="helpers:form-control"/>
-                            </div>
                             
-                            <div class="form-group">
-                                <label class="control-label" for="obs_id">ObsId: </label>
-                                <input class="form-control" name="obs_id" placeholder="observation id" data-template="helpers:form-control"/>
+                                <div class="form-group">
+                                    <label class="control-label" for="progid">Program Id: </label>
+                                    <input class="form-control" name="progid" placeholder="program id" data-template="helpers:form-control"/>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="control-label" for="proposal_subid">/SubId: </label>
+                                    <input class="form-control" style="width: 100px;" name="proposal_subid" placeholder="sub id" data-template="helpers:form-control"/>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="control-label" for="obs_id">ObsId: </label>
+                                    <input class="form-control" name="obs_id" placeholder="observation id" data-template="helpers:form-control"/>
+                                </div>
                             </div>
                             
                         </div>

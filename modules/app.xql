@@ -266,7 +266,7 @@ declare function app:td-cell-warning($cell as node(), $row as node()* )
                 case "calib_level"
                     return 
                         let $dpcat := upper-case ( $row/td[@colname='dataproduct_category'])
-                        let $suffix := if ( starts-with($dpcat,"CAL") ) then <em>&#160;[CAL]</em> else ()
+                        let $suffix := if ( starts-with($dpcat,"CAL") ) then <em title="CALIBRATOR">&#160;[CAL]</em> else ()
                         return ($icons, translate(normalize-space($cell)," ","&#160;"),$suffix)
                 default
                     return ($icons, translate(data($cell)," ","&#160;"))
@@ -1178,11 +1178,9 @@ declare function app:serialize-query-string() as xs:string* {
             case "band"        return "wavelengthband="    || string-join(for $v in $value return $v, ',')
             case "collection"  return "collection=" || "~" || $value
             case "datapi"      return "datapi=" ||     "~" || $value
-            case "category"   return if (empty($value[not(string(.)=("SCIENCE"))])) then
-                    (: default is SCIENCE :)
-                    ()
-                else
-                    "category=" || string-join(for $v in $value return $v, ',')
+            case "category"    return if (empty(( "SCIENCE","CALIB" )[not(string(.)=$value)]))
+                then ()
+                else "category=" || string-join(for $v in $value return $v, ',')
             case "reduction"   return if (empty(( 0, 1, 2, 3 )[not(string(.)=$value)])) then
                     (: default is all calibration level :)
                     ()

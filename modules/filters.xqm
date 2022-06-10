@@ -162,7 +162,7 @@ declare function filters:category($params as xs:string) {
     let $cats :=tokenize($params, ',')
     return "( " || 
         string-join(
-            ( for $cat in $cats return $not || $adql:correlation-name || ".dataproduct_category='" || $cat ||"'",  $adql:correlation-name || ".dataproduct_category IS NULL" ),
+            ( for $cat in $cats return $not || $adql:correlation-name || ".dataproduct_category='" || $cat ||"'",  if ("SCIENCE"=$cats)  then $adql:correlation-name || ".dataproduct_category IS NULL" else ()),
             " OR ")
         || " )"
 };
