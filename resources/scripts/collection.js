@@ -6,7 +6,7 @@ $(function () {
                      // prepare parameters for the 'table.load.fits'
                     function () {
                         // set SAMP parameter to URL of the relevant OIFITS file
-                        return { "url": $(this).siblings('a').attr('href') };
+                        return { "url": $(this).parent().parent().siblings('a').attr('href') };
                     }
              , 'label':"OiFits"}}
              );
