@@ -162,7 +162,7 @@ declare function filters:category($params as xs:string) {
     let $cats :=tokenize($params, ',')
     return "( " || 
         string-join(
-            ( for $cat in $cats return $not || $adql:correlation-name || ".dataproduct_category='" || $cat ||"'",  if ("SCIENCE"=$cats)  then $adql:correlation-name || ".dataproduct_category IS NULL" else ()),
+            ( for $cat in $cats return $not || $adql:correlation-name || ".dataproduct_category LIKE '" || substring($cat,0,4) ||"%'",  if ("SCIENCE"=$cats)  then $adql:correlation-name || ".dataproduct_category IS NULL" else ()),
             " OR ")
         || " )"
 };
@@ -362,3 +362,4 @@ declare function filters:id($params as xs:string) {
         else
             $adql:correlation-name || "." || $p[1] || "=" || $p[2]
 };
+
