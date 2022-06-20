@@ -828,7 +828,8 @@ function app:sort-by($node as node(), $model as map(*)) as map(*) {
                 't_min'           : "Date",
                 'target_name'     : "Target name",
                 'instrument_name' : "Instrument",
-                'subdate' : "Submission date"
+                'subdate' : "Submission date",
+                'quality_level' : "Data quality"
             }),
         map:entry('sortbys-default-keys-order', ('t_min', 'instrument_name', 'target_name', 'subdate'))
     ))

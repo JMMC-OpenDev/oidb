@@ -33,8 +33,9 @@
           - use obsportal records (L0) to retrieve datapis
         -->
         <change xmlns="" version="2.2.3">
-            <h3>2022-06-01</h3>
+            <h3>2022-06-20</h3>
             <ul>
+              <li>Add quality_level to the default order list combobox of the main search form.</li>
               <li>Add support to upload L1 data.</li>
               <li>Add two new metadata to our schema : <b>dataproduct_category</b> &amp; <b>proposal_subid</b>.</li>
               <li>Handle L0 Obsportal's obs_type to fill dataproduct_category</li>
