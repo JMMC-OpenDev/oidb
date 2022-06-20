@@ -37,7 +37,7 @@
             <ul>
               <li>Add quality_level to the default order list combobox of the main search form.</li>
               <li>Add support to upload L1 data.</li>
-              <li>Add two new metadata to our schema : <b>dataproduct_category</b> &amp; <b>proposal_subid</b>.</li>
+              <li>Add three new metadata to our schema : <b>dataproduct_category</b>,<b>proposal_subid</b> &amp; <b>note</b>.</li>
               <li>Handle L0 Obsportal's obs_type to fill dataproduct_category</li>
               <li>Enhance metadata analysis for data submission.</li>
               <li>Fix exception that prevent to build a custom ADQL query.</li>
