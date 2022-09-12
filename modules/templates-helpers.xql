@@ -3,7 +3,7 @@ xquery version "3.0";
 (:~
  : This module provides a set of helper functions for HTML templating
  : that are not part of the upstream templates module.
- : 
+ :
  : It also extends eXist-db model for templating by supporting hierarchical
  : keys and composite model (XQuery maps with possibly XML element as values).
  :)
@@ -14,7 +14,7 @@ import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 
 (:~
  : Evaluate and output the block if the model has a given property.
- : 
+ :
  : @param $node
  : @param $model current model
  : @param $key   key to search in the model
@@ -31,7 +31,7 @@ function helpers:if-model-key($node as node(), $model as map(*), $key as xs:stri
 
 (:~
  : Evaluate and output the block if the model does not have a given property.
- : 
+ :
  : @param $node
  : @param $model current model
  : @param $key   key to search in the model
@@ -48,7 +48,7 @@ function helpers:unless-model-key($node as node(), $model as map(*), $key as xs:
 
 (:~
  : Derive a key prefix from a partial path.
- : 
+ :
  : @param $partial the partial path
  : @return a key prefix
  :)
@@ -58,10 +58,10 @@ declare %private function helpers:key-prefix-from-partial($partial as xs:string)
 
 (:~
  : Render a partial with additional data from model entry.
- : 
+ :
  : If the key refers to a model entry containing a sequence, the partial is
  : repeated once for each item of the sequence.
- : 
+ :
  : @param $node    the current node
  : @param $model   the current model
  : @param $partial the path to the partial to render
@@ -87,7 +87,7 @@ declare function helpers:render($node as node(), $model as map(*), $partial as x
 
 (:~
  : Iterate over values for a key in model and repeatedly process nested contents.
- : 
+ :
  : @param $node  the template node to repeat
  : @param $model the current model
  : @param $from  the key in model for entry with values to iterate over
@@ -105,7 +105,7 @@ declare function helpers:each($node as node(), $model as map(*), $from as xs:str
 
 (:~
  : Return the value associated with the key in an extended model.
- : 
+ :
  : @param $model the extended model
  : @param $key   the key to search for
  : @return the value of the key in the model
@@ -138,20 +138,20 @@ declare function helpers:get($model as item()*, $key as xs:string) as item()* {
 
 (:~
  : Helper function for getting value in a model as a string.
- : 
+ :
  : @param $model the current model
  : @param $key   the key to search for in the model
  : @return null if no key is found or a string with value of the key in the model / string separeted by ccomma if multiple values are found
  :)
 declare %private function helpers:model-value($model as map(*), $key as xs:string) as xs:string? {
     let $v := helpers:get($model, $key)
-    return 
+    return
         if( exists($v) ) then string-join(for $e in $v return xs:string($e), ", ") else ()
 };
 
 (:~
  : Return the value of the given key in the model as text.
- : 
+ :
  : @param $node  a placeholder for text
  : @param $model the current model
  : @param $key   the key to search in the model
@@ -163,7 +163,7 @@ declare function helpers:model-value($node as node(), $model as map(*), $key as 
 
 (:~
  : Return the content of the given key in the model as element.
- : 
+ :
  : @param $node  a placeholder for text
  : @param $model the current model
  : @param $key   the key to search in the model
@@ -177,7 +177,7 @@ declare function helpers:model-content($node as node(), $model as map(*), $key a
 
 (:~
  : Return the subcontent of the given key in the model as element.
- : 
+ :
  : @param $node  a placeholder for text
  : @param $model the current model
  : @param $key   the key to search in the model
@@ -190,7 +190,7 @@ declare function helpers:model-subcontent($node as node(), $model as map(*), $ke
 
 (:~
  : Return the content of the given key in the model as a xml comment.
- : 
+ :
  : @param $node  a placeholder for text
  : @param $model the current model
  : @param $key   the key to search in the model
@@ -202,12 +202,12 @@ declare function helpers:model-comment($node as node(), $model as map(*), $key a
 };
 
 (:~
- : Add to the node an attribute with a value from the model. 
- : 
+ : Add to the node an attribute with a value from the model.
+ :
  : It creates a new attribute on the node and set its value to
  : the value associated to the key in the model, then proceeds
  : to templating its child nodes.
- : 
+ :
  : @param $node  the node to process
  : @param $model the current model
  : @param $key   the key to search in the model
@@ -224,7 +224,7 @@ declare function helpers:model-value-attribute($node as node(), $model as map(*)
 
 (:~
  : Insert pagination elements in a list element.
- : 
+ :
  : @param $node  the parent node where to insert the pagination link
  : @param $model the current model
  : @return a set of pagination links in list elements
@@ -232,28 +232,28 @@ declare function helpers:model-value-attribute($node as node(), $model as map(*)
 declare function helpers:pagination($node as node(), $model as map(*)) as node()* {
     let $page   := $model('pagination')('page')
     let $npages := $model('pagination')('npages')
-    
+
     let $parameters := string-join(
-        for $n in request:get-parameter-names() 
-        where $n != 'page' 
+        for $n in request:get-parameter-names()
+        where $n != 'page'
         return for $p in request:get-parameter($n, "")
             return string-join(($n, encode-for-uri($p)), "="), "&amp;")
-    
+
     return (
-        if ($page > 1) then 
+        if ($page > 1) then
             (
             <li><a href="{ concat("?", string-join(( $parameters, "page=1" ), "&amp;")) }">First</a></li>,
             <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page - 1 ), "&amp;")) }">Previous</a></li>
             )
-        else 
+        else
             (),
         <li>Page { $page } / { $npages }</li>,
-        if ($page < $npages) then 
+        if ($page < $npages) then
             (
             <li><a href="{ concat("?", string-join(( $parameters, "page=" || $page + 1 ), "&amp;")) }">Next</a></li>,
             <li><a href="{ concat("?", string-join(( $parameters, "page=" || $npages ), "&amp;")) }">Last</a></li>
             )
-        else 
+        else
             ()
     )
 };
@@ -266,17 +266,17 @@ declare function helpers:pagination($node as node(), $model as map(*)) as node()
  :  - a map, the value attributes are taken from the map keys and the texts
  :    from the model values
  :  - a sequence, the value attributes and the texts are sequence items.
- : 
- : For map entry value and sorted=no, the default key order is taken from the list 
+ :
+ : For map entry value and sorted=no, the default key order is taken from the list
  : retrieved from the model with "-default-keys-order" suffix
  :
  : @param $node
  : @param $model
  : @param $key the identifier in the model for the contents of the options
- : @param $sorted optional parameter to define order-by rule : (no, descending), default is ascending 
+ : @param $sorted optional parameter to define order-by rule : (no, descending), default is ascending
  : @return a sequence of <option> elements
  :)
-declare 
+declare
 %templates:default("sorted", "ascending")
 function helpers:select-options($node as node(), $model as map(*), $key as xs:string, $sorted as xs:string?) as node()* {
     let $options := $model($key)
@@ -285,14 +285,14 @@ function helpers:select-options($node as node(), $model as map(*), $key as xs:st
         let $map-default-keys-order := $model($key||"-default-keys-order")
         return
             for $key at $pos in map:keys($options)
-            order by 
+            order by
                 if (exists($map-default-keys-order) ) then index-of($map-default-keys-order, $key) else
                 if ($sorted="no") then
-                    $pos 
+                    $pos
                 else upper-case($key) ascending
             let $option := map:get($options, $key)
-            return 
-                if ($option instance of map(*)) then 
+            return
+                if ($option instance of map(*)) then
                     <optgroup label="{$key}">{helpers:select-options($node,map{$key:$option}, $key, $sorted)}</optgroup>
                 else
                     <option value="{ $key }">{ $option }</option>
@@ -332,7 +332,7 @@ declare %private function helpers:form-control($node as node(), $model as map(*)
     let $control := local-name($node)
     return
     switch ($control)
-        case "input" return            
+        case "input" return
             (: look for request params of the given name to let decide which checked attribute to set below :)
             let $params-values := request:get-parameter($name, ())
             return
@@ -362,21 +362,21 @@ declare %private function helpers:form-control($node as node(), $model as map(*)
                             }
                 else
                     $node
-        case "select" return            
+        case "select" return
             element { node-name($node) } {
                 $node/@*,
-                for $node in $children 
-                    return if ( not( $node/local-name(.) = ("option", "optgroup") ) ) then $node else
-                    helpers:form-control($node, $model, $value)
-                }        
-        case "optgroup" return             
-            element { node-name($node) } {
-                $node/@*,
-                for $node in $children 
+                for $node in $children
                     return if ( not( $node/local-name(.) = ("option", "optgroup") ) ) then $node else
                     helpers:form-control($node, $model, $value)
                 }
-        case "option" return                       
+        case "optgroup" return
+            element { node-name($node) } {
+                $node/@*,
+                for $node in $children
+                    return if ( not( $node/local-name(.) = ("option", "optgroup") ) ) then $node else
+                    helpers:form-control($node, $model, $value)
+                }
+        case "option" return
             if (($node[@value = $value] or $node/string() = $value) and string-length(string-join($value))>0 ) then
                 (: add the checked attribute to this element :)
                 element { node-name($node) } {
@@ -386,7 +386,7 @@ declare %private function helpers:form-control($node as node(), $model as map(*)
                 }
             else
                 $node
-        case "textarea" return            
+        case "textarea" return
             element { node-name($node) } {
                 $node/@*,
                 if (exists($value)) then $value else $node/text()
