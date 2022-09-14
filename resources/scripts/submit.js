@@ -39,7 +39,7 @@ $(function () {
             })
             .done(function (data) {
                 // great success: simple message
-                var count = $('id', data).size();
+                var count = $('id', data).length;
                 addAlert('success', '' + count + ' granule(s) saved.');
                 $file.val('');
             })

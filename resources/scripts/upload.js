@@ -8,7 +8,7 @@ $(function () {
                 // TODO placeholder for proper bibcode validator
                 bibcode.length == 19 &&
                 // avoid duplicated articles
-                $(':input[name="bibcode"][value="' + bibcode + '"]', $fieldset).size() === 0
+                $(':input[name="bibcode"][value="' + bibcode + '"]', $fieldset).length === 0
             );
         }
         
@@ -258,7 +258,7 @@ $(function () {
                 // filter out url for files that have already been processed or duplicates
                 .filter(function (url, index) {
                     return (
-                        $('#oifits table tbody').find('tr:first a[href="' + url + '"]').size() == 0 &&
+                        $('#oifits table tbody').find('tr:first a[href="' + url + '"]').length == 0 &&
                         urls.indexOf(url) == index
                         );
                 })
@@ -408,7 +408,7 @@ $(function () {
             data.keywords = $('keyword', $collection).map(function(){return $(this).text()}).get().join(" ; ");
             
             var $article = $('article', $collection);
-            if ($article.size() !== 0) {
+            if ($article.length !== 0) {
                 // may have more than one article attached (... in the future : button is by now remove after first successfull article setup)
                 $article = $article.first();
                 data.bib_reference    = $('bibcode', $article).text();
@@ -474,7 +474,7 @@ $(function () {
         
         // perform some checkup before submit
         $error_list = $("#errorModalList").empty();
-        if ($('#oifits tr.granule').size() == 0) {
+        if ($('#oifits tr.granule').length == 0) {
             $error_list.append($("<li>You must add one or more OIFits file(s) in step 1 section</li>"));
         }
         if ($collection_fs.length == 0) {

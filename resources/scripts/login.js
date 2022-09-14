@@ -40,7 +40,7 @@ $(function () {
 
         // setup the dialog: load from partial or reuse previous dialog
         var login = $('#loginModal');
-        if (login.size() === 0) {
+        if (login.length === 0) {
             login = $.ajax('_login-modal.html').done(setupLoginModal);
         }
 
@@ -54,7 +54,7 @@ $(function () {
 
         // setup the dialog: load from partial
         var login = $('#loginModal');
-        if (login.size() === 0) {
+        if (login.length === 0) {
             login = $.ajax('_login-modal.html').done(setupLoginModal);
         }
 
