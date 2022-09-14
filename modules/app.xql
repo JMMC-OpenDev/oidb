@@ -94,7 +94,7 @@ declare %private function app:row-data($row as node()) {
  : Iterate over each data row, updating the model for subsequent templating.
  :
  : It creates a new node for each row and template processes
- : each extending the model with the row data and urls. 
+ : each extending the model with the row data and urls.
  : calib_level_LN class attribute alo is appended so we can change CSS.
  :
  : @note
@@ -182,20 +182,20 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                     case "access_url"
                         return
                             (: filter out text values that are not urls:)
-                            if (string-length($cell)>5) then 
+                            if (string-length($cell)>5) then
                                 let $access-url := data($cell)
                                 let $id := $row/td[@colname='id']
                                 let $data-rights := $row/td[@colname='data_rights']
                                 let $obs-release-date := $row/td[@colname='obs_release_date']
                                 return app:format-access-url($id, $access-url, $data-rights, $obs-release-date, $row/td[@colname='obs_creator_name'], $row/td[@colname='datapi'], $row/td[@colname='calib_level'])
-                            else 
+                            else
                                 translate(data($cell)," ","&#160;")
                     case "datapi"
                         return
                             let $id := $row/td[@colname='id']
                             return <span>{data($cell)}<a href="show.html?id={$id}#contact">&#160;<i class="glyphicon glyphicon-envelope"/> </a></span>
                     case "bib_reference"
-                        return adsabs:get-link($cell,()) 
+                        return adsabs:get-link($cell,())
                     case "em_min"
                     case "em_max"
                         return app:format-wavelengths(data($cell))
@@ -235,27 +235,27 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                 } </td>
 };
 
-declare function app:td-cell-warning($cell as node(), $row as node()* ) 
+declare function app:td-cell-warning($cell as node(), $row as node()* )
 {
     let $progid := $row/td[@colname='progid']
     let $collection-type := try{collection:get-type(string($row/td[@colname='obs_collection']))}catch * {()}
     let $is-simulated := $collection-type=$collection:SIMULATION_COLTYPE
-    return 
+    return
         if(string-length($cell)=0) then () else
             let $icons :=
                 (
-                if($is-simulated) 
-                then 
-                    (<i class="glyphicon glyphicon-eye-close text-danger" rel="tooltip" data-original-title="Data are part of a simulation collection"/>,"&#160;") 
+                if($is-simulated)
+                then
+                    (<i class="glyphicon glyphicon-eye-close text-danger" rel="tooltip" data-original-title="Data are part of a simulation collection"/>,"&#160;")
                 else
                     ()
-                ,if(starts-with($progid,"60.A")) 
-                then 
-                    (<i class="glyphicon glyphicon-warning-sign text-warning" rel="tooltip" data-original-title="No quality control / technical time"/>,"&#160;") 
+                ,if(starts-with($progid,"60.A"))
+                then
+                    (<i class="glyphicon glyphicon-warning-sign text-warning" rel="tooltip" data-original-title="No quality control / technical time"/>,"&#160;")
                 else
                     ()
                 )
-            return 
+            return
             switch ($cell/@colname)
                 case 'progid'
                     return ($icons, <a href="search.html?progid={data($cell)}">{translate(data($cell)," ","&#160;")}</a>)
@@ -264,7 +264,7 @@ declare function app:td-cell-warning($cell as node(), $row as node()* )
                 case "instrument_name"
                     return if($is-simulated) then (translate(data($cell)," ","&#160;"),<span class="text-warning">_SIMULATED</span>) else translate(data($cell)," ","&#160;")
                 case "calib_level"
-                    return 
+                    return
                         let $dpcat := upper-case ( $row/td[@colname='dataproduct_category'])
                         let $suffix := if ( starts-with($dpcat,"CAL") ) then <em title="CALIBRATOR">&#160;[CAL]</em> else ()
                         return ($icons, translate(normalize-space($cell)," ","&#160;"),$suffix)
@@ -490,37 +490,37 @@ function app:collections-options($node as node(), $model as map(*), $length as x
     let $collections := collection("/db/apps/oidb-data/collections")/collection
     return map {
         'collections' : map:merge((
-            if ($ids[not(.=$collections/@id)]) then 
-            map:entry("Missing collection description", map:merge( 
+            if ($ids[not(.=$collections/@id)]) then
+            map:entry("Missing collection description", map:merge(
                 for $id in $ids[not(.=$collections/@id)] return map:entry($id, $id)
             )) else (),
-            for $c_collections in $collections[@id=$ids] group by $calib_level := map:get($calib_level-of-id, string($c_collections/@id) ) return 
+            for $c_collections in $collections[@id=$ids] group by $calib_level := map:get($calib_level-of-id, string($c_collections/@id) ) return
                 (:return map:entry( map:get($calib_level-labels, $calib_level), :)
-                map:merge( 
+                map:merge(
                     for $t_collections in $c_collections group by $type := collection:get-type($t_collections)
-                        return map:entry(  map:get($calib_level-labels, $calib_level)  || " / " || $type, 
-                            map:merge( 
-                                for $collection in $t_collections     
+                        return map:entry(  map:get($calib_level-labels, $calib_level)  || " / " || $type,
+                            map:merge(
+                                for $collection in $t_collections
                                 let $id := data($collection/@id)
-                                
+
                                 let $label := $collection/title/text()
-                                let $label-length := string-length($label)                                
+                                let $label-length := string-length($label)
                                 let $label := if ( $label-length > $length) then
                                         (: substring($label, 1, 3*$length div 4) || '…' || substring($label, $label-length - ($length div 4), $label-length) :)
                                         substring($label, 1, $length) || '…'
                                     else
                                         $label
                                 return map:entry($id, $label)
-                            )                            
+                            )
                         )
                     )
                 (: ) :)
-            ))        
+            ))
         ,'collections-default-keys-order' :
-            for $c_collections in $collections[@id=$ids] group by $calib_level := map:get($calib_level-of-id, $c_collections/@id) 
-                order by $calib_level descending return 
-                for $t_collections in $c_collections group by $type := collection:get-type($t_collections)                
-                 return map:get($calib_level-labels, $calib_level)  || " / " || $type            
+            for $c_collections in $collections[@id=$ids] group by $calib_level := map:get($calib_level-of-id, $c_collections/@id)
+                order by $calib_level descending return
+                for $t_collections in $c_collections group by $type := collection:get-type($t_collections)
+                 return map:get($calib_level-labels, $calib_level)  || " / " || $type
     }
 };
 
@@ -769,17 +769,22 @@ function app:data-pis($node as node(), $model as map(*)) as map(*) {
 
     let $persons := for $p in doc($config:data-root||"/people/people.xml")//person[alias=$datapis]
         let $icons := $app:data-pis-roles//e[k=$p/flag]/icon
-        order by normalize-space(upper-case($p/lastname))
+        let $email := data($p/alias[@email]/@email[1])
+        let $id := data($p/alias[1])
+        let $n := if (string-length($p/lastname)>0) then $p/lastname else $id
         return
-            element {name ($p)} { $p/@*, $icons, $p/*[name()!='alias'], $p/alias[.=$datapis], element {"id"} {data($p/alias[1])} , element {"email"} {data($p/alias[@email]/@email[1])}}
+            element {name ($p)} { $p/@*, $icons, $p/*[name()!='alias'], $p/alias[.=$datapis], element {"id"} {$id} , element {"email"} {$email}}
 
     let $missings := for $p in $datapis[not(.=$persons/alias)]
-        let $e:=<person><missing/>{$app:data-pis-roles//e[k='unregistered']/icon}<firstname></firstname><lastname></lastname><alias>{$p}</alias></person>
-(:        let $u := update insert $e into doc($config:data-root||"/people/people.xml")/people:)
+        let $e:=<person><missing/>{$app:data-pis-roles//e[k='unregistered']/icon}<firstname></firstname><lastname>{$p}</lastname><alias>{$p}</alias></person>
+(:        let $u := update insert $e into doc($config:data-root||"/people/people.xml")/people :)
         return
             $e
+    let $all := for $p in ($persons, $missings)
+        order by normalize-space(upper-case($p/lastname))
+        return $p
 
-    return map:merge(($model, map:entry('datapis', $datapis), map:entry('persons', ($missings, $persons))))
+    return map:merge(($model, map:entry('datapis', $datapis), map:entry('persons', $all)))
 };
 
 (:~
@@ -928,7 +933,7 @@ declare %private function app:data-stats($params as xs:string*) as node() {
     (: FIXME 3 requests... nasty, nasty :)
     return <stats> {
         attribute { "nobservations" } { $count(adql:build-query(( $base-query, 'count=*' ))) },
-        let $nprivatefiles := $count(adql:build-query(( $base-query, 'count=*', 'caliblevel=1,2,3', 'public=no' ))) return 
+        let $nprivatefiles := $count(adql:build-query(( $base-query, 'count=*', 'caliblevel=1,2,3', 'public=no' ))) return
         if ( $nprivatefiles > 0) then attribute { "nprivatefiles" } { $nprivatefiles } else (),
         attribute { "nlogs" }  { $count('SELECT COUNT(*) FROM (' || adql:build-query(( $base-query, 'caliblevel=0')) || ') AS urls') },
         (: FIXME even worse... can you believe it? :)
@@ -963,7 +968,7 @@ function app:search($node as node(), $model as map(*),
 
         return if (empty($params)) then map {'empty-search':'-'}
         else
-        (: append default order param if not present  :)    
+        (: append default order param if not present  :)
         let $params := ($params,("order="||$order)[not($params[starts-with(., "order=")])] )
 
         let $paginated-query := adql:build-query((
@@ -977,7 +982,7 @@ function app:search($node as node(), $model as map(*),
         (: default columns to display :)
         let $column-names := if(exists($all)) then
                 $data//th/@name/string()
-            else 
+            else
                 distinct-values( ($app:main-metadata, translate($order,"^~!","")[$order] ) )
 
         let $stats   := app:data-stats($params)
@@ -1197,8 +1202,8 @@ declare function app:serialize-query-string() as xs:string* {
             case "progid"      return "progid=" || $value
             case "obs_id"      return "obs_id=" || $value
             case "all"      return "all=" || $value
-            
-            (: help to handle catalog/proposal_subid - check if this new form may be ok for previous :)                       
+
+            (: help to handle catalog/proposal_subid - check if this new form may be ok for previous :)
             default            return $n||"="||string-join($value, ",")
 	    (: was : default            return () :)
     )
@@ -1255,7 +1260,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
             </div>
         else
             let $objtype := if ( $data//td[@colname="calib_level"][1] >=1 ) then "Granule" else "Observation log"
-            return 
+            return
             <div>
                 <h1> {$objtype}&#160;{$data//td[@colname='id']/text()}</h1>
                 {()(: app:show-granule-summary($node,  map {'granule' : app:granules($query) }, "granule") :)}
@@ -1265,7 +1270,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     {if ($data//td[@colname='calib_level'] = '0' ) then () else app:show-granule-siblings($node,  map {'granule' : $data }, "granule")}
                     </div>
                     <div class="col-md-6 acol-md-offset-1">
-                    {app:show-granule-contact($node,  map {'granule' : $data }, "granule")}                    
+                    {app:show-granule-contact($node,  map {'granule' : $data }, "granule")}
                     {app:show-granule-comments($node,  $model, "granule")}
                     {app:show-granule-externals($node,  map {'granule' : $data }, "granule")}
                     </div>
@@ -1395,13 +1400,13 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                         </address>
                     else
                         let $datapi-link := if(string-length($datapi)<2) then "Not present in metadata"
-                                else 
+                                else
                                     let $datapi-email := user:get-email($datapi)
-                                    return 
+                                    return
                                     if($datapi-email) then
                                     let $js :=  jmmc-web:get-encoded-email-array($datapi-email)
                                     return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
-                                    else 
+                                    else
                                         <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
                                     If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user may contact the creator of the resource just below.</span>
                         return
@@ -1422,20 +1427,20 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
  : @return a <div> summary for comments
  :)
 declare function app:show-granule-comments($node as node(), $model as map(*), $key as xs:string)
-{    
+{
        <div id="comments-summary">
             <h2><i class="glyphicon glyphicon-comment"/> Comments</h2>
             <a href="#comments" class="btn add-comment" role="button">{
                 let $comments := $model?comments
                 let $count := count($comments) + count($comments//comment)
-                return if($count = 0) then 
-                    <span> <i class="glyphicon glyphicon-plus"/> Add the first comment</span> 
-                else if($count = 1) then 
+                return if($count = 0) then
+                    <span> <i class="glyphicon glyphicon-plus"/> Add the first comment</span>
+                else if($count = 1) then
                     "View the comment"
                 else
                     <span>View the <span class="badge">{$count}</span> comments</span>
-            }</a> 
-            
+            }</a>
+
         </div>
 };
 
@@ -1454,39 +1459,39 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     let $granule := map:get($model, $key)
     let $granule_id := xs:integer($granule//td[@colname='id'])
     let $facility-name := string($granule//td[@colname='facility_name'])
-    
+
 
     let $prog_id := string($granule//td[@colname='progid'])
     let $obs_id := string($granule//td[@colname='obs_id'])
-    
+
     let $data_rights := $granule//td[@colname='data_rights']
     let $release_date := $granule//td[@colname='obs_release_date']
     let $obs_collection := string($granule//td[@colname='obs_collection'])
     let $calib_level := string($granule//td[@colname='calib_level'])
 
     let $public := if ($data_rights and $release_date) then app:public-status($data_rights, $release_date) else true()
-    
+
     (: hack since obsportal add _N for exposures :)
     let $tweaked-obs_id := if ( $obs_collection = 'eso_vlti_import' ) then substring-before($obs_id, "_") else $obs_id
-    
-    let $query := adql:build-query(( 
+
+    let $query := adql:build-query((
 (:            'col=access_url', 'col=data_rights', 'col=obs_release_date', 'col=datapi', 'col=obs_creator_name', 'col=id', :)
                 'col=calib_level', 'col=id', 'col=obs_collection','col=datapi',
                 'progid='||$prog_id, 'obs_id=~'||$tweaked-obs_id ,
             if (number($calib_level) > 0) then 'caliblevel=0' else 'caliblevel=1,2,3'
     ))
-    
+
     (: send query by TAP :)
-    
+
     let $data := if(string-length($tweaked-obs_id)<2) then ()
         else
             let $votable := tap:execute($query)
-            return 
+            return
                 app:transform-votable($votable, 1, count($votable//*:TR),"&#160;")
     let $nb-granules := count($data//tr[td])
- 
- 
-    let $ancillary-records := if ($nb-granules > 0 ) then 
+
+
+    let $ancillary-records := if ($nb-granules > 0 ) then
             <div id="external_resources">
                 <h2><i class='glyphicon glyphicon-resize-small'/> Ancillary data</h2>
                 <table class="table table-striped table-bordered table-hover">
@@ -1502,7 +1507,7 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
                     }
                 </table>
             </div>
-        else 
+        else
             ()
 
 
@@ -1514,22 +1519,22 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
             <a href="{$obs-url}">Details progid <em>{$prog_id}</em> on JMMC ObsPortal</a>)
         else
             ()
-            
+
     let $ext-res := if ( $obs_collection = 'eso_vlti_import' )
-        then 
+        then
         let $obs-url := $config:obsportal-url||"detail/exposure/"||encode-for-uri($obs_id)
-        return 
+        return
             ($ext-res,
             <a href="{$obs-url}">Details exposure <em>{$obs_id}</em> on JMMC ObsPortal</a>)
         else
             $ext-res
-    
+
     let $ext-res := if ( $public and number($calib_level)>0 )
-        then 
+        then
         let $access_url := $granule//td[@colname='access_url']
-        let $access_url := if (starts-with($access_url, "/exist" )) then request:get-scheme() || "://" || request:get-server-name() || $access_url else $access_url   
+        let $access_url := if (starts-with($access_url, "/exist" )) then request:get-scheme() || "://" || request:get-server-name() || $access_url else $access_url
         let $oival-url := $config:oival-url||"validate.xql?urls="||encode-for-uri($access_url)
-        return 
+        return
             ($ext-res,
             <a href="{$oival-url}">Check or display content in OIFitsValidator</a>)
         else
