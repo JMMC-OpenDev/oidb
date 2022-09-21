@@ -25,8 +25,10 @@ declare function rss:rssItems($max as xs:integer) as node()* {
 
             return
             let $first-row := ($rows)[1]
-            let $date := xs:dateTime($first-row/td[@colname="subdate"])
+            let $date := data(jmmc-dateutil:ISO8601toRFC822(xs:dateTime($first-row/td[@colname="subdate"])))
             let $first-id := $first-row/td[@colname="id"]
+            let $link := app:fix-relative-url("/show.html?id="||$first-id)
+            let $guid := $link
             let $summary :=
                 <table border="1" class="table table-striped table-bordered table-hover">
                     {
@@ -39,7 +41,8 @@ declare function rss:rssItems($max as xs:integer) as node()* {
 (:            app:show-granule-summary(<a/>,  map {'granule' : $rows }, "granule"):)
             return
                 <item xmlns:dc="http://purl.org/dc/elements/1.1/">
-                    <link>{app:fix-relative-url("/show.html?id="||$first-id)}</link>
+                    <link>{$link}</link>
+                    <guid>{$guid}</guid>
                     <title> {$c} last submitted granules</title>
                     <dc:creator>{$authors}</dc:creator>
                     <description>
@@ -53,19 +56,22 @@ declare function rss:rssItems($max as xs:integer) as node()* {
                             )
                         }
                     </description>
-                    <pubDate>{jmmc-dateutil:ISO8601toRFC822($date)}</pubDate>
+                    <pubDate>{$date}</pubDate>
                 </item>
 
     let $last-comments := comments:last-comments($max)
     let $comment-items := for $c in $last-comments
         let $granule-id := $c/@granule-id
-        let $date   := $c/date
+        let $link := app:fix-relative-url("/show.html?id="||$granule-id)
+        let $guid := $link
+        let $date   := data(jmmc-dateutil:ISO8601toRFC822($c/date))
         let $text   := data($c/text)
         let $author := data($c/author)
 
         return
                 <item xmlns:dc="http://purl.org/dc/elements/1.1/">
-                    <link>{app:fix-relative-url("/show.html?id="||$granule-id)}</link>
+                    <link>{$link}</link>
+                    <guid>{$guid}</guid>
                     <title> granule comment </title>
                     <dc:creator>{$author}</dc:creator>
                     <description>

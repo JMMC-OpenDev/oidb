@@ -10,12 +10,14 @@ import module namespace rss="http://apps.jmmc.fr/exist/apps/oidb/rss" at "module
 
 (: TODO move back to 20 when it will be in production :)
 let $max := number(request:get-parameter("max", 20))
+let $rootURL := app:fix-relative-url("/")
 
 return
-    <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
         <channel>
+            <atom:link href="{$rootURL}/rss" rel="self" type="application/rss+xml" />
             <title>RSS - {config:app-title(<e/>,map {})} </title>
-            <link>{app:fix-relative-url("/")}</link>
+            <link>{$rootURL}</link>
             <description></description>
             {
                 rss:rssItems($max)
