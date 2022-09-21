@@ -359,7 +359,10 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
 declare function app:fix-relative-url($url as xs:string) as xs:string {
     if(starts-with($url, "/"))
     then
-        request:get-scheme()||"://"||request:get-server-name()||":"||request:get-server-port()||$url
+        let $port := request:get-server-port()
+        let $port := if($port=(80, 443)) then () else ":"||$port
+        return
+            request:get-scheme()||"://"||request:get-server-name()||$port||$url
     else
         $url
 };
