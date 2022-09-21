@@ -32,7 +32,17 @@
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
         -->
-        <change xmlns="" version="2.2.4">
+
+        <!--
+        <change xmlns="" version="2.2.5" release-date="2022-09-21T12:34">
+            <h3>2022-09-21</h3>
+            <ul>
+              <li>Fix <a href="./rss">RSS</a> output format. </li>
+	    </ul>
+	</change>
+        -->
+
+       <change xmlns="" version="2.2.4">
             <h3>2022-06-20</h3>
             <ul>
               <li>Set additional parameter to the votable export for a single instrument so Aspro2 can switch its configuration.</li>
