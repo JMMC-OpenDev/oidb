@@ -152,9 +152,11 @@ declare function user:check($node as node(), $model as map(*)) as map(*) {
 
 declare
     %rest:GET("")
-    %rest:path("/oidb/user/{$name}/delegations")
-function user:get-delegations($name){
+    %rest:path("/oidb/user/{$alias-or-email}/delegations")
+function user:get-delegations($alias-or-email){
+    let $v := lower-case(normalize-space($alias-or-email))
+    return
     <delegations>{
-        $user:people-doc//person[alias[lower-case(normalize-space(.))=lower-case(normalize-space($name))]]//delegation
+        $user:people-doc//person[ alias[ (lower-case(normalize-space(.)),lower-case(normalize-space(./@email))) = $v ] ]//delegation
     }</delegations>
 };
