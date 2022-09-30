@@ -3,7 +3,7 @@
     <description>OIData portal</description>
     <author>JMMC OiDB Working Group</author>
     <website/>
-    <status>stable</status><!-- one of alpha beta stable -->
+    <status>beta</status><!-- one of alpha beta stable -->
     <license/>
     <copyright>true</copyright>
     <type>application</type>
@@ -46,6 +46,7 @@
             <h3>2022-06-20</h3>
             <ul>
               <li>Set additional parameter to the votable export for a single instrument so Aspro2 can switch its configuration.</li>
+              <li>First steps to handle delegations.</li>
 	    </ul>
 	</change>
 
