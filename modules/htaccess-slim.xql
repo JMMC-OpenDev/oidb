@@ -15,6 +15,8 @@ xquery version "3.1";
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
+import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
+
 
 
 declare namespace output = "http://www.w3.org/2010/xslt-xquery-serialization";
@@ -23,6 +25,7 @@ declare option output:media-type "text/plain";
 declare option output:omit-xml-declaration "yes";
 
 let $collection := request:get-parameter("obs_collection", "", true())
+let $xml-collection := collection:get($collection)
 
 let $all := map:merge(
     for $public in (true(), false())
@@ -102,7 +105,7 @@ return
                 if($public) then 
                     <p>    Allow from all&#10;    Satisfy any</p>
                 else 
-                    <p>    Require user {string-join( ($obs_creator-email, $datapi, $email), " ")}</p>,
+                    <p>    Require user {string-join( ($xml-collection/@owner, $obs_creator-email, $datapi, $email), " ")}</p>,
                 <p>&#10;&lt;/Files&gt;&#10;</p>
             )
             
@@ -125,7 +128,7 @@ return
                 if($public) then 
                     <p>    Allow from all&#10;    Satisfy any</p>
                 else 
-                    <p>    Require user {string-join( ($obs_creator-email, $datapi, $email), " ")}</p>,
+                    <p>    Require user {string-join( ($xml-collection/@owner, $obs_creator-email, $datapi, $email), " ")}</p>,
                 <p>&#10;&lt;/Files&gt;&#10;</p>
             )
     return
