@@ -63,6 +63,8 @@
             <exclude name="data/**"/>
             <!-- ignore local config... -->
             <exclude name="modules/config.xqm"/>
+            <!-- ignore local node-modules -->
+            <exclude name="node_modules/**"/>
             <!-- ... but include new custom config module -->
             <mappedresources>
                 <fileset file="${build.dir}/config.xqm"/>
