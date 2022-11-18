@@ -38,12 +38,13 @@ declare function rss:rssItems($max as xs:integer) as node()* {
                 </table>
             let $c := count($rows)
             let $authors := distinct-values($rows//td[@colname="datapi"])
+            let $instruments := distinct-values($rows//td[@colname="instrument_name"])
 (:            app:show-granule-summary(<a/>,  map {'granule' : $rows }, "granule"):)
             return
                 <item xmlns:dc="http://purl.org/dc/elements/1.1/">
                     <link>{$link}</link>
                     <guid>{$guid}</guid>
-                    <title> {$c} last submitted granules</title>
+                    <title> {$c} last submitted granules ({string-join($instruments, ", ")})</title>
                     <dc:creator>{$authors}</dc:creator>
                     <description>
                         {
