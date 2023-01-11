@@ -21,9 +21,9 @@ import module namespace jmmc-eso = "http://exist.jmmc.fr/jmmc-resources/eso";
 declare %private function granule:format-nodes-for-sql-statement($data as node()*) as node()*{
     (: filter out the empty fields and datalink(s): keep default value for them :)
     let $nodes := ( $data[./node() and not(name()='datalink')] )
-    
+
     (: add fail over for HMS DMS format even if obscore ask for deg values :)
-    (: http://www.ivoa.net/documents/ObsCore/20170509/REC-ObsCore-v1.1-20170509.pdf  :)  
+    (: http://www.ivoa.net/documents/ObsCore/20170509/REC-ObsCore-v1.1-20170509.pdf  :)
     (: s_ra                   ,deg,double,Central right ascension, ICRS    :)
     (: s_dec                  ,deg,double,Central declination, ICRS        :)
     let $sexa-markers := (" ", ":")
@@ -31,51 +31,51 @@ declare %private function granule:format-nodes-for-sql-statement($data as node()
     let $s_ra := element s_ra { if(contains($s_ra,$sexa-markers)) then jmmc-astro:from-hms($s_ra) else $s_ra }
     let $s_dec := normalize-space($data/self::s_dec)
     let $s_dec := element s_dec { if(contains($s_dec,$sexa-markers)) then jmmc-astro:from-dms($s_dec) else $s_dec}
-    
+
     let $nodes := ( $nodes[not(name() = ("s_ra", "s_dec"))], $s_ra, $s_dec )
 
     (: and nb_vis/nb_t3  we encountered N.0 in CHARA data :)
-    
-    let $el-names := ("nb_vis","nb_vis2","nb_t3") 
-    let $nb-els := for $elname in $el-names return 
+
+    let $el-names := ("nb_vis","nb_vis2","nb_t3")
+    let $nb-els := for $elname in $el-names return
                     let $value := $data[name()=$elname]
                     return
                         if( $value ) then element {$elname} {number($value)} else ()
-    
+
     let $nodes := ( $nodes[not(name() = $el-names)], $nb-els )
-    
+
     return $nodes
 };
 
 (:~
  : Format a SQL INSERT statement for saving granule.
- : 
- : The name of each node in input data is turned into a column name. The text 
+ :
+ : The name of each node in input data is turned into a column name. The text
  : of each node is taken as the new value for the field.
- : 
+ :
  : @param $data a sequence of nodes with row values
  : @param @try-update-on-conflict indicates to execute an update if "dup_granule_same_col" constraint of oidb db is thrown else keep simple insert statement.
  : @return a SQL INSERT statement
  :)
 declare %private function granule:insert-statement($data as node()*, $try-update-on-conflict as xs:boolean) {
     let $nodes := granule:format-nodes-for-sql-statement($data)
-   
+
     let $columns := for $x in $nodes return name($x)
     let $columns := "( " || string-join($columns, ', ') || " )"
     let $values  := for $x in $nodes return "'" || sql-utils:escape($x) || "'"
     let $values  := "( " || string-join($values,  ', ') || " )"
-    
-    let $update-on-conflict := if($try-update-on-conflict) then 
+
+    let $update-on-conflict := if($try-update-on-conflict) then
 (:            "ON CONFLICT ON CONSTRAINT dup_granule_same_col DO UPDATE SET " || $columns || " = " || $values || ", subdate = DEFAULT":)
             "ON  CONFLICT (obs_id, obs_collection, instrument_mode) WHERE calib_level=0 DO UPDATE SET " || $columns || " = " || $values || ", subdate = DEFAULT"
         else
             ()
-            
+
     return
         string-join((
             "INSERT INTO",
             $config:sql-table,
-            $columns, 
+            $columns,
             "VALUES",
             $values,
             $update-on-conflict,
@@ -87,10 +87,10 @@ declare %private function granule:insert-statement($data as node()*, $try-update
 
 (:~
  : Format a SQL INSERT statement for saving a datalink for a given granule id.
- : 
- : The name of each node in input data is turned into a column name. The text 
+ :
+ : The name of each node in input data is turned into a column name. The text
  : of each node is taken as the new value for the field.
- : 
+ :
  : @param $id granule id
  : @param $data a sequence of nodes with row values
  : @return a SQL INSERT statement
@@ -130,7 +130,7 @@ declare function granule:add-datalink($id as xs:integer, $datalink as node(), $h
 
 (:~
  : Save a new granule in the SQL database and return the ID of the row.
- : 
+ :
  : @param $granule the granule contents
  : @return the id of the new granule
  : @error failed to save, unauthorized
@@ -142,7 +142,7 @@ declare function granule:create($granule as node()) as xs:integer {
 
 (:~
  : Save a new granule in the SQL database and return the ID of the row.
- : 
+ :
  : @param $granule the granule contents
  : @param $handle  the SQL database handle
  : @return the id of the new granule
@@ -159,7 +159,7 @@ declare function granule:create-or-update($granule as node(), $handle as xs:long
 
 (:~
  : Save a new granule in the SQL database and return the ID of the row.
- : 
+ :
  : @param $granule the granule contents
  : @param $try-update-on-conflict indicates if sql should add update code on conflict or not
  : @param $handle  the SQL database handle
@@ -170,69 +170,77 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
     let $collection := xs:string($granule/obs_collection/text())
     let $check-collection := if(exists($collection)) then true() else error(xs:QName('granule:error'), 'obs_collection is not present in given granule.')
     let $check-access := if(collection:has-access($collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into ' || $collection ||'.')
-    
-(:  
- :  if coltype != 'public' then 
+
+(:
+ :  if coltype != 'public' then
  :  1/    set data_rights to 'secure'
- :        get appropriate release_date with embargo (may be in the past) : PIONIER->1Y, suv->2Y      
+ :        get appropriate release_date with embargo (may be in the past) : PIONIER->1Y, suv->2Y
  :        if release_date is in the future and oifits are local files:
  :           limit permissions to the owner
  :           schedule a timer to open data access
  :  TODO :
  :  2/   handle group access
  :)
-   
+
     let $embargo := collection:get-embargo ($collection)
     let $coltype := collection:get-type($collection)
 
     let $data_rights :=         if( $granule/data_rights ) then
                                     () (: keep verbatim metadata  :)
-                                else if(exists($embargo)) then 
+                                else if(exists($embargo)) then
                                     <data_rights>secure</data_rights>
                                 else
                                     ()
-    
+
     let $obs_release_date :=    if( $granule/obs_release_date ) then
-                                    () (: keep verbatim metadata  :)
+                                    $granule/obs_release_date (: keep verbatim metadata  :)
+                                else if ( not ( granule:is-science($granule) ) ) then
+                                    let $log := util:log("info", "no embargo for calib data")
+                                    return
+                                        <obs_release_date>
+                                            {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
+                                        </obs_release_date>
                                 else if( ($granule/data_rights, $data_rights)="secure" ) then
-                                    (: FIXME try to get release_date from L0 or fall back to t_max :)
-                                    <obs_release_date>
-                                        {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
-                                    </obs_release_date>
+                                    (: FIXME try to get release_date from L0 or fall back to next basic computation relying on t_max :)
+                                    let $embargo := if (granule:is-science($granule)) then $embargo else "P0Y"
+                                    return
+                                        <obs_release_date>
+                                            {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
+                                        </obs_release_date>
                                 else
                                     util:log("info", "obs_release_date not present ?? data_rights="||$data_rights)
                                     (: TODO check that this empty case is normal :)
 
-    let $manage-local-data :=   if( starts-with($granule/access_url,"/") and exists($obs_release_date) ) then 
-                                    let $in-future :=   ( xs:dateTime($obs_release_date) - fn:current-dateTime() ) > xs:dayTimeDuration("P0D")  
-                                    return if ($in-future) then        
+    let $manage-local-data :=   if( starts-with($granule/access_url,"/") and exists($obs_release_date) ) then
+                                    let $in-future :=   ( xs:dateTime($obs_release_date) - fn:current-dateTime() ) > xs:dayTimeDuration("P0D")
+                                    return if ($in-future) then
                                         let $oifits-path := xs:anyURI(replace($granule/access_url, "/exist/apps/oidb-data/", "/db/apps/oidb-data/"))
                                         let $fix-oifits-perm := sm:chmod($oifits-path, "rwx------")
                                         let $log := util:log('info', 'perm restricted for '|| $oifits-path || ' for collection type '||$coltype)
                                         let $todo := util:log('info',"TODO : register a timer for " || $oifits-path)
-                                        return 
+                                        return
                                             ()
                                     else
                                         let $log := util:log('info', 'perm leaved public for '|| $granule/access_url || ' in collection type '||$coltype|| ' : release_date in past')
-                                        return 
+                                        return
                                             ()
                                 else
                                     ()
-                                    
+
     let $datapi := if (exists($granule/datapi/text())) then () else
         let $progid := $granule/progid/text()
         (: assume that we are on a eso case with a given progid :)
         let $pi := if($progid) then jmmc-eso:get-pi-from-progid($progid) else login:user-name()
         return if($pi) then element {"datapi"} {$pi} else ()
-                                    
-    
+
+
     let $insert-statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date, $datapi), $try-update-on-conflict)
-    
+
     let $result := sql-utils:execute($handle, $insert-statement, false())
-    let $id := if ($result/name() = "sql:exception") 
+    let $id := if ($result/name() = "sql:exception")
         then
             let $info :=  string-join( ("", "granule metadata where:", for $e in $granule/* return name($e)||"="||$e, ""), "&#10;")
-            return 
+            return
             error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $insert-statement || $info)
         else
             let $clear-cache :=  app:clear-cache()
@@ -242,18 +250,18 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
     let $datalinks := for $datalink in $granule/datalink
             let $insert-statement := granule:insert-datalink-statement($id, $datalink/*)
             let $result := sql-utils:execute($handle, $insert-statement, false())
-            return 
+            return
                 if ($result/name() = "sql:exception") then
                     error(xs:QName('granule:error'), 'Failed to upload datalink: ' || $result//sql:message/text() || ', query: ' || $insert-statement)
-                else 
+                else
                     ()
-    
+
     return $id
 };
 
 (:~
  : Format a SQL SELECT request with the given granule id.
- : 
+ :
  : @param $id the id of the row to delete
  : @return a SQL SELECT statement
  :)
@@ -263,11 +271,11 @@ declare %private function granule:select-statement($id as xs:integer) as xs:stri
 
 (:~
  : Return a granule given its ID.
- : 
+ :
  : @note
- : It returns the values from all columns of the table not only the one exported 
+ : It returns the values from all columns of the table not only the one exported
  : through TAP.
- : 
+ :
  : @param $id     the id of the granule to find
  : @param $handle the SQL database handle
  : @return a <granule> element for given ID or empty if not found
@@ -279,11 +287,11 @@ declare function granule:retrieve($id as xs:integer) {
 
 (:~
  : Return a granule given its ID.
- : 
+ :
  : @note
- : It returns the values from all columns of the table not only the one exported 
+ : It returns the values from all columns of the table not only the one exported
  : through TAP.
- : 
+ :
  : @param $id     the id of the granule to find
  : @param $handle the SQL database handle
  : @return a <granule> element for given ID
@@ -292,7 +300,7 @@ declare function granule:retrieve($id as xs:integer) {
 declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node()? {
     let $statement := granule:select-statement($id)
     let $result := sql-utils:execute($handle, $statement, false())
-    
+
     let $granule :=
         if ($result/name() = 'sql:result' and $result/@count = 1) then
             let $row := $result/sql:row
@@ -309,10 +317,10 @@ declare function granule:retrieve($id as xs:integer, $handle as xs:long) as node
 
 (:~
  : Format a SQL UPDATE statement for modifying granule with specified values.
- : 
- : The name of each node in input data is turned into a column name. The text 
+ :
+ : The name of each node in input data is turned into a column name. The text
  : of each node is taken as the new value for the field.
- : 
+ :
  : @param $id   the id of the granule to modify
  : @param $data a sequence of nodes with new values
  : @return a SQL INSERT statement
@@ -332,7 +340,7 @@ declare %private function granule:update-statement($id as xs:integer, $data as n
 
 (:~
  : Modify an existing granule identified by its ID.
- : 
+ :
  : @param $id   the id of the granule to modify
  : @param $data the new content of the granule
  : @return empty
@@ -344,7 +352,7 @@ declare function granule:update($id as xs:integer, $data as node())  {
 
 (:~
  : Modify an existing granule identified by its ID.
- : 
+ :
  : @param $id     the id of the granule to modify
  : @param $data   the new content of the granule
  : @param $handle the SQL database handle
@@ -370,7 +378,7 @@ declare function granule:update($id as xs:integer, $data as node(), $handle as x
 
 (:~
  : Format an SQL DELETE request with the given granule id.
- : 
+ :
  : @param $id the id of the row to delete
  : @return a SQL DELETE statement
  :)
@@ -380,7 +388,7 @@ declare %private function granule:delete-statement($id as xs:integer) as xs:stri
 
 (:~
  : Remove the granule with the given ID.
- : 
+ :
  : @param $id the id of the granule to delete
  : @return empty
  : @error failed to delete, unauthorized
@@ -391,7 +399,7 @@ declare function granule:delete($id as xs:integer)  {
 
 (:~
  : Remove the granule with the given ID.
- : 
+ :
  : @param $id     the id of the granule to delete
  : @param $handle the SQL database handle
  : @return empty
@@ -415,13 +423,13 @@ declare function granule:delete($id as xs:integer, $handle as xs:long)  {
 
 (:~
  : Check whether the current user has access to a granule.
- : 
+ :
  : @param $id-or-granule the id of the granule to test or the granule as XML fragment
  : @param $mode the partial mode to check against the granule e.g. 'rwx'
  : @param $handle the SQL database handle
  : @return true() if current user has access to granule for the mode
  :)
-declare function granule:has-access($id-or-granule as item(), $mode as xs:string, $handle as xs:long) {    
+declare function granule:has-access($id-or-granule as item(), $mode as xs:string, $handle as xs:long) {
     if (app:user-admin()) then
         true()
     else
@@ -440,4 +448,15 @@ declare function granule:has-access($id-or-granule as item(), $mode as xs:string
             else
                 (: TODO check datapi column and current user? store owner? :)
                 false()
+};
+
+(:~
+ : Tell if given granule describe metadata for a SCIENCE OBJECT.
+ :
+ : @param $granule the granule to analyse.
+ : @return true if dataproduct_category is null or has SCIENCE value, else false
+ :)
+declare function granule:is-science($granule){
+    let $dpcat := $granule/dataproduct_category
+    return empty($dpcat) or upper-case($dpcat)=("SCIENCE")
 };
