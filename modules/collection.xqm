@@ -272,6 +272,8 @@ declare function collection:get-embargo($id-or-collection as item()) as xs:durat
     switch (collection:get-type($id-or-collection))
         case "suv" return xs:yearMonthDuration('P2Y')
         case "pionier" return xs:yearMonthDuration('P1Y')
+        case "eso" return xs:yearMonthDuration('P1Y')
+        case "chara" return xs:yearMonthDuration('P1Y6M')
         default return xs:yearMonthDuration('P0Y')
 };
 
