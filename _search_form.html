@@ -17,7 +17,7 @@
                             <label class="control-label" for="cs_position">Object:</label>
                             <input class="form-control" name="cs_position" placeholder="Name or J2000 coordinates" data-template="helpers:form-control"/>
                             <input class="form-control" name="cs_equinox" type="hidden" value="J2000"/>
-                            <!-- replace with following code when equinox is handled on server 
+                            <!-- replace with following code when equinox is handled on server
                                 <select class="form-control" name="cs_equinox"><option selected="selected">J2000</option></select>-->
                         </div>
                         <div class="form-group">
@@ -88,7 +88,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            
+
                             <div class="form-group">
                                 <label class="control-label" for="reduction"> Data reduction level: </label>
                                 <input class="checkbox form-control" name="reduction" value="0" type="checkbox" checked="checked" data-template="helpers:form-control">
@@ -112,27 +112,27 @@
                                     </a>
                                 </input>.
                             </div>
-                            
+
                             <div class="form-group">
                                 <label class="control-label" for="category"> Data catagory: </label>
                                 <input class="checkbox form-control" name="category" value="SCIENCE" type="checkbox" checked="checked" data-template="helpers:form-control">
                                     <a href="#" rel="tooltip" data-original-title="Any scientific object">SCIENCE</a>
-                                </input>, 
-                                <input class="checkbox form-control" name="category" value="CALIB" type="checkbox" data-template="helpers:form-control">
+                                </input>,
+                                <input class="checkbox form-control" name="category" value="CALIB" type="checkbox" checked="checked" data-template="helpers:form-control">
                                     <a href="#" rel="tooltip" data-original-title="Any calibration source">CALIB</a>
                                 </input>.
                             </div>
-                            
+
                             <div class="form-group">
                                 <label class="control-label" for="available">Availability: </label>
                                 <input class="radio-inline form-control" name="available" value="yes" type="radio" data-template="helpers:form-control">Public</input>
                                 <input class="radio-inline form-control" name="available" value="no" type="radio" data-template="helpers:form-control">Restricted</input>
                                 <input class="radio-inline form-control" name="available" value="all" type="radio" data-template="helpers:form-control" checked="checked">All</input>
                             </div>
-                            
+
                         </div>
                         <div class="form-inline">
-                        
+
                             <div class="form-group">
                                 <div class="form-group" data-template="app:collections-options">
                                     <label class="control-label" for="collection">Collection: </label>
@@ -141,7 +141,7 @@
                                         <option data-template="helpers:select-options" data-template-key="collections"/>
                                     </select>
                                 </div>
-                                
+
                                 <div class="form-group" data-template="app:data-pis">
                                     <label class="control-label" for="datapi">DataPI: </label>
                                     <select class="form-control" name="datapi" data-template="helpers:form-control">
@@ -150,25 +150,25 @@
                                     </select>
                                 </div>
                             </div>
-                            
+
                             <div class="form-group">
-                            
+
                                 <div class="form-group">
                                     <label class="control-label" for="progid">Program Id: </label>
                                     <input class="form-control" name="progid" placeholder="program id" data-template="helpers:form-control"/>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label class="control-label" for="proposal_subid">/SubId: </label>
                                     <input class="form-control" style="width: 100px;" name="proposal_subid" placeholder="sub id" data-template="helpers:form-control"/>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label class="control-label" for="obs_id">ObsId: </label>
                                     <input class="form-control" name="obs_id" placeholder="observation id" data-template="helpers:form-control"/>
                                 </div>
                             </div>
-                            
+
                         </div>
                     </div>
                 </fieldset>
@@ -182,13 +182,13 @@
                             <option>50</option>
                             <option>100</option>
                         </select>
-                        rows max. per page, sorted by 
+                        rows max. per page, sorted by
                         <select class="form-control" data-template="helpers:form-control" name="sortby">
                             <option data-template="helpers:select-options" data-template-sorted="no" data-template-key="sortbys"/>
                         </select>
                         <input class="checkbox form-control" type="checkbox" name="descending" value="yes" data-template="helpers:form-control">&#160;descending</input>,
                         <input class="checkbox form-control" type="checkbox" name="all" value="all" data-template="helpers:form-control"> with all columns </input>.
-                        
+
                     </div>
                     <div class="form-group col-md-offset-1 col-md-2">
                         <button type="submit" class="btn btn-primary btn-block">
