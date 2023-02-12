@@ -4,7 +4,7 @@
         <form role="form" method="post" action="http://jmmc.fr/feedback/feedback.php" enctype="multipart/form-data" class="col-md-8 col-md-offset-2">
             <div class="form-group">
                 <label for="userEmail">Your email</label>
-                <input type="email" class="form-control" name="userEmail" id="userEmail" placeholder="Enter email address" data-template="app:input-user-email"/>
+                <input type="email" class="form-control" name="userEmail" id="userEmail" placeholder="Enter email address" data-template="app:input-user-email" required="required"/>
             </div>
             <div class="hidden">
                 <label>Extra</label>
@@ -14,7 +14,7 @@
             </div>
             <div class="form-group">
                 <label for="feedbackType">Type</label>
-                <select class="form-control" name="feedbackType">
+                <select class="form-control" name="feedbackType" required="required">
                     <option selected="" value="">Select Feedback Type</option>
                     <option value="defect">Bug Report</option>
                     <option value="documentation">Documentation</option>
@@ -24,12 +24,12 @@
             </div>
             <div class="form-group">
                 <label for="summary">Summary</label>
-                <input type="text" class="form-control" name="summary" id="summary" size="80"/>
+                <input type="text" class="form-control" name="summary" id="summary" size="80" required="required"/>
             <!-- <p class="help-block">Help</p> -->
             </div>
             <div class="form-group">
                 <label for="comments">Comments</label>
-                <textarea class="form-control" name="comments" cols="80" rows="16"/>
+                <textarea class="form-control" name="comments" cols="80" rows="16" required="required"/>
             </div>
             <input type="hidden" name="systemConfig" value="Unknown"/>
             <input type="hidden" name="applicationName" value="OiDB"/>
