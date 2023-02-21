@@ -24,8 +24,8 @@
 
     <dependencies>
         <!--
-       could be replaced by 	https://github.com/eXist-db/exist-postgresql-jdbc-driver
-	     	on next bump of existdb to 5.3+
+          could not be replaced by	https://github.com/eXist-db/exist-postgresql-jdbc-driver
+          because we need a jetty server with postgresql dbsource ... jars installed before startup
       -->
         <dependency>
             <groupId>org.apache.commons</groupId>
