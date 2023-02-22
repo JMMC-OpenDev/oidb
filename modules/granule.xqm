@@ -193,16 +193,10 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
                                     ()
 
     let $obs_release_date :=    if( $granule/obs_release_date ) then
-                                    $granule/obs_release_date (: keep verbatim metadata  :)
-                                else if ( not ( granule:is-science($granule) ) ) then
-                                    let $log := util:log("info", "no embargo for calib data")
-                                    return
-                                        <obs_release_date>
-                                            {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
-                                        </obs_release_date>
+                                    () (: keep verbatim metadata  :)
                                 else if( ($granule/data_rights, $data_rights)="secure" ) then
                                     (: FIXME try to get release_date from L0 or fall back to next basic computation relying on t_max :)
-                                    let $embargo := if (granule:is-science($granule)) then $embargo else "P0Y"
+                                    let $embargo := if (granule:is-science($granule)) then $embargo else xs:yearMonthDuration('P0Y')
                                     return
                                         <obs_release_date>
                                             {substring(string(jmmc-dateutil:MJDtoISO8601($granule/t_max) + $embargo) , 0, 22) }
@@ -211,8 +205,12 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
                                     util:log("info", "obs_release_date not present ?? data_rights="||$data_rights)
                                     (: TODO check that this empty case is normal :)
 
-    let $manage-local-data :=   if( starts-with($granule/access_url,"/") and exists($obs_release_date) ) then
-                                    let $in-future :=   ( xs:dateTime($obs_release_date) - fn:current-dateTime() ) > xs:dayTimeDuration("P0D")
+    
+    let $release_date := if( $obs_release_date ) then $obs_release_date else $granule/obs_release_date
+    
+    (: do not try to compute datetime from L3 since it is only the associated publication date :)
+    let $manage-local-data :=   if( $granule/calib_level != 3 and starts-with($granule/access_url,"/") and exists($release_date) ) then
+                                    let $in-future :=   ( xs:dateTime($release_date) - fn:current-dateTime() ) > xs:dayTimeDuration("P0D")
                                     return if ($in-future) then
                                         let $oifits-path := xs:anyURI(replace($granule/access_url, "/exist/apps/oidb-data/", "/db/apps/oidb-data/"))
                                         let $fix-oifits-perm := sm:chmod($oifits-path, "rwx------")
