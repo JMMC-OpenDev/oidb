@@ -51,18 +51,18 @@ INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", 
     -- ObsCore model: spatial characterisation
 ('oidb', 's_ra', 'Right ascension of (center of) observation, ICRS', 'deg', 'pos.eq.ra;meta.main', 'obscore:Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C1', 'DOUBLE', -1, 1, 0, 1),
 ('oidb', 's_dec', 'Declination of (center of) observation, ICRS', 'deg', 'pos.eq.dec;meta.main', 'obscore:Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C2', 'DOUBLE', -1, 1, 0, 1),
-('oidb', 's_fov', 'Approximate spatial extent for the region covered by the observation', 'deg', 'phys.angSize;instr.fov', 'obscore:Char.SpatialAxis.Coverage.Bounds.Extent.diameter', 'REAL', -1, 1, 0, 1),
-('oidb', 's_region', 'Region covered by the observation, as a polygon', NULL, 'phys.angArea;obs', 'obscore:Char.SpatialAxis.Coverage.Support.Area', 'REAL', -1, 1, 0, 1),
-('oidb', 's_resolution', 'Best spatial resolution within the data set', 'arcsec', 'pos.angResolution', 'obscore:Char.SpatialAxis.Resolution.refval', 'REAL', -1, 1, 0, 1),
+('oidb', 's_fov', 'Approximate spatial extent for the region covered by the observation', 'deg', 'phys.angSize;instr.fov', 'obscore:Char.SpatialAxis.Coverage.Bounds.Extent.diameter', 'DOUBLE', -1, 1, 0, 1),
+('oidb', 's_region', 'Region covered by the observation, as a polygon', NULL, 'phys.angArea;obs', 'obscore:Char.SpatialAxis.Coverage.Support.Area', 'DOUBLE', -1, 1, 0, 1),
+('oidb', 's_resolution', 'Best spatial resolution within the data set', 'arcsec', 'pos.angResolution', 'obscore:Char.SpatialAxis.Resolution.refval', 'DOUBLE', -1, 1, 0, 1),
     -- ObsCore model: time characterisation
-('oidb', 't_min', 'Lower bound of times represented in the data set, as MJD', 'd', 'time.start;obs.exposure', 'obscore:Char.TimeAxis.Coverage.Bounds.Limits.Interval.StartTime', 'REAL', -1, 1, 0, 1),
-('oidb', 't_max', 'Upper bound of times represented in the data set, as MJD', 'd', 'time.end;obs.exposure', 'obscore:Char.TimeAxis.Coverage.Bounds.Limits.Interval.StopTime', 'REAL', -1, 1, 0, 1),
-('oidb', 't_exptime', 'Total exposure time', 's', 'time.duration;obs.exposure', 'obscore:Char.TimeAxis.Coverage.Support.Extent', 'REAL', -1, 1, 0, 1),
-('oidb', 't_resolution', 'Minimal significant time interval along the time axis', 's', 'time.resolution', 'obscore:Char.TimeAxis.Resolution.refval', 'REAL', -1, 1, 0, 1),
+('oidb', 't_min', 'Lower bound of times represented in the data set, as MJD', 'd', 'time.start;obs.exposure', 'obscore:Char.TimeAxis.Coverage.Bounds.Limits.Interval.StartTime', 'DOUBLE', -1, 1, 0, 1),
+('oidb', 't_max', 'Upper bound of times represented in the data set, as MJD', 'd', 'time.end;obs.exposure', 'obscore:Char.TimeAxis.Coverage.Bounds.Limits.Interval.StopTime', 'DOUBLE', -1, 1, 0, 1),
+('oidb', 't_exptime', 'Total exposure time', 's', 'time.duration;obs.exposure', 'obscore:Char.TimeAxis.Coverage.Support.Extent', 'DOUBLE', -1, 1, 0, 1),
+('oidb', 't_resolution', 'Minimal significant time interval along the time axis', 's', 'time.resolution', 'obscore:Char.TimeAxis.Resolution.refval', 'DOUBLE', -1, 1, 0, 1),
     -- ObsCore model: spectral characterisation
-('oidb', 'em_min', 'Minimal wavelength represented within the data set', 'm', 'em.wl;stat.min', 'obscore:Char.SpectralAxis.Coverage.Bounds.Limits.Interval.LoLim', 'REAL', -1, 1, 0, 1),
-('oidb', 'em_max', 'Maximal wavelength represented within the data set', 'm', 'em.wl;stat.max', 'obscore:Char.SpectralAxis.Coverage.Bounds.Limits.Interval.HiLim', 'REAL', -1, 1, 0, 1),
-('oidb', 'em_res_power', 'Spectral resolving power delta_lambda / lamda', NULL, 'spect.resolution', 'obscore:Char.SpectralAxis.Resolution.ResolPower.refval', 'REAL', -1, 1, 0, 1),
+('oidb', 'em_min', 'Minimal wavelength represented within the data set', 'm', 'em.wl;stat.min', 'obscore:Char.SpectralAxis.Coverage.Bounds.Limits.Interval.LoLim', 'DOUBLE', -1, 1, 0, 1),
+('oidb', 'em_max', 'Maximal wavelength represented within the data set', 'm', 'em.wl;stat.max', 'obscore:Char.SpectralAxis.Coverage.Bounds.Limits.Interval.HiLim', 'DOUBLE', -1, 1, 0, 1),
+('oidb', 'em_res_power', 'Spectral resolving power delta_lambda / lamda', NULL, 'spect.resolution', 'obscore:Char.SpectralAxis.Resolution.ResolPower.refval', 'DOUBLE', -1, 1, 0, 1),
     -- ObsCore model: observable axis
 ('oidb', 'o_ucd', 'UCD for the product''s observable', NULL, 'meta.ucd', 'obscore:Char.ObservableAxis.ucd', 'VARCHAR', -1, 1, 0, 1),
     -- ObsCore model: polarisation axis

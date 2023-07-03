@@ -41,18 +41,18 @@ CREATE TABLE oidb (
     -- ObsCore model: spatial characterisation
     s_ra                    double precision,
     s_dec                   double precision,
-    s_fov                   real,
-    s_region                real,
-    s_resolution            real,
+    s_fov                   double precision,
+    s_region                double precision,
+    s_resolution            double precision,
     -- ObsCore model: time characterisation
-    t_min                   real,
-    t_max                   real,
-    t_exptime               real,
-    t_resolution            real,
+    t_min                   double precision,
+    t_max                   double precision,
+    t_exptime               double precision,
+    t_resolution            double precision,
     -- ObsCore model: spectral characterisation
-    em_min                  real,
-    em_max                  real,
-    em_res_power            real,
+    em_min                  double precision,
+    em_max                  double precision,
+    em_res_power            double precision,
     -- ObsCore model: observable axis (left NULL as OIFits contains several observable quantities VIS, VIS2, T3)
     o_ucd                   text,
     -- ObsCore model: polarisation axis

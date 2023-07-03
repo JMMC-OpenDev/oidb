@@ -9,3 +9,33 @@ INSERT INTO "TAP_SCHEMA"."columns" VALUES ('oidb', 'quality_level', 'Quality dat
 
 Restart existdb/taplib
 
+
+July 2023
+
+Move real to double every columns on both oidb oidb-beta's databases
+
+ALTER TABLE oidb
+ALTER COLUMN s_fov TYPE double precision ,
+ALTER COLUMN s_region TYPE double precision ,
+ALTER COLUMN s_resolution TYPE double precision ,
+ALTER COLUMN t_min TYPE double precision ,
+ALTER COLUMN t_max TYPE double precision ,
+ALTER COLUMN t_exptime TYPE double precision ,
+ALTER COLUMN t_resolution TYPE double precision ,
+ALTER COLUMN em_min TYPE double precision ,
+ALTER COLUMN em_max TYPE double precision ,
+ALTER COLUMN em_res_power TYPE double precision;
+
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='s_fov';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='s_region';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='s_resolution';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='t_min';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='t_max';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='t_exptime';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='t_resolution';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='em_min';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='em_max';
+UPDATE "TAP_SCHEMA"."columns" SET datatype='DOUBLE' WHERE column_name='em_res_power';
+
+
+TAP servers have been restarted
