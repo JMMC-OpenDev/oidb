@@ -31,8 +31,8 @@
       <mkdir dir="instruments"/>
       <exec executable="svn">
         <arg value="export"/>
-        <arg value="https://svn.jmmc.fr/jmmc-sw/ASPRO2/trunk/aspro-conf/src/main/resources/fr/jmmc/aspro/model"/>
-        <arg value="instruments/AsproConf"/>
+        <arg value="https://github.com/JMMC-OpenDev/aspro-conf/trunk/src/main/resources/fr/jmmc/aspro/model"/>
+        <arg value="instruments/AsproConf2"/>
         </exec>
     </target>
 
