@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
 
-    <div data-template="app:statistics">
-        <div data-template="helpers:model-content" data-template-key="statistics"/>
-    </div>
-    
+    <div data-template="stats:show"/>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('.datatable').DataTable( {"paging": true, "pageLength": 25,"searching":true});
+        });
+    </script>
+
 </div>

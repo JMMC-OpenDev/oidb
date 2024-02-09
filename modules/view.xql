@@ -8,8 +8,8 @@ xquery version "3.0";
 import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 
-(: 
- : The following modules provide functions which will be called by the 
+(:
+ : The following modules provide functions which will be called by the
  : templating.
  :)
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
@@ -24,6 +24,7 @@ import module namespace oifits="http://apps.jmmc.fr/exist/apps/oidb/oifits" at "
 import module namespace comments="http://apps.jmmc.fr/exist/apps/oidb/comments" at "comments.xql";
 import module namespace flash="http://apps.jmmc.fr/exist/apps/oidb/flash" at "flash.xqm";
 import module namespace rss="http://apps.jmmc.fr/exist/apps/oidb/rss" at "rss.xqm";
+import module namespace stats="http://apps.jmmc.fr/exist/apps/oidb/stats" at "stats.xql";
 
 import module namespace user="http://apps.jmmc.fr/exist/apps/oidb/restxq/user" at "rets/user.xqm";
 
