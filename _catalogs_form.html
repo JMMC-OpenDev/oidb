@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.w3.org/1999/xhtml" action="catalogs.html" method="post" data-template="app:deserialize-query-string" class="form-inline">
+<form xmlns="http://www.w3.org/1999/xhtml" action="catalogs.html" method="post" data-template="app:catalogs" class="form-inline">
     <div class="panel-group">
         <!-- add in style overflow:visible to leave dropdown of multiselect plugin not being cropped -->
         <div class="panel panel-default" style="overflow:visible;">
@@ -16,9 +15,7 @@
                         <div class="form-group">
                             <label class="control-label" for="catalog">catalog:</label>
                             <select class="form-control" name="catalog" data-template="helpers:form-control">
-                                <option>spica_2021_07_08</option>
-                                <option>spica_2021_01_19</option>
-                                <option>oidb</option>
+                                <option data-template="helpers:select-options" data-template-key="catalogs"/>
                             </select>
                         </div>
                     </div>
