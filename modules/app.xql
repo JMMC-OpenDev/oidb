@@ -87,7 +87,7 @@ declare %private function app:row-data($row as node()) {
     for $x in $row/td[@colname=$data]
         (: no data- attribute if cell is empty :)
         where $x/text()
-        return attribute { 'data-' || $x/@colname } { if($x/@colname = 'access_url') then data(app:format-access-url($row/td[@colname='id'], $x, (), (), (), (), ())/@href) else $x/text() }
+        return attribute { 'data-' || $x/@colname } { if($x/@colname = 'access_url') then data(app:format-access-url(($row/td[@colname='id'])[1], $x, (), (), (), (), ())/@href) else $x/text() }
 };
 
 (:~
@@ -181,6 +181,8 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                         return app:td-cell-warning($cell, $row)
                     case "access_url"
                         return
+                        if ( ends-with($cell,".png") ) then <a href="{$cell}"><img width="50%" src="{$cell}"/></a>
+                        else
                             (: filter out text values that are not urls:)
                             if (string-length($cell)>5) then
                                 let $access-url := data($cell)
@@ -231,7 +233,8 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                     case "obs_id"
                         return <a href="search.html?obs_id={data($cell)}">{translate(data($cell)," ","&#160;")}</a>
                     default
-                        return translate(data($cell)," ","&#160;")
+                        return (: <div class="editable" contenteditable="true">{translate(data($cell)," ","&#160;")}</div>:)
+                            translate(data($cell)," ","&#160;")
                 } </td>
 };
 
@@ -333,7 +336,7 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
     let $filename := tokenize($url, "/")[last()]
     return
         element { "a" } {
-            attribute { "href" } { if (exists($id)) then request:get-scheme() || "://" || request:get-server-name() || "/get-data.html?id=" || $id ||"&amp;name=/" || $filename else $url },
+            attribute { "href" } { if (exists($id)) then "https://" || request:get-server-name() || "/get-data.html?id=" || $id ||"&amp;name=/" || $filename else $url },
             if (not($calib_level < 1) and string-length($url) > 3 and ($public or $creator_name = '')) then
                 let $dfpu := if ( exists ($id) ) then  datalink:datalink-first-png-url($id) else ()
                 let $img := if (exists($dfpu)) then serialize(<img src="{ $dfpu }" width="400%"/>) else ()
@@ -359,10 +362,7 @@ declare %private function app:format-access-url($id as xs:string?, $url as xs:st
 declare function app:fix-relative-url($url as xs:string) as xs:string {
     if(starts-with($url, "/"))
     then
-        let $port := request:get-server-port()
-        let $port := if($port=(80, 443)) then () else ":"||$port
-        return
-            request:get-scheme()||"://"||request:get-server-name()||$port||$url
+        "https://"||request:get-server-name()||$url
     else
         $url
 };
@@ -999,7 +999,7 @@ function app:search($node as node(), $model as map(*),
                 'name'    : $name,
 (:                'ucd'     : $th/a/text(),:)
 (:                'ucd-url' : data($th/a/@href),:)
-                'description' : $name || " : "|| data($th/@description) || $unit,
+                'description' : $name || " : "|| string-join(data($th/@description),",") || $unit,
                 'label'   : switch ($name)
                     case "em_min" return "wlen_min"
                     case "em_max" return "wlen_max"
@@ -1145,6 +1145,21 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
         (: --- COLUMNS --- :)
         map {
             'all'    : request:get-parameter('all', ())
+        }
+    ))
+};
+
+declare
+    %templates:wrap
+function app:catalogs($node as node(), $model as map(*)) as map(*) {      
+    let $query := "SELECT table_name FROM &quot;TAP_SCHEMA&quot;.tables"
+    let $names := try{ tap:execute($query)//*:TD/text() }catch *{"can't find tables"}
+    return 
+    map:merge((
+        app:deserialize-query-string($node, $model),
+        (: used by catalogs.html :)
+        map {
+            'catalogs' : ( $names )
         }
     ))
 };
