@@ -1,6 +1,7 @@
 ALTER TABLE public.oidb ADD dataproduct_category text NULL;
 ALTER TABLE public.oidb ADD proposal_subid text NULL;
 ALTER TABLE public.oidb ADD note text NULL;
+ALTER TABLE public.oidb ADD procsoft text NULL;
 
 INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", "unit", "ucd", "utype", "datatype", "size", "principal", "indexed", "std", "column_index") VALUES 
 ('oidb', 'dataproduct_category', 'Mainly mapped to HIERARCH DPR CATG (SCIENCE,CALIB,ACQUISITION,TECHNICAL,TEST,SIMULATION,OTHER)', '', 'meta.id', 'ObsDataset.dataProductSubtype', 'VARCHAR', '-1', '1', '0', '0', '-1');
@@ -11,3 +12,6 @@ INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", 
 INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", "unit", "ucd", "utype", "datatype", "size", "principal", "indexed", "std", "column_index") VALUES 
 ('oidb', 'note', 'Note or remark', '', 'meta.note', 'Provenance.comment', 'VARCHAR', '-1', '1', '0', '0', '-1');
 
+INSERT INTO "TAP_SCHEMA"."columns" ("table_name", "column_name", "description", "unit", "ucd", "utype", "datatype", "size", "principal", "indexed", "std", "column_index") VALUES 
+('oidb', 'procsoft', 'Versioned Data Reduction Software', '', 'meta.version;meta.software', 'Provenance.version', 'VARCHAR', '-1', '1', '0', '0', '-1');
+	
