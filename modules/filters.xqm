@@ -355,11 +355,11 @@ declare function filters:public($params as xs:string) {
  : @return an ADQL condition selecting items id
  :)
 declare function filters:id($params as xs:string) {
-    let $p := tokenize($params, ":")
+    let $name := substring-before($params, ":")
     return 
-        if (count($p)=1) then 
-            $adql:correlation-name || ".id=" || $params
+        if (string-length($name)=0) then 
+            $adql:correlation-name || ".id=&apos;" || $params || "&apos;"
         else
-            $adql:correlation-name || "." || $p[1] || "=" || $p[2]
+            $adql:correlation-name || "." || $name || "=&apos;" || substring-after($params,":") || "&apos;"
 };
 
