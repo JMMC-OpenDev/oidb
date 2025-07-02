@@ -290,17 +290,11 @@ declare function filters:observationdate($params as xs:string) as xs:string {
     }
     let $dates := tokenize($params, '\.\.')
     let $start-date := $to-mjd($dates[1], true()), $end-date := $to-mjd($dates[2], false())
-    return "( " || string-join((
-        if ($start-date) then 
-            $adql:correlation-name || ".t_max >= " || $start-date
-        else
-            (),
-        if ($start-date and $end-date) then "AND" else (),
-        if ($end-date) then
-            $adql:correlation-name || ".t_min <= " || $end-date
-        else
-            ()
-    ), ' ') || " )"
+    let $start-clause := if ($start-date) then $adql:correlation-name || ".t_min >= " || $start-date || " OR " || $adql:correlation-name || ".t_max >= " || $start-date else ()
+    let $end-clause := if ($end-date) then $adql:correlation-name || ".t_min <= " || $end-date || " OR " || $adql:correlation-name || ".t_max <= " || $end-date else ()
+    let $and := if ($start-date and $end-date) then "AND" else ()
+    return
+        "( " || string-join(($start-clause, $and, $end-clause), ' ') || " )"
 };
 
 (:~
