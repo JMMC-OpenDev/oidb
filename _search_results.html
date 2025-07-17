@@ -13,7 +13,7 @@
                 <h1>Sorry, no result. Please change your query.</h1>
             </div>
         </div>
-        
+
         <div data-template="helpers:if-model-key" data-template-key="rows" class="col-md-12">
 
         <h2>Results <small data-template="helpers:if-model-key" data-template-key="stats">
@@ -30,7 +30,7 @@
             <table class="table table-striped table-bordered table-hover">
                 <thead>
                     <tr data-template="helpers:if-model-key" data-template-key="rows">
-                        <th> 
+                        <th>
                             <div class="dropdown">
                                 <a class="dropdown-toggle text-success" data-toggle="dropdown" href="#">
                                     <b>
@@ -87,13 +87,13 @@
                             <span data-template="helpers:model-value" data-template-key="query"/>
                         </code>
                         <br/>
-                        ( <a data-template="helpers:model-value-attribute" data-template-key="query-edit" data-template-name="href">Edit query</a> )
+                        ( <a href="query.html">Copy this query to edit your own one</a><!-- query is not given as argument to reduce |8ots queries--> )
                     </caption>
-                </table>    
-                <p>Provided metadata are an extension on top of the <a href="http://www.ivoa.net/documents/ObsCore/">ObsCore</a> datamodel.</p>    
-            </div>   
+                </table>
+                <p>Provided metadata are an extension on top of the <a href="http://www.ivoa.net/documents/ObsCore/">ObsCore</a> datamodel.</p>
+            </div>
         </div>
-        
+
         <div data-template="templates:include" data-template-path="_voar.html"/>
     </div>
     </div>
