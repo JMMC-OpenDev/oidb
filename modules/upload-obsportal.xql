@@ -4,10 +4,10 @@ xquery version "3.0";
  : Perform an upload of all observations from ObsPortal service.
  :
  : The observations previously imported by the same way are deleted.
- : 
- : All database operations in this script are executed within a 
+ :
+ : All database operations in this script are executed within a
  : transaction: if any failure occurs, the database is left unchanged.
- : 
+ :
  : It returns a <response> fragment with the status of the operation.
  :)
 
@@ -20,7 +20,7 @@ declare variable $local:name external;
 declare variable $local:action external;
 
 let $response :=
-    <response> { 
+    <response> {
         try {
             <success>
                 <method>{$local:name} - {$local:action}</method>
@@ -29,7 +29,8 @@ let $response :=
                 }
             </success>
         } catch * {
-            <error> { $err:code, $err:description } </error>
+            util:log("error", <error> { $err:code, $err:description } </error> )
+            ,<error> { $err:code, $err:description } </error>
         }
     } </response>
 
