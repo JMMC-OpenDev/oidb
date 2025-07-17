@@ -34,19 +34,19 @@ declare %private function oifits:get-data($model as map(*)) as item()* {
         (: TODO check $staging and $path :)
         let $staging := request:get-parameter('staging', false())
         let $path    := request:get-parameter('path', false())
-        
+
         (: TODO create a route in controller for staged files :)
         let $url-file := string-join(tokenize($path, '/') ! encode-for-uri(.), '/') ! oifits:unescape-uri-path(.)
         let $url := '/exist/apps/oidb-data/oifits/staging/' || encode-for-uri($staging) || '/' || $url-file
-        
+
         let $data := util:binary-doc($oifits:staging || $staging || '/' || $path)
-        
+
         return ( $url, $data )
 };
 
 (:~
  : Pick metadata from the OIFITS serialized to XML by OIExplorer and build XML granules.
- : 
+ :
  : @param $oifits the XML serialization of an OIFITS file
  : @param $url    the URL of the source file
  : @return XML granules for the file
@@ -64,12 +64,12 @@ declare %private function oifits:prepare-granules($oifits as node(), $url as xs:
 
 (:~
  : Extract granules from OIFITS file and put granule in model for templating.
- : 
+ :
  : The input file is taken at the URL in the 'url' key of the current model.
- : 
+ :
  : If an error is detected in the input file (L3 excepted) , an error message is added to the
  : model and no granule is returned.
- : 
+ :
  : @param $node  the current node in the template
  : @param $model the current model
  : @param $calib_level calibration level (1 to 3)
@@ -80,34 +80,41 @@ declare
 function oifits:granules($node as node(), $model as map(*), $calib_level as xs:integer) as map(*) {
     let $data := oifits:get-data($model)
     let $url := $data[1]
-    let $map := map { 
+    let $map := map {
         'oifits' : map:merge((
         map:entry('url', $url),
         try {
             let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
-            
+
             (: try to find a progid :)
             (: TODO propose multiple values to let the user choose one of them :)
             let $progid := $oifits//keyword[name=('HIERARCH.ESO.OBS.PROG.ID','HIERARCH.OBS.PROG.ID')]/value
             let $progid := if( exists($progid)) then map:entry('progid', $progid) else ()
 
-            
+
             let $proposal_subid := $oifits//keyword[name=('HIERARCH.SPICADB-ID')]/value
             let $proposal_subid := if( exists($proposal_subid)) then map:entry('proposal_subid', $proposal_subid) else ()
-            
+
             let $obs_id := substring-before($oifits//keyword[name='ARCFILE']/value, '.fits')
             let $obs_id := if( exists($obs_id)) then map:entry('obs_id', $obs_id) else ()
+
             
-            (: TODO add category -oitarget.CATEGORY / HIERARCH ESO DP CATG :)
-            
-            
+            (: TODO add category -oitarget.CATEGORY / HIERARCH ESO DP CATG 
+	    let $category := $oifits//keyword[name='HIERARCH.PRO.SCIENCE=T']/value)
+            let $category := if($category='T') then 'SCIENCE'
+                else if ()
+                else ()
+            map:entry('dataproduct_category', )
+	    :)
+
+
             let $report := $oifits/checkReport/text()
             let $cnt-severe := count(tokenize($report,"SEVERE"))-1
             let $cnt-warning := count(tokenize($report,"WARNING"))-1
-            let $warn-msg := if ($cnt-severe > 0 ) then $cnt-severe||" SEVERE" else if ($cnt-warning > 0) then $cnt-warning || " WARNING" else () 
-            
+            let $warn-msg := if ($cnt-severe > 0 ) then $cnt-severe||" SEVERE" else if ($cnt-warning > 0) then $cnt-warning || " WARNING" else ()
+
             let $reject-nonl3-severe := false() (: true rejects L1/L2 with SEVERE entry :)
-            return map:merge(( 
+            return map:merge((
                 $progid,
                 $proposal_subid,
                 $obs_id,
@@ -127,16 +134,16 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
         }))
     }
     let $s1-map := if ($calib_level=3) then map:entry('skip-quality-level-selector', true()) else ()
-    let $s2-map := if ( $calib_level=2 and count(map:get(map:get($map,'oifits'),'granules'))>1) then () else map:entry('skip-oifits-quality-level-selector', true()) 
+    let $s2-map := if ( $calib_level=2 and count(map:get(map:get($map,'oifits'),'granules'))>1) then () else map:entry('skip-oifits-quality-level-selector', true())
     return map:merge(($map, $s1-map, $s2-map))
 };
 
 (:~
  : Insert into the current node the missing data for a granule.
- : 
+ :
  : It produces an hidden input element for each piece of data from the granule
  : that has not yet been associated with a form input in the current node.
- : 
+ :
  : @param $node  the current node
  : @param $model the current model
  : @return a sequence of hidden <input/> elements.
@@ -152,7 +159,7 @@ declare function oifits:hidden-inputs($node as node(), $model as map(*)) as node
 
 (:~
  : Print an MJD date from model to YYYY-MM-DD HH:mm:ss format.
- : 
+ :
  : @param $node  the current node
  : @param $model the current model
  : @param $key   the key to lookup in model for the date to templatize
@@ -166,7 +173,7 @@ declare function oifits:date($node as node(), $model as map(*), $key as xs:strin
 
 (:~
  : Print a right ascension angle from model to HMS format.
- : 
+ :
  : @param $node  the current node
  : @param $model the current model
  : @param $key   the key to lookup in model for the angle to templatize
@@ -178,7 +185,7 @@ declare function oifits:hms($node as node(), $model as map(*), $key as xs:string
 
 (:~
  : Print a declination angle from model to DMS format.
- : 
+ :
  : @param $node  the current node
  : @param $model the current model
  : @param $key   the key to lookup in model for the angle to templatize
@@ -190,7 +197,7 @@ declare function oifits:dms($node as node(), $model as map(*), $key as xs:string
 
 (:~
  : Return the basename of a path from model.
- : 
+ :
  : @param $node  the current node
  : @param $model the current model
  : @param $key   the key to lookup in model for the path to templatize
