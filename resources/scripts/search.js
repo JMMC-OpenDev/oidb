@@ -13,7 +13,7 @@ $(function () {
             // select method to apply to other datepicker
             var name  = $this.find(':input').attr('name');
             var method = (name == 'date_start') ? 'setStartDate' : 'setEndDate';
-            
+
             $other.datepicker(method, (e.date) ? e.date : false);
         });
 
@@ -41,6 +41,24 @@ $(function () {
             includeSelectAllOption: true,
             nonSelectedText: "any value",
             allSelectedText: "any value"
-            
+
         }).attr("size","3");
+
+    // TODO add doc for the following lines	
+    $('.editable').on('focus', function() {
+        before = $(this).html();
+    }).on('blur keyup paste', function() {
+        if (before != $(this).html()) { $(this).trigger('change'); }
+    });
+
+    $('.editable').on('change', function() {
+        tr=$(this).parents("tr")
+        td=$(this).parents("td")
+        id=tr.data("id");
+        value=$(this).text();
+        colindex=tr.children().index(td);
+        colname=$(this).parents("table").children("thead").children("tr").children("th")[colindex].innerText;
+        console.log("/catalog/" + id + " : {'" + colname + "':'"+ value + "'}"  );
+    });
+
 });
