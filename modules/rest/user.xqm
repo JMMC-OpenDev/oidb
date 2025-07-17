@@ -13,7 +13,9 @@ import  module namespace jmmc-auth="http://exist.jmmc.fr/jmmc-resources/auth" at
 declare namespace rest="http://exquery.org/ns/restxq";
 declare namespace http="http://expath.org/ns/http-client";
 
-declare variable $user:people-doc := doc($config:data-root||"/people/people.xml");
+(:declare variable $user:people-doc := doc($config:data-root||"/people/people.xml");:)
+(: TODO try to make path dynamic : $config:data-root is not set by calling this module out of the oidb application :)
+declare variable $user:people-doc := doc("/db/apps/oidb-data/people/people.xml");
 
 (:~
  : Link a people entry with the given ID to a new alias in the database.
@@ -140,8 +142,9 @@ function user:check($name as xs:string?) {
     return (<rest:response><http:response status="{ $status[1] }"/></rest:response>, <response>{$status}{$name}</response> )
 };
 
-declare function user:get-email($name as xs:string){
-    let $email := ($user:people-doc//person[alias[normalize-space(.)=normalize-space($name)]]//@email) [1]
+declare function user:get-email($names as xs:string*){
+    let $email := for $name in $names return ($user:people-doc//person[alias[lower-case(normalize-space(.)) = lower-case(normalize-space($name))]]//@email)[1]
+    
     return  data($email)
 };
 
