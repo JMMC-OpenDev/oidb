@@ -12,12 +12,6 @@
                     <a href="#doc">
                         <i class="glyphicon glyphicon-book"/>Doc</a>
                     <br/>
-                    <a href="#vega">
-                        <i class="glyphicon glyphicon-upload"/>Climb/Classic</a>
-                    <br/>
-                    <a href="#vega">
-                        <i class="glyphicon glyphicon-upload"/>Vega</a>
-                    <br/>
                     <a href="#submits">
                         <i class="glyphicon glyphicon-upload"/>Submits</a>
                     <br/>
@@ -135,37 +129,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-5">
-            <div class="panel panel-default" id="chara">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        <i class="glyphicon glyphicon-upload"/>&#160;Climb/Classic L0</h3>
-                </div>
-                <div class="panel-body">
-                    <form action="modules/backoffice-job.xql" enctype="multipart/form-data" method="post" class="form-inline" role="form">
-                        <input type="file" name="file" placeholder="CSV file with Climb/Classic observation logs"/>
-                        <button type="submit" name="do" value="chara-update" class="btn btn-default">Upload Climb/Classic CSV record</button>
-                        <div class="form-group">
-                            <b>Last update</b>: <span data-template="backoffice:chara-status"/>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="panel panel-default" id="vega">
-                <div class="panel-heading">
-                    <h3 class="panel-title">
-                        <i class="glyphicon glyphicon-upload"/>&#160;Vega L0 update</h3>
-                </div>
-                <div class="panel-body">
-                    <form action="modules/backoffice-job.xql" method="post" class="form-inline" role="form">
-                        <button type="submit" name="do" value="vega-update" class="btn btn-default">Update vega logs</button>
-                        <div class="form-group">
-                            <b>Last update</b>: <span data-template="backoffice:vega-status"/>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
     </div>
     <div class="row">
         <div class="col-md-12" id="submits">
@@ -180,6 +143,7 @@
             </div>
         </div>
     </div>
+    <!--
     <div class="row">
         <div class=" col-md-12" id="visits">
             <div class="panel panel-default">
@@ -193,6 +157,7 @@
             </div>
         </div>
     </div>
+    -->
     <div class="row">
         <div class=" col-md-12" id="searches">
             <div class="panel panel-default">
