@@ -11,8 +11,8 @@ $(function () {
                 $(':input[name="bibcode"][value="' + bibcode + '"]', $fieldset).length === 0
             );
         }
-        
-        
+
+
         // add a button to open a dialog for adding new article
         // add-article-button class is set to remote it on first article addition
         $('> div', $fieldset).append($('\
@@ -45,7 +45,7 @@ $(function () {
                         // prevent multiple bibcodes
                         $('.add-article-button', $fieldset).remove();
                     });
-                
+
             } else {
                 // incorrect bibcode, decorate field and let user try again
                 $bibcode.parents('.form-group').addClass('has-error');
@@ -161,7 +161,7 @@ $(function () {
     function addOIFITS(oifits) {
         var $oifits = $(oifits);
         $oifits.insertBefore('#oifits table tfoot');
-        
+
         $('.oifits-quality-level-selector').change(function() {
         //$("#selectBox").val("3");
         var oifitsdefaultvalue = this.value;
@@ -189,7 +189,7 @@ $(function () {
                 return { "url": $(this).parent().parent().siblings('a').attr('href') };
             }, "label":"OiFits" }});
         // handle event for file deletion
-        $('.remove-granule').click(function () { 
+        $('.remove-granule').click(function () {
             var oifitstbody = $(this).parents("tbody");
             // $.ajax('restxq/oidb/oifits', { data: { 'staging':'todo' , 'path':'todo'}, type:'DELETE' }).done(
                 // function() {
@@ -213,7 +213,7 @@ $(function () {
 
         $(':radio', $modal).change(function (e) {
             var $radio = $(this);
-            
+
             // activate the controls for this radio
             $radio.parents('.radio').find('.form-group :input').prop('disabled', false);
             // deactivate the controls for the other
@@ -282,7 +282,7 @@ $(function () {
                 });
 
             // wait until all oifits have been processed and discard dialog
-            $.when.apply($, oifits).always(function () { 
+            $.when.apply($, oifits).always(function () {
                 $modal.modal('hide');
             });
         });
@@ -310,13 +310,13 @@ $(function () {
             });
         e.preventDefault();
     })
-    
+
     $('#append-to-collection-btn').click(function (e) {
         var $btn = $(this);
         var $form_div = $("#collection")
         $btn.button('loading');
         var colid = $btn.next(":input").val()
-        
+
          $.get( '_collection-form.html?id='+encodeURIComponent(colid) )
             .done(function (data) {
                 var $collection = $(data);
@@ -342,7 +342,7 @@ $(function () {
             var values = $.isArray(val) ? val : [val] // this special hack is for handling select cases with multiple options
             if (name){
                 $.each(values, function( index, value ) {
-                    console.log("append element '"+name+"' with "+value); 
+                    console.log("append element '"+name+"' with "+value);
                     var e = doc.createElement(name);
                     e.textContent = value;
                     root.appendChild(e);
@@ -358,7 +358,7 @@ $(function () {
         $(':input', $collection).not(':radio:not(:checked)')
             .filter('[name="id"]').each(function (index, element) {
                 var id = $(element).val();
-                collection.documentElement.setAttribute("id", id); 
+                collection.documentElement.setAttribute("id", id);
             }).end()
             .not('#articles :input, [name="id"]')
             .serializeXML(collection, collection.documentElement);
@@ -397,16 +397,16 @@ $(function () {
     // to an optional collection
     function serializeGranules($granules, collection) {
         var data = {};
-        
+
         // pick info for granules from collection
         if(typeof collection !== "undefined") {
             // FIXME using jQuery on XML, use low level DOM functions instead
             var $collection = $('collection', collection);
-            
+
             // data from collection to add to each granule
             data.obs_collection = $collection.attr('id');
             data.keywords = $('keyword', $collection).map(function(){return $(this).text()}).get().join(" ; ");
-            
+
             var $article = $('article', $collection);
             if ($article.length !== 0) {
                 // may have more than one article attached (... in the future : button is by now remove after first successfull article setup)
@@ -446,6 +446,8 @@ $(function () {
             p = $(this).parent("tbody").find('input[name="obs_id"]');
             $(p, this).prop('disabled', true).serializeXML(granules, granule);
 
+            p = $(this).parent("tbody").find('input[name="dataproduct_category"]');
+            $(p, this).prop('disabled', true).serializeXML(granules, granule);
 
             // granule specific columns
             $(':input', this).prop('disabled', true).serializeXML(granules, granule);
@@ -471,7 +473,7 @@ $(function () {
         var $collection_fs = $('#collection');
         var collection = serializeCollection($collection_fs);
         var $granules = $('#oifits tr.granule');
-        
+
         // perform some checkup before submit
         $error_list = $("#errorModalList").empty();
         if ($('#oifits tr.granule').length == 0) {
@@ -488,7 +490,7 @@ $(function () {
             $("#errorModal").modal();
             return;
         }
-        
+
 
         var $buttons = $('.btn', this);
         // disable form buttons while the data is uploaded
@@ -533,7 +535,7 @@ $(function () {
                     $granule.find('[data-role="targetselector"]').targetselector('destroy');
                     $granule.find('[data-role="instrumentselector"]').instrumentselector('destroy');
                     $granule.find('[data-role="modeselector"]').modeselector('destroy');
-                    
+
                     // turn row into clickable links to granule details
                     var id = parseInt(status[index].textContent, 10);
                     $granule
@@ -546,7 +548,7 @@ $(function () {
                             window.open('show.html?id=' + id);
                         });
                 });
-                
+
                 $('.oifits-quality-level-selector').prop('disabled', true);
 
             })
@@ -568,7 +570,7 @@ $(function () {
                 $('#collection :input').prop('disabled', false);
             });
     });
-    
+
     // TODO check if next code is still usefull...
     $('#oifits')
         .find('tr .dropdown').one('click', function (e) {

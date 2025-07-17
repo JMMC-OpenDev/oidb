@@ -6,7 +6,7 @@
                 <span data-template="oifits:basename" data-template-key="oifits.url"/>
             </a>
             &#160;
-            
+
             <span class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                     <span class="glyphicon glyphicon-cog"/>&#160;<b class="caret"/>
@@ -41,6 +41,12 @@
                     <label class="col-sm-6 control-label" rel="tooltip" data-original-title="obs id (optional)">Observation ID</label>
                     <div class="col-sm-6">
                         <input class="form-control" name="obs_id" data-template="helpers:model-value-attribute" data-template-key="oifits.obs_id" data-template-name="value"/>
+                    </div>
+                </div>
+                <div class="col-xs-4">
+                    <label class="col-sm-6 control-label" rel="tooltip" data-original-title="SCIENCE or CALIB">Category</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" name="dataproduct_category" data-template="helpers:model-value-attribute" data-template-key="oifits.dataproduct_category" data-template-name="value"/>
                     </div>
                 </div>
             </div>
