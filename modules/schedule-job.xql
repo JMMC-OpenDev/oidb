@@ -27,8 +27,19 @@ declare variable $name external;
 (: the parameters to pass to the script :)
 declare variable $params external;
 
-if (scheduler:get-scheduled-jobs()//scheduler:job[@name=$name]) then
-    <info>A job with the same name is already executing.</info>
+let $jobs := scheduler:get-scheduled-jobs()
+let $job := $jobs//scheduler:job[@name=$name]
+return 
+if ($job) then
+    if ($job[.//*:state="COMPLETE"]) then
+        let $killed := scheduler:delete-scheduled-job($name)
+        return
+            if (scheduler:schedule-xquery-periodic-job($resource, 0, $name, $params, 0, 0)) then
+                <success>ReStarted new job.</success>
+            else
+                <error>Failed to restart a new job.</error>
+    else 
+        <info>A job with the same name is already executing.</info>
 else if (scheduler:schedule-xquery-periodic-job($resource, 0, $name, $params, 0, 0)) then
     <success>Started new job.</success>
 else
