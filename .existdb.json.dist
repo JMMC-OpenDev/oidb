@@ -1,0 +1,23 @@
+{
+    "servers": {
+        "localhost": {
+            "server": "http://localhost:8080/exist",
+            "user": "admin",
+            "password": ""
+        }
+    },
+    "sync": {
+        "server": "localhost",
+        "root": "/db/apps/oidb",
+        "active": false,
+        "ignore": [
+            ".existdb.json",
+            ".git/**",
+            "aspro_conf/**",
+            "node_modules/**",
+            "npm/**",
+            "bower_components/**",
+            "build/**"
+        ]
+    }
+}
