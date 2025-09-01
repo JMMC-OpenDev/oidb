@@ -25,25 +25,26 @@
         </replace>
     </target>
 
-    <!-- retrieve last aspro conf -->
     <target name="dl-aspro-conf">
-      <delete dir="instruments" failonerror="false"/>
-      <mkdir dir="instruments"/>
-      <exec executable="svn">
-        <arg value="export"/>
-        <arg value="https://github.com/JMMC-OpenDev/aspro-conf/trunk/src/main/resources/fr/jmmc/aspro/model"/>
-        <arg value="instruments/AsproConf2"/>
+        <!-- retrieve last aspro conf git repo -->
+        <exec executable="git">
+            <arg value="clone"/>
+            <arg value="https://github.com/JMMC-OpenDev/aspro-conf"/>
         </exec>
+        <delete dir="instruments" failonerror="false"/>
+        <copy todir="instruments/AsproConf">
+            <fileset dir="aspro-conf/src/main/resources/fr/jmmc/aspro/model"/>
+        </copy>
     </target>
 
     <target name="init" description="copy files retrieved after running npm install command">
-    <tstamp />
-    <mkdir dir="${build.dir}" />
-    <copy file="node_modules/jquery/dist/jquery.min.js" todir="resources/scripts" />
-    <copy file="node_modules/datatables.net/js/jquery.dataTables.min.js" todir="resources/scripts" />
-    <copy file="node_modules/datatables.net-bs/js/dataTables.bootstrap.min.js" todir="resources/scripts/" />
-    <copy file="node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css" todir="resources/css" />
-  </target>
+        <tstamp />
+        <mkdir dir="${build.dir}" />
+        <copy file="node_modules/jquery/dist/jquery.min.js" todir="resources/scripts" />
+        <copy file="node_modules/datatables.net/js/jquery.dataTables.min.js" todir="resources/scripts" />
+        <copy file="node_modules/datatables.net-bs/js/dataTables.bootstrap.min.js" todir="resources/scripts/" />
+        <copy file="node_modules/datatables.net-bs/css/dataTables.bootstrap.min.css" todir="resources/css" />
+    </target>
 
     <!-- Build a .XAR with custom config -->
     <target name="xar" depends="config,dl-aspro-conf,init">
@@ -61,10 +62,13 @@
             <exclude name="**.properties"/>
             <!-- do not bundle data in the deployment archive -->
             <exclude name="data/**"/>
+            <!-- do not bundle aspro-conf -->
+            <exclude name="aspro-conf/**"/>
             <!-- ignore local config... -->
             <exclude name="modules/config.xqm"/>
             <!-- ignore local node-modules -->
             <exclude name="node_modules/**"/>
+            <exclude name="npm/**"/>
             <!-- ... but include new custom config module -->
             <mappedresources>
                 <fileset file="${build.dir}/config.xqm"/>
