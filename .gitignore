@@ -3,5 +3,4 @@ npm
 node_modules
 aspro-conf
 package-lock.json
-.existdb.json.dist
 .existdb.json
