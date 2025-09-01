@@ -4,7 +4,7 @@ xquery version "3.0";
  : This modules interacts with the Obsportal Web service to query and retrieve
  : data from their database.
  :)
- 
+
 module namespace obsportal="http://apps.jmmc.fr/exist/apps/oidb/obsportal";
 
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "/db/apps/oidb/modules/collection.xqm";
@@ -17,19 +17,29 @@ declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.4";
 declare variable $obsportal:OBSPORTAL_URL := "http://obs.jmmc.fr/search.votable";
 
 (: Get OiDB collection assocaited to an obsportal subcollection.
- : Will be used in the futur. First implementation fakes ESO L0 at first.
  :)
-declare function obsportal:get-collection-id($obs-collection as xs:string) as xs:string 
-{   
-(:    switch ($obs-collection):)
-(:        case "tbdinthefuture" return 'tbd':)
-(:        default return :)
-            'eso_vlti_import'
+declare function obsportal:get-collection-id($obs-collection as xs:string) as xs:string
+{
+    switch ($obs-collection)
+        case "eso-update-inc" return 'eso_vlti_import'
+        default return
+            $obs-collection
+};
+
+(: Get OBsport specif query for a given collection.
+ :)
+declare function obsportal:get-params($obs-collection as xs:string) as xs:string
+{
+    switch ($obs-collection)
+        case "issp_l0" return 'instrument=SPICA'
+        case "eso_vlti_import" return 'interferometer=VLTI'
+        default return
+            'interferometer=nothingtogetnothing-for-'||$obs-collection
 };
 
 (:~
  : Remove all records from previous import.
- : 
+ :
  : @param $handle a database connection handle
  :)
 declare function obsportal:delete-collection-records($collection as xs:string, $handle as xs:long) {
@@ -38,7 +48,7 @@ declare function obsportal:delete-collection-records($collection as xs:string, $
 
 (:~
  : Transform the rows of a VOTable into observations.
- : 
+ :
  : @param $votable a XML VOTable from VegaObs
  : @return a sequence of 'observation' elements
  :)
@@ -54,55 +64,54 @@ declare %private function obsportal:votable-observations($votable as node()) as 
 
 (:~
  : Query all observations.
- : 
+ :
  : @return a sequence of observations
  :)
 declare function obsportal:get-observations( ) as node()* {
-    obsportal:get-observations( (), () )
+    obsportal:get-observations( (), () , ())
 };
 
 (:~
  : Query all observations between given interval if given.
  : Timezone are ignored (TBC).
- : 
+ :
  : @return a sequence of observations
  :)
-declare function obsportal:get-observations( $date_updated_from as xs:dateTime?, $date_updated_to as xs:dateTime?) as node()* {
+declare function obsportal:get-observations( $date_updated_from as xs:dateTime?, $date_updated_to as xs:dateTime?, $params as xs:string*) as node()* {
     (: We have to add tzinfo to avoid a 500 crash :)
     let $tzinfo := "%2B00:00"
-    
+
     let $date_updated_from := if(exists($date_updated_from)) then "date_updated_from="||adjust-dateTime-to-timezone(xs:dateTime(tokenize($date_updated_from,"\.")[1]), ())||$tzinfo else ()
     let $date_updated_to := if(exists($date_updated_to)) then "date_updated_to="||adjust-dateTime-to-timezone(xs:dateTime(tokenize($date_updated_to,"\.")[1]), ())||$tzinfo else ()
-    
-    let $date-range := if(exists($date_updated_from) or exists($date_updated_to)) then string-join(($date_updated_from,$date_updated_to), "&amp;") else ()
-    
-    let $votable-url := $obsportal:OBSPORTAL_URL||"?"||$date-range
+
+    let $params := string-join(($params,$date_updated_from,$date_updated_to), "&amp;")
+
+    let $votable-url := $obsportal:OBSPORTAL_URL||"?"||$params
 
     let $votable := doc($votable-url)
     let $log := util:log("info", "received votable from url : " || $votable-url)
-    
-    return 
+
+    return
         obsportal:votable-observations($votable)
 };
 
 
 (:~
  : Turn an observation into a granule fragment for upload.
- : 
+ :
  : @param $observation an observation
  : @return a 'metadata' element for the observation
  :)
 declare function obsportal:metadata($observations as node()*, $collection as xs:string) as node()* {
     for $observation in $observations
-        return 
+        return
         let $calib_level := "0"
         let $target-name := normalize-space(data($observation/target_name))
         let $target-name := if (string-length($target-name) > 0) then $target-name else '-' (: WORKARROUND so target_name always present :)
         let $obs_id := data($observation/exp_id) (: WARNING stored obs_id is the one prepared by obsportal and not ESO compatible :)
-        let $obs_creator_name := "jmmc-tech-group - Bourgès"
+        let $obs_creator_name := "jmmc-tech-group - Bourges;Mella"
         let $obs_release_date := data($observation/exp_date_release)
         let $data_rights := "secure"
-        let $access_url := "http://archive.eso.org/wdb/wdb/eso/eso_archive_main/query?dp_id="||$observation/exp_header_id (: use forwared original obs_id :)
         let $s_ra := data($observation/target_ra)
         let $s_dec := data($observation/target_dec)
         let $t_min := data($observation/exp_mjd_start)
@@ -123,9 +132,13 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
         let $nb_channels := "-1"
         let $progid := data($observation/obs_program)
         let $dataproduct_category := upper-case($observation/obs_type)
-    
+        let $datapi :=  data($observation/obs_program_pi_coi)
+        let $access_url := if ( $facility_name = "VLTI" ) then
+                "http://archive.eso.org/wdb/wdb/eso/eso_archive_main/query?dp_id="||$observation/exp_header_id (: use forwared original obs_id :)             else
+                "https://obs.jmmc.fr/detail/exposure/"||$obs_id
+
     (:TODO cache programId -> datapi :)
-        
+
         return <metadata> {
             (: all entries are L0 :)
             <calib_level>{ $calib_level }</calib_level>,
@@ -135,13 +148,14 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
             <obs_creator_name>{ $obs_creator_name } </obs_creator_name>,
             <obs_release_date>{ $obs_release_date } </obs_release_date>,
             <obs_id>{ $obs_id }</obs_id>,
+            <datapi>{ $datapi }</datapi>,
             <data_rights>{ $data_rights }</data_rights>,
             <access_url>{ $access_url }</access_url>,
             <s_ra>  { $s_ra } </s_ra>,
             <s_dec> { $s_dec } </s_dec>,
             <t_min> { $t_min } </t_min>,
             <t_max> { $t_max } </t_max>,
-            <t_exptime>{ $t_exptime }</t_exptime>, 
+            <t_exptime>{ $t_exptime }</t_exptime>,
             <em_min>{ $em_min }</em_min>,
             <em_max>{ $em_max }</em_max>,
             <em_res_power>{ $em_res_power }</em_res_power>,
@@ -157,7 +171,7 @@ declare function obsportal:metadata($observations as node()*, $collection as xs:
 
 (:~
  : Push observation logs in the database.
- : 
+ :
  : @param $handle a database connection handle
  : @param $observations observation logs from ObsPortal
  : @return a list of the ids of the new granules
@@ -166,6 +180,7 @@ declare function obsportal:upload($handle as xs:long, $collection as xs:string, 
     (: insert new granules in db :)
     let $nb-observations := count($observations)
     let $each := floor($nb-observations div 10)
+    let $log := util:log("info", "start of obsportal collection upload ("|| $nb-observations ||" observations)")
     let $ret := for $o at $pos in $observations
     return try {
         (
@@ -175,16 +190,16 @@ declare function obsportal:upload($handle as xs:long, $collection as xs:string, 
     } catch * {
         <warning>Failed to convert observation log to granule (ObsPortal ID { $o/exp_id/text() }): { $err:description } { $err:value }</warning>
     }
-    
-    let $log := util:log("info", "end of obsportal collection upload")
+
+    let $log := util:log("info", "end of obsportal collection upload ("|| $nb-observations ||" observations)")
     return $ret
 };
 
 declare function obsportal:get-last-mod-date($col-id as xs:string) as xs:dateTime?{
     let $collection := collection:retrieve($col-id)
-    return 
+    return
         try {
-            xs:dateTime($collection//em[@id='last-mod-date'])    
+            xs:dateTime($collection//em[@id='last-mod-date'])
         } catch * {
             ()
         }
@@ -196,10 +211,10 @@ declare function obsportal:get-last-exp_date_updated($observations as node()*) a
 };
 
 declare function obsportal:set-last-mod-date($col-id as xs:string, $last-mod-date as xs:dateTime?) {
-    if(exists($last-mod-date)) then 
+    if(exists($last-mod-date)) then
         let $collection := collection:retrieve($col-id)
         let $log := util:log("info", "set '"|| $last-mod-date ||"' as last-mod-date of '"||$col-id||"' collection")
-        return 
+        return
             update replace $collection//em[@id='last-mod-date']/text() with $last-mod-date
     else
         ()
@@ -209,50 +224,53 @@ declare function obsportal:set-last-mod-date($col-id as xs:string, $last-mod-dat
 declare function obsportal:sync($collection as xs:string) as item()* {
     (: convert obs collection name to oidb one :)
     let $collection := obsportal:get-collection-id($collection)
+    let $params := obsportal:get-params($collection)
     (: try to get associated last_mod_date :)
     let $last-mod-date := obsportal:get-last-mod-date($collection)
     let $from-date := if (exists($last-mod-date)) then $last-mod-date else xs:dateTime("2000-01-01T00:00:00")
-    return 
-        obsportal:sync($collection, $from-date, current-dateTime())
-        
+    return
+        obsportal:sync($collection, $from-date, xs:dateTime(current-dateTime()), $params)
+
     (: TODO if we get new records, perform a global update  ? :)
     (: If required, do remove private collection or select only automatic ones :)
     (: UPDATE oidb as granule SET obs_release_date = obslog.obs_release_date FROM oidb AS obslog WHERE granule.obs_id=SPLIT_PART(obslog.obs_id,'_',1) AND granule.progid = obslog.progid AND granule.calib_level>0 AND obslog.calib_level=0 ;:)
-        
-        
+
+
+
+
+
 };
 
-declare %private function obsportal:sync($col-id as xs:string,  $from as xs:dateTime, $to as xs:dateTime) as item()* {
+declare %private function obsportal:sync($col-id as xs:string,  $from as xs:dateTime, $to as xs:dateTime, $params) as item()* {
     (: remove old data from db :)
     (: let $delete := obsportal:delete-collection-records($handle, $col-id):)
-    if ($from > current-dateTime()) 
+    if ($from > xs:dateTime(current-dateTime()))
     then
         () (: ignore exp in the future for this collection :)
-    else if ($from > $to) 
+    else if ($from > $to)
     then
         util:log("error", "obsportal:sync() $from > $to")
-    else 
+    else
         let $max-to := $from + xs:yearMonthDuration('P1Y')
-        return 
+        return
             if($to > $max-to )
-            then 
+            then
                 (
                     util:log("info", "timespan too long ("|| $from ||" - " || $to ||"): spliting requests"),
-                    obsportal:sync($col-id, $from, $max-to),
-                    obsportal:sync($col-id, $max-to, $to)
+                    obsportal:sync($col-id, $from, $max-to, $params),
+                    obsportal:sync($col-id, $max-to, $to, $params)
                 )
-            else 
-                let $new := obsportal:get-observations($from, $to)
-                
-                return 
-                    if(exists($new)) then 
+            else
+                let $new := obsportal:get-observations($from, $to, $params)
+
+                return
+                    if(exists($new)) then
                         let $log := util:log("info", "start sync  from '"|| $from ||"' to '"|| $to ||"' with "|| count($new))
                         let $ids := sql-utils:within-transaction(obsportal:upload(?, $col-id, $new))
                         let $new-last_mod_date := obsportal:get-last-exp_date_updated($new)
                         let $set-last_mod_date :=  obsportal:set-last-mod-date($col-id, $new-last_mod_date)
-                        return 
+                        return
                             (<period>{string-join(($from, $to), "-")}</period>,$ids)
                     else
                         ()
 };
-
