@@ -11,8 +11,8 @@
     <prepare>pre-install.xql</prepare>
     <finish>post-install.xql</finish>
     <finish/>
-    <note>Pay attention to change modules/config.xqm 
-        with sql configuration variables: config:sql-driver, config:sql-url, config:sql-username, config:sql-password and config:sql-table 
+    <note>Pay attention to change modules/config.xqm
+        with sql configuration variables: config:sql-driver, config:sql-url, config:sql-username, config:sql-password and config:sql-table
         with tap endpoint : config:TAP_SYNC
         using a given property file (see build.xml for detail)
     </note>
@@ -27,20 +27,22 @@
             </ul>
         </change>
         -->
-        <!-- 
+        <!--
         TODO:
           - fix /tap/examples in TAP servlet instead of haproxy workarround that redirects on /docs.html
           - use obsportal records (L0) to retrieve datapis
+          - fix persistance of SCI/CAL checkboxes in the search form
         -->
 
-        <!--
-        <change xmlns="" version="2.2.5" release-date="2022-09-21T12:34">
-            <h3>2022-09-21</h3>
+        <change xmlns="" version="2.2.5" release-date="2024-09-05T12:34">
+            <h3>2025-09-05</h3>
             <ul>
               <li>Fix <a href="./rss">RSS</a> output format. </li>
+              <li>Support new embargo periods for ESO (12Months) and CHARA (18Months) collection types. </li>
+              <li>Try to detect SCI or CAL for OIFits injests.</li>
+              <li>BugFixes and technical improvements</li>
 	    </ul>
 	</change>
-        -->
 
        <change xmlns="" version="2.2.4">
             <h3>2022-06-20</h3>
