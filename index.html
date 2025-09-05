@@ -123,28 +123,45 @@
     </div>
     <div class="row">
         <div class="col-md-offset-3 col-md-6">
-            <p>Please use next url to use OiDB's TAP server : <span data-template="app:tap_endpoint"></span> </p> 
+            <p>Please use next url to use OiDB's TAP server : <span data-template="app:tap_endpoint"/> </p>
         </div>
     </div>
     <br/>
     <div class="container">
             <div class="jumbotron">
-            
+
                 <h2>Welcome on the <a href="about.html">second</a> version of the public release of OiDB !</h2>
+
+                <div class="alert alert-warning">
+                    <i class="icon icon-exclamation-circle icon-lg"/>
+                    <strong>Warning:</strong> All MATISSE N-band data reduced with pipeline versions earlier than
+2.0.0 are affected by a phase sign flip and thus a 180◦ rotation of
+the N-band images and models relative to the North-up and
+East-to-the-left standard. Please take that into account if you
+download such reduced data.  A new reduction of the N-band data with
+the last version of the pipeline will be ingested into OIDB early
+next year.
+                </div>
+
+
+
+                <!--
+                <p>Feel free to use this area dedicated to tests (please report any reports). Please submit your data to publish on long term <a href="https://oidb.jmmc.fr">on the public version</a>! </p>
+                -->
                 <p class="lead">OiDB aims to centralise the access to reduced optical interferometry data and observation logs obtained with a wide range of interferometers.<br/>
                 We hope that you will <a href="search.html">find</a> data that is useful for your research, <a href="submit.html">share</a> yours and provide us with <a href="feedback.html">feedback</a> to precise the future roadmap.<br/>
                 <!--You can find a preliminary <a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/Rdmap30">roadmap</a> of future enhancements.-->
                 </p>
-    
+
                 <h2>Look at the quick OiDB's introduction 7 min video !</h2>
                 <p>
                     <div align="center">
                         <video controls="" style="max-width:40%" poster="resources/images/OiDB-video-index.png">
                           <source src="http://www.jmmc.fr/pub/oidb/OiDB_sharing_querying.mp4" type="video/mp4"/>
                         </video>
-                    </div>    
+                    </div>
                 </p>
-                
+
                 <h2>If <a href="http://oidb.jmmc.fr">OiDB</a> is useful to your research, please cite it in your publications by adding the following sentence in the acknowledgement section:</h2>
                 <p>
                     <pre>"This research has made use of the Jean-Marie Mariotti Center OiDB service available at http://oidb.jmmc.fr ."</pre>
