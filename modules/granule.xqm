@@ -62,7 +62,7 @@ declare %private function granule:insert-statement($data as node()*, $try-update
 
     let $columns := for $x in $nodes return name($x)
     let $columns := "( " || string-join($columns, ', ') || " )"
-    let $values  := for $x in $nodes return "'" || sql-utils:escape($x) || "'"
+    let $values  := for $x in $nodes return "'" || normalize-space(sql-utils:escape($x)) || "'"
     let $values  := "( " || string-join($values,  ', ') || " )"
 
     let $update-on-conflict := if($try-update-on-conflict) then
@@ -205,9 +205,9 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
                                     util:log("info", "obs_release_date not present ?? data_rights="||$data_rights)
                                     (: TODO check that this empty case is normal :)
 
-    
+
     let $release_date := if( $obs_release_date ) then $obs_release_date else $granule/obs_release_date
-    
+
     (: do not try to compute datetime from L3 since it is only the associated publication date :)
     let $manage-local-data :=   if( $granule/calib_level != 3 and starts-with($granule/access_url,"/") and exists($release_date) ) then
                                     let $in-future :=   ( xs:dateTime($release_date) - fn:current-dateTime() ) > xs:dayTimeDuration("P0D")
@@ -225,11 +225,15 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
                                 else
                                     ()
 
-    let $datapi := if (exists($granule/datapi/text())) then () else
-        let $progid := $granule/progid/text()
-        (: assume that we are on a eso case with a given progid :)
-        let $pi := if($progid) then jmmc-eso:get-pi-from-progid($progid) else login:user-name()
-        return if($pi) then element {"datapi"} {$pi} else ()
+    let $datapi := if (exists($granule/datapi/text())) then
+            $granule/datapi/text()
+        else if($coltype="chara") then
+            element {"datapi"} {login:user-name()}
+        else
+            let $progid := $granule/progid/text()
+            (: assume that we are on a eso case with a given progid :)
+            let $pi := if($progid) then try{jmmc-eso:get-pi-from-progid($progid)}catch *{login:user-name()} else login:user-name()
+            return if($pi) then element {"datapi"} {$pi} else ()
 
 
     let $insert-statement := granule:insert-statement(( $granule/*, $data_rights, $obs_release_date, $datapi), $try-update-on-conflict)
@@ -241,6 +245,7 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
             return
             error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $insert-statement || $info)
         else
+	    (: may cause an issue if called too quickly :)
             let $clear-cache :=  app:clear-cache()
             return
                 (: return the id of the inserted row :)
@@ -327,7 +332,7 @@ declare %private function granule:update-statement($id as xs:integer, $data as n
     if(empty($data)) then "SELECT 1 LIMIT 0"
     else
         let $columns := for $x in $data return name($x)
-        let $values  := for $x in $data return if ($x/node()) then "'" || sql-utils:escape($x) || "'" else "NULL"
+        let $values  := for $x in $data return if ($x/node()) then "'" || normalize-space(sql-utils:escape($x)) || "'" else "NULL"
         (: TODO we could check that subdate is updated - or maybe add an additional column for that :)
         return string-join((
             "UPDATE", $config:sql-table,
