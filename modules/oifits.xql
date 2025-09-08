@@ -11,7 +11,7 @@ import module namespace config = "http://apps.jmmc.fr/exist/apps/oidb/config" at
 import module namespace templates="http://exist-db.org/xquery/html-templating";
 import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 
-import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers";
+import module namespace helpers="http://apps.jmmc.fr/exist/apps/oidb/templates-helpers" at "templates-helpers.xql";
 
 import module namespace jmmc-oiexplorer="http://exist.jmmc.fr/jmmc-resources/oiexplorer";
 import module namespace jmmc-dateutil="http://exist.jmmc.fr/jmmc-resources/dateutil";
@@ -98,8 +98,8 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
             let $obs_id := substring-before($oifits//keyword[name='ARCFILE']/value, '.fits')
             let $obs_id := if( exists($obs_id)) then map:entry('obs_id', $obs_id) else ()
 
-            
-            (: TODO add category -oitarget.CATEGORY / HIERARCH ESO DP CATG 
+
+            (: TODO add category -oitarget.CATEGORY / HIERARCH ESO DP CATG
 	    let $category := $oifits//keyword[name='HIERARCH.PRO.SCIENCE=T']/value)
             let $category := if($category='T') then 'SCIENCE'
                 else if ()
