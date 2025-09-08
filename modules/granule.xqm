@@ -9,7 +9,7 @@ module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule";
 import module namespace config="http://apps.jmmc.fr/exist/apps/oidb/config" at "config.xqm";
 import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "collection.xqm";
-import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xqm";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 import module namespace login="http://apps.jmmc.fr/exist/apps/oidb/login" at "login.xqm";
 
 
