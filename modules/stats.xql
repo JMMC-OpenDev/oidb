@@ -39,9 +39,9 @@ function stats:show($node as node(), $model as map(*)) {
     let $rows := $res//sql:row
     let $rows := for $row in $rows return
         <e>
-            <subdate_year>{data(sql:field[@name="subdate_year"])}</subdate_year>
-            <obs_collection>{data(sql:field[@name="obs_collection"])}<obs_collection>
-            <facility_name>{translate(tokenize(sql:field[@name="facility_name"],"_")[1], ".-", "__") }<facility_name>
+            <subdate_year>{data($row/sql:field[@name="subdate_year"])}</subdate_year>
+            <obs_collection>{data($row/sql:field[@name="obs_collection"])}</obs_collection>
+            <facility_name>{translate(tokenize($row/sql:field[@name="facility_name"],"_")[1], ".-", "__") }</facility_name>
         </e>
 
 
@@ -52,7 +52,7 @@ function stats:show($node as node(), $model as map(*)) {
             map:entry($year,map:merge((
                 for $row2 in $row group by $facility := data($row2/facility_name)
                 return
-                    map:entry($facility, count($row2))
+                    map:entry($facility, count(distinct-values($row2/obs_collection)))
             )))
         ))
 
