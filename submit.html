@@ -1,96 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <div xmlns="http://www.w3.org/1999/xhtml" data-template="templates:surround" data-template-with="templates/page.html" data-template-at="content">
-    <div class="page-header">
-        <h1>Pushing data into the database</h1>
-    </div>
-    <div class="col-md-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h2 class="panel-title">From OIFits files...</h2>
-            </div>
-            <div class="panel-body">
-                <div class="btn-group btn-group-justified">
-                    <a href="upload.html?calib_level=1" class="btn active btn-primary" role="button">
-                        <span class="glyphicon glyphicon-plus"/> Uncalibrated OIFITS (L1)
-                    </a>
-                    <a href="upload.html?calib_level=2" class="btn active btn-primary" role="button">
-                        <span class="glyphicon glyphicon-plus"/> Calibrated OIFITS (L2)
-                    </a>
-                    <a href="upload.html?calib_level=3" class="btn active btn-primary" role="button">
-                        <span class="glyphicon glyphicon-plus"/> Published calibrated OIFITS (L3)
-                    </a>
-                </div>
-                <div>
-                OIFits conformance is reported during the submission process. <a href="http://jmmc.fr/exist/apps/oival/index.html">
-                        <b>OIVAL</b>
-                    </a> also splits in granules and reports errors as a separeted tool. Enhancements for the validation have been identified but not yet planned.
-                </div>
-            </div>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h2 class="panel-title">From metadata file...</h2>
-            </div>
-            <form enctype="multipart/form-data" method="post" name="metadata" class="panel-body form-inline">
-                <p>
-                    The user can also choose to process his observations locally and upload only their metadata by submitting a file of metadata in XML format.
-                </p>
-                <p>
-                    A <a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbPionier">wiki page</a> is documenting the file format.
-                    See also ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/550">#550 - Upload of preprocessed metadata (L0, L2, L3)</a>.
-                </p>
-                <div class="form-group">
-                    <label for="file">Metadata file</label>
-                    <input name="file" type="file" placeholder="Drop file here or select a file to upload"/>
-                </div>
-                <button class="btn btn-primary" name="submit" type="submit" id="metadata">
-                    <span class="glyphicon glyphicon-upload"/> Upload</button>
-            </form>
+
+    <div class="row">
+        <div class="panel-heading">
+            <h1>Pushing data into the database</h1>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h2 class="panel-title">From a collection of OIFits files on <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>...</h2>
-            </div>
-            <form action="upload-vizier.html" method="GET" name="vizier" class="panel-body">
-                <p>
-                    The <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a> database contains catalogs of observations associated with paper.
-                    Given the id of such a catalog, the service can retrieve the files and other data from the associated catalog description.
-                    See also ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/549">#549 - Permit upload of OIFits L3 collection attached to article</a>.
-                </p>
-                <p>
-                    For example catalog named <a href="https://cdsarc.unistra.fr/viz-bin/cat/J/A+A/545/A130">J/A+A/545/A130</a>.
-                </p>
-                <!-- <div class="alert-error/alert-success/alert-info"></div> -->
-                <fieldset>
-                    <div class="col-ld-offset-2 col-lg-10 ">
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="catalog" placeholder="Paste the catalog name" required=""/>
-                            <span class="input-group-btn">
-                                <button class="btn btn-default" type="submit">
-                                    <span class="glyphicon glyphicon-search"/>
-                                </button>
-                            </span>
-                        </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2 class="panel-title">From OIFits files...</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="btn-group btn-group-justified">
+                        <a href="upload.html?calib_level=1" class="btn active btn-primary" role="button">
+                            <span class="glyphicon glyphicon-plus"/> Uncalibrated OIFITS (L1)
+                        </a>
+                        <a href="upload.html?calib_level=2" class="btn active btn-primary" role="button">
+                            <span class="glyphicon glyphicon-plus"/> Calibrated OIFITS (L2)
+                        </a>
+                        <a href="upload.html?calib_level=3" class="btn active btn-primary" role="button">
+                            <span class="glyphicon glyphicon-plus"/> Published calibrated OIFITS (L3)
+                        </a>
                     </div>
-                </fieldset>
-                <input type="hidden" name="calib_level" value="3"/>
-            </form>
-        </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h2 class="panel-title">From an external database/service...</h2>
+                    <div>
+                    OIFits conformance is reported during the submission process. <a href="https://oival.jmmc.fr">
+                            <b>OIVAL</b>
+                        </a> also splits in granules and reports errors as a separeted tool. Enhancements for the validation have been identified but not yet planned.
+                    </div>
+                </div>
             </div>
-            <div class="panel-body">
-                <p>
-                        The service can retrieve data from other databases and services. Please have a look onto the <a href="about.html#datasources">various data sources</a>
-                </p>
-                <p>
-                        See ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/557">#557 - Provide system to upload from external databases</a> and this <a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbVega">wiki page</a>.
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2 class="panel-title">From metadata file...</h2>
+                </div>
+                <form enctype="multipart/form-data" method="post" name="metadata" class="panel-body form-inline">
+                    <p>
+                        The user can also choose to process his observations locally and upload only their metadata by submitting a file of metadata in XML format.
                     </p>
+                    <p>
+                        A <a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbPionier">wiki page</a> is documenting the file format.
+                        See also ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/550">#550 - Upload of preprocessed metadata (L0, L2, L3)</a>.
+                    </p>
+                    <div class="form-group">
+                        <label for="file">Metadata file</label>
+                        <input name="file" type="file" placeholder="Drop file here or select a file to upload"/>
+                    </div>
+                    <button class="btn btn-primary" name="submit" type="submit" id="metadata">
+                        <span class="glyphicon glyphicon-upload"/> Upload</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2 class="panel-title">From a collection of OIFits files on <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a>...</h2>
+                </div>
+                <form action="upload-vizier.html" method="GET" name="vizier" class="panel-body">
+                    <p>
+                        The <a href="http://vizier.u-strasbg.fr/viz-bin/VizieR">VizieR</a> database contains catalogs of observations associated with paper.
+                        Given the id of such a catalog, the service can retrieve the files and other data from the associated catalog description.
+                        See also ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/549">#549 - Permit upload of OIFits L3 collection attached to article</a>.
+                    </p>
+                    <p>
+                        For example catalog named <a href="https://cdsarc.unistra.fr/viz-bin/cat/J/A+A/545/A130">J/A+A/545/A130</a>.
+                    </p>
+                    <!-- <div class="alert-error/alert-success/alert-info"></div> -->
+                    <fieldset>
+                        <div class="col-ld-offset-2 col-lg-10 ">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="catalog" placeholder="Paste the catalog name" required=""/>
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit">
+                                        <span class="glyphicon glyphicon-search"/>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <input type="hidden" name="calib_level" value="3"/>
+                </form>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2 class="panel-title">From an external database/service...</h2>
+                </div>
+                <div class="panel-body">
+                    <p>
+                            The service can retrieve data from other databases and services. Please have a look onto the <a href="about.html#datasources">various data sources</a>
+                    </p>
+                    <p>
+                            See ticket <a href="http://trac.jmmc.fr/jmmc-sw/ticket/557">#557 - Provide system to upload from external databases</a> and this <a href="http://www.jmmc.fr/twiki/bin/view/Jmmc/Software/OiDbVega">wiki page</a>.
+                        </p>
+                </div>
             </div>
         </div>
     </div>
+    <!-- 	
+    <div class="row">
+        <div class="panel-heading">
+            <h1>Your collections</h1>
+        </div>
+    </div>    
+    -->	
+
     <script type="text/javascript" src="resources/scripts/submit.js"/>
 </div>
