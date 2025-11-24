@@ -1151,10 +1151,10 @@ function app:deserialize-query-string($node as node(), $model as map(*)) as map(
 
 declare
     %templates:wrap
-function app:catalogs($node as node(), $model as map(*)) as map(*) {      
+function app:catalogs($node as node(), $model as map(*)) as map(*) {
     let $query := "SELECT table_name FROM &quot;TAP_SCHEMA&quot;.tables"
     let $names := try{ tap:execute($query)//*:TD/text() }catch *{"can't find tables"}
-    return 
+    return
     map:merge((
         app:deserialize-query-string($node, $model),
         (: used by catalogs.html :)
@@ -1550,7 +1550,8 @@ declare function app:show-granule-externals($node as node(), $model as map(*), $
     let $ext-res := if ( $public and number($calib_level)>0 )
         then
         let $access_url := $granule//td[@colname='access_url']
-        let $access_url := if (starts-with($access_url, "/exist" )) then request:get-scheme() || "://" || request:get-server-name() || $access_url else $access_url
+        (: always prefix relative access_urls with https:// . move in config ? :)
+        let $access_url := if (starts-with($access_url, "/exist" )) then "https://" || request:get-server-name() || $access_url else $access_url
         let $oival-url := $config:oival-url||"validate.xql?urls="||encode-for-uri($access_url)
         return
             ($ext-res,
