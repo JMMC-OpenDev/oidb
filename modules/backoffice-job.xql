@@ -3,12 +3,12 @@ xquery version "3.0";
 (:~
  : This script starts updating jobs as response from the HTML forms on the
  : backoffice page.
- : 
+ :
  : @note
  : It is required because it seems possible to process a multipart content
  : from a submitted HTML form neither directly in the controller (content not
  : parsed) nor within a templating function.
- : 
+ :
  : @see http://sourceforge.net/p/exist/mailman/message/31598566/
  : @see eXist-db's XQueryURLRewrite.java
  :)
@@ -22,22 +22,25 @@ import module namespace sesame="http://apps.jmmc.fr/exist/apps/oidb/sesame" at "
 
 (:~
  : Start a job in the background through the scheduler with parameters.
- : 
+ :
  : @note
  : It evaluates a script that creates the background job if not already running.
- : This script is setuid to elevate privileges to dba role (required for 
+ : This script is setuid to elevate privileges to dba role (required for
  : starting scheduler jobs).
- : 
+ :
  : @param $resource path to the resource for the job
  : @param $name     name of the job
  : @param $params   the parameters to pass to the job
  : @return flag indicating successful scheduling
  :)
 declare %private function local:start-job($resource as xs:string, $name as xs:string, $params as map(*)) as xs:boolean {
-    let $params := <parameters> {
-        for $key in map:keys($params)
-        return <param name="{ $key }" value="{ map:get($params, $key) }"/>
-    } </parameters>
+    let $params := <parameters> 
+            <param name="name" value="{$name}"/>
+            {
+            for $key in map:keys($params)
+            return <param name="{ $key }" value="{ map:get($params, $key) }"/>
+            }
+        </parameters>
 
     let $log := util:log("info", "starting job : "|| $resource || " as " || $name )
 
@@ -45,12 +48,13 @@ declare %private function local:start-job($resource as xs:string, $name as xs:st
         xs:QName('resource'), $resource,
         xs:QName('name'),     $name,
         xs:QName('params'),   $params))
+    let $log := util:log("info", "   job returns : "|| $status )
     return name($status) = 'success'
 };
 
 (:~
  : Start a new documentation update job in background.
- : 
+ :
  : @return false() if it failed to schedule the job or there is already another job running.
  :)
 declare %private function local:update-doc() {
@@ -59,7 +63,7 @@ declare %private function local:update-doc() {
 
 (:~
  : Clear cache of long tap query (app:clear-cache) but also clear sub caches (sesame).
- : 
+ :
  : @return always returns true().
  :)
 declare %private function local:cache-flush() {
@@ -70,39 +74,25 @@ declare %private function local:cache-flush() {
 
 (:~
  : Start a new ESO l0 update job in background for incremental update. It is now base on top of ObsPortal data source.
- : 
+ :
  : @return false() if it failed to schedule the job or there is already another job running.
  :)
 declare %private function local:update-obsportal($action) {
-(:    local:start-job($config:app-root || '/modules/sync-l0-eso.xql', $backoffice:update-eso-inc, map { 'name' : $backoffice:update-eso-inc }):)
-    local:start-job($config:app-root || '/modules/upload-obsportal.xql', $backoffice:update-obsportal, map {'name' : $backoffice:update-obsportal, 'action' : $action})
+    local:start-job($config:app-root || '/modules/upload-obsportal.xql', $backoffice:update-obsportal, map {'action' : $action})
 };
 
 (:~
  : Start a new VEGA update job from VegaObs in background.
- : 
+ :
  : @return false() if it failed to schedule the job or there is already another job running.
  :)
 declare %private function local:update-vega() {
-    local:start-job($config:app-root || '/modules/upload-vega.xql', $backoffice:update-vega, map {'name' : $backoffice:update-vega})
+    local:start-job($config:app-root || '/modules/upload-vega.xql', $backoffice:update-vega, map {})
 };
 
-(:~
- : Start a new CHARA update job in background from an uploaded file.
- : 
- : @param $resource the path to the uploaded file with observations.
- : @return false() if it failed to schedule the job or there is already another job running.
- :)
-declare %private function local:update-chara() {
-    let $data := request:get-uploaded-file-data('file')
-    let $path := xmldb:store('/db/apps/oidb-data/tmp', 'upload-chara.dat', $data, 'text/csv')
-
-    return local:start-job($config:app-root || '/modules/upload-chara.xql', $backoffice:update-chara, map { 'resource' : $path, 'name' : $backoffice:update-chara })
-};
-
-(: 
+(:
  : Helper to prefix info flash message with action status.
- : 
+ :
  : @param $msg the rest of the message.
  : @return empty
  :)
@@ -110,9 +100,9 @@ declare %private function local:info($msg as item()*)  {
     flash:info((<strong xmlns="http://www.w3.org/1999/xhtml">Action started !</strong>, ' ', $msg))
 };
 
-(: 
+(:
  : Helper to prefix error flash message with action status.
- : 
+ :
  : @param $msg the rest of the message.
  : @return empty
  :)
@@ -134,12 +124,7 @@ return (
                 local:info(<span xmlns="http://www.w3.org/1999/xhtml"><a href="doc.html">Main documentation</a> is being updated from the <a href="{$config:maindoc-twiki-url}">twiki page</a>.</span>)
             else
                 local:error(<span xmlns="http://www.w3.org/1999/xhtml"><a href="doc.html">Main documentation</a> failed to be properly updated. Can't find remote source <a href="{$config:maindoc-twiki-url}">twiki page</a>. See log for details.</span>)
-    
-        case "vega-update" return
-            if(local:update-vega()) then
-                local:info(<span xmlns="http://www.w3.org/1999/xhtml">VEGA observation logs are being updated from <a href="http://vegaobs-ws.oca.eu/">VegaObs</a>.</span>)
-            else
-                local:error(<span xmlns="http://www.w3.org/1999/xhtml">VEGA observation logs is already running or failed to be properly updated. See log for details.</span>)
+
 
         case "obsportal-update" return
             if(local:update-obsportal($action)) then
@@ -156,12 +141,11 @@ return (
                 local:info(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs are being updated from <a href="http://obs.jmmc.fr/">JMMC Obs portal</a>.</span>)
             else
                 local:error(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs is already running or failed to be properly updated. See log for details.</span>)
-                
-        case "chara-update" return
-            if(local:update-chara()) then
-                local:info(<span xmlns="http://www.w3.org/1999/xhtml">CHARA observation logs are being updated from file.</span>)
+        case "issp_l0" return
+            if(local:update-obsportal($action)) then
+                local:info(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs are being updated from <a href="http://obs.jmmc.fr/">JMMC Obs portal</a>.</span>)
             else
-                local:error(<span xmlns="http://www.w3.org/1999/xhtml">CHARA observation logs is already running or failed to be properly updated. See log for details.</span>)
+                local:error(<span xmlns="http://www.w3.org/1999/xhtml">OBSPORTAL ({$action}) observation logs is already running or failed to be properly updated. See log for details.</span>)
 
         default return
             flash:error(<span xmlns="http://www.w3.org/1999/xhtml"><strong>Action {$action} not supported !</strong> Please report this error if you think that it should not have occured.</span>),
