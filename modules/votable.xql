@@ -2,8 +2,8 @@ xquery version "3.1";
 
 (:~
  : Return the VOTable for the serialized query.
- : 
- : If the query can not be built or executed, it instead returns an <error> 
+ :
+ : If the query can not be built or executed, it instead returns an <error>
  : element with error text.
  :)
 
@@ -16,7 +16,7 @@ import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql
 import module namespace tap="http://apps.jmmc.fr/exist/apps/oidb/tap" at "tap.xqm";
 
 declare function local:param($parent, $name, $value ) {
-    element {QName(namespace-uri($parent), "PARAM")} { 
+    element {QName(namespace-uri($parent), "PARAM")} {
                 attribute {"arraysize"} {"*"}, attribute {"datatype"} {"char"},
                 attribute {"ID"} {$name}, attribute {"name"} {$name}, attribute {"value"} {$value}
             }
@@ -61,23 +61,23 @@ let $response :=
         else
             ()
 
-        return 
+        return
             if(exists($params))
             then
                 let $resource := $votable/*:RESOURCE
                 return
-                    element {QName(namespace-uri($votable), name($votable))} 
+                    element {QName(namespace-uri($votable), name($votable))}
                         {
-                            $votable/@*, 
+                            $votable/@*,
                             element {QName(namespace-uri($resource), name($resource))} {$resource/@*, $params, $resource/*}
-                        } 
+                        }
             else
                 $votable
     } catch * {
         response:set-status-code(400),
         <error> Error: { $err:code } - { $err:description } </error>
     }
-    
+
 return (
     response:set-header('Content-Disposition', 'attachment; filename="' || 'oidb-votable.xml' || '"'),
     $response
