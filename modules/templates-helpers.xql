@@ -273,13 +273,16 @@ declare function helpers:pagination($node as node(), $model as map(*)) as node()
  : @param $node
  : @param $model
  : @param $key the identifier in the model for the contents of the options
+ : @param $value-map the map identifier in the model to search selected value (uses model itself if empty)
+ : @param $value-key the identifier in the value-map model to search selected value
  : @param $sorted optional parameter to define order-by rule : (no, descending), default is ascending
  : @return a sequence of <option> elements
  :)
 declare
 %templates:default("sorted", "ascending")
-function helpers:select-options($node as node(), $model as map(*), $key as xs:string, $sorted as xs:string?) as node()* {
+function helpers:select-options($node as node(), $model as map(*), $key as xs:string, $value-map as xs:string?, $value-key as xs:string?, $sorted as xs:string?) as node()* {
     let $options := $model($key)
+    let $values := if($value-map) then $model($value-map) else $model
     let $ret := if ($options instance of map(*)) then
         (: let $log := util:log("info", "searching for " || $key||"-default-keys-order :" || string-join($model($key||"-default-keys-order"), ", ") ) :)
         let $map-default-keys-order := $model($key||"-default-keys-order")
@@ -293,13 +296,20 @@ function helpers:select-options($node as node(), $model as map(*), $key as xs:st
             let $option := map:get($options, $key)
             return
                 if ($option instance of map(*)) then
-                    <optgroup label="{$key}">{helpers:select-options($node,map{$key:$option}, $key, $sorted)}</optgroup>
+                    <optgroup label="{$key}">{helpers:select-options($node,map{$key:$option}, $key, $value-map, $value-key, $sorted)}</optgroup>
+                else if ($key = $values($value-key)) then
+                    <option value="{ $key }" selected="">{ $option }</option>
                 else
                     <option value="{ $key }">{ $option }</option>
     else
         for $value at $pos in $options
         order by if ($sorted="no") then $pos else upper-case($value) ascending
-        return <option value="{ $value }">{ $value }</option>
+        return
+            if ($value = $values($value-key)) then
+                <option value="{ $key }" selected="">{ $option }</option>
+            else
+                <option value="{ $value }">{ $value }</option>
+
     return if($sorted="descending") then reverse($ret) else $ret
 };
 
@@ -321,6 +331,12 @@ declare function helpers:form-control($node as node(), $model as map(*)) as node
 };
 
 declare %private function helpers:form-control($node as node(), $model as map(*), $value as xs:string?) as node()* {
+    (:
+    let $log := util:log("info",$node)
+    let $log := util:log("info",$model)
+    let $log := util:log("info",$value)
+    :)
+
     (: template process the children :)
     let $children := templates:process($node/node(), $model)
 
