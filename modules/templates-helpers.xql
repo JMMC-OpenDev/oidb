@@ -297,7 +297,7 @@ function helpers:select-options($node as node(), $model as map(*), $key as xs:st
             return
                 if ($option instance of map(*)) then
                     <optgroup label="{$key}">{helpers:select-options($node,map{$key:$option}, $key, $value-map, $value-key, $sorted)}</optgroup>
-                else if ($key = $values($value-key)) then
+                else if ($value-key and $key = $values($value-key)) then
                     <option value="{ $key }" selected="">{ $option }</option>
                 else
                     <option value="{ $key }">{ $option }</option>
@@ -305,8 +305,8 @@ function helpers:select-options($node as node(), $model as map(*), $key as xs:st
         for $value at $pos in $options
         order by if ($sorted="no") then $pos else upper-case($value) ascending
         return
-            if ($value = $values($value-key)) then
-                <option value="{ $key }" selected="">{ $option }</option>
+            if ($value-key and $value = $values($value-key)) then
+                <option value="{ $value }" selected="">{ $value }</option>
             else
                 <option value="{ $value }">{ $value }</option>
 
