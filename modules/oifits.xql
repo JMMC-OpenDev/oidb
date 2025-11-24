@@ -62,6 +62,16 @@ declare %private function oifits:prepare-granules($oifits as node(), $url as xs:
     }
 };
 
+declare %private function oifits:map-entry-value($key as xs:string, $value as xs:string?){
+    let $v := normalize-space($value)
+    return
+        if( string-length($v)>0 ) then map:entry($key, $v) else ()
+};
+
+declare %private function oifits:map-entry-kw($key as xs:string, $oifits as node(), $kw-names as xs:string*){
+    oifits:map-entry-value($key, $oifits//keyword[name=($kw-names)]/value)
+};
+
 (:~
  : Extract granules from OIFITS file and put granule in model for templating.
  :
@@ -85,28 +95,18 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
         map:entry('url', $url),
         try {
             let $oifits := jmmc-oiexplorer:to-xml($data[last()])/oifits
-
-            (: try to find a progid :)
-            (: TODO propose multiple values to let the user choose one of them :)
-            let $progid := $oifits//keyword[name=('HIERARCH.ESO.OBS.PROG.ID','HIERARCH.OBS.PROG.ID')]/value
-            let $progid := if( exists($progid)) then map:entry('progid', $progid) else ()
-
-
-            let $proposal_subid := $oifits//keyword[name=('HIERARCH.SPICADB-ID')]/value
-            let $proposal_subid := if( exists($proposal_subid)) then map:entry('proposal_subid', $proposal_subid) else ()
-
-            let $obs_id := substring-before($oifits//keyword[name='ARCFILE']/value, '.fits')
-            let $obs_id := if( exists($obs_id)) then map:entry('obs_id', $obs_id) else ()
-
-
-            (: TODO add category -oitarget.CATEGORY / HIERARCH ESO DP CATG
-	    let $category := $oifits//keyword[name='HIERARCH.PRO.SCIENCE=T']/value)
-            let $category := if($category='T') then 'SCIENCE'
-                else if ()
-                else ()
-            map:entry('dataproduct_category', )
-	    :)
-
+            let $dp_cat := (
+                'SCIENCE'[$oifits//keyword[name='HIERARCH.PRO.SCIENCE' and normalize-space(value)='T']]
+                ,'CALIB'[$oifits//keyword[name='HIERARCH.PRO.SCIENCE' and normalize-space(value)='F']]
+                )
+            (: TODO propose multiple values to let the user choose one of them ? :)
+            let $map-entries := (
+                oifits:map-entry-kw('progid', $oifits, ('HIERARCH.ESO.OBS.PROG.ID','HIERARCH.OBS.PROG.ID'))
+                , oifits:map-entry-kw('proposal_subid', $oifits, 'HIERARCH.SPICADB-ID')
+                , oifits:map-entry-kw('quality_level', $oifits,'HIERARCH.QUALITY.LEVEL')
+                , oifits:map-entry-value('obs_id', substring-before($oifits//keyword[name='ARCFILE']/value, '.fits'))
+                , oifits:map-entry-value('dataproduct_category', $dp_cat)
+            )
 
             let $report := $oifits/checkReport/text()
             let $cnt-severe := count(tokenize($report,"SEVERE"))-1
@@ -115,9 +115,7 @@ function oifits:granules($node as node(), $model as map(*), $calib_level as xs:i
 
             let $reject-nonl3-severe := false() (: true rejects L1/L2 with SEVERE entry :)
             return map:merge((
-                $progid,
-                $proposal_subid,
-                $obs_id,
+                $map-entries,
                 map:entry('report', $report),
                 if ($warn-msg) then
                     map:entry('warning', <span class="text-danger">&#160; {$warn-msg} errors, please try to fix your file and resubmit it later.Please send feedback, if some SEVERE level are too strict. </span>)
