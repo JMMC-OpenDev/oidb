@@ -23,43 +23,44 @@ declare variable $login-max-age := xs:dayTimeDuration("P7D");
 (: app:user-admin() and app:user-allowed() uses this attributes :)
 (: moving to 5.2 requires an additional call in our restxq module :)
 
-(: TODO check if we can move/hide it in app module :) 
+(: TODO check if we can move/hide it in app module :)
 declare variable $login := function () {
-    if ( request:get-parameter('logout', false()) ) then 
+    if ( request:get-parameter('logout', false()) ) then
 (:        let $store-flash := flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>) :)
         let $set-user := login:set-user($domain, $login-max-age, false())
 (:  next lines throws a 500 Error moving to existdb 5 ... how can we get this feature back ? :)
 (:        let $do := flash:info(<span xmlns="http://www.w3.org/1999/xhtml">You have successfully logged out.</span>):)
         return ()
-    else 
+    else
         let $set-user := login:set-user($domain, $login-max-age, false())
         (: could sm:id() better replace request attribute ?? :)
         let $user := request:get-attribute($domain || '.user')
-        let $superuser := request:set-attribute($domain || '.superuser', $user and jmmc-auth:check-credential($user, 'oidb'))
+        let $user-and-oidb-group := try{ $user and jmmc-auth:check-credential($user, 'oidb') } catch * { false() }
+        let $superuser := request:set-attribute($domain || '.superuser', $user-and-oidb-group)
         let $assert := util:eval(xs:anyURI('./modules/assert.xql'))
         return ()
 };
 
-declare variable $cookie-agreement := 
+declare variable $cookie-agreement :=
     let $cookie-name := "cookie-agreement" (: TODO move as config constant :)
-    return if ( exists(request:get-cookie-value($cookie-name))) 
+    return if ( exists(request:get-cookie-value($cookie-name)))
         then
-            request:set-attribute($cookie-name, "true") 
-        else if( exists(request:get-parameter('i_agree_to_conditions', ())) ) 
-        then 
+            request:set-attribute($cookie-name, "true")
+        else if( exists(request:get-parameter('i_agree_to_conditions', ())) )
+        then
             (
                 response:set-cookie($cookie-name,util:uuid(), xs:yearMonthDuration('P10Y'), false()),
-                request:set-attribute($cookie-name, "true") 
+                request:set-attribute($cookie-name, "true")
             )
-        else 
+        else
             ();
-            
+
 (: we use following variable to simplifiy double proxy case (traefik on top of haproxy)... :)
 let $exist-path := replace($exist:path, "//", "/")
-            
-            
+
+
 let $store-res-name := request:set-attribute("exist:path", $exist:path)
-return 
+return
 if($exist:path eq '') then
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <redirect url="{concat(request:get-uri(), '/')}"/>
@@ -105,8 +106,8 @@ else if (starts-with($exist-path, '/restxq/oidb')) then
                 (
             response:set-status-code(403), (: Forbidden :)
             <response>your are missing the superadmin permission</response>
-        )    
-            else 
+        )
+            else
                 (
                     util:import-module($module-uri, $prefix, $location),
                     restxq:process($path, util:list-functions($module-uri))
@@ -175,8 +176,8 @@ else
         response:set-header("debug-path", $exist:path),
         response:set-header("debug-controller", $exist:controller),
         response:set-header("debug-uri", request:get-uri()),
-        
-        
+
+
     <dispatch xmlns="http://exist.sourceforge.net/NS/exist">
         <cache-control cache="yes"/>
     </dispatch>
