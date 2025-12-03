@@ -32,7 +32,7 @@ declare %private function granule:format-nodes-for-sql-statement($data as node()
     let $s_dec := normalize-space($data/self::s_dec)
     let $s_dec := element s_dec { if(contains($s_dec,$sexa-markers)) then jmmc-astro:from-dms($s_dec) else $s_dec}
 
-    let $nodes := ( $nodes[not(name() = ("s_ra", "s_dec"))], $s_ra, $s_dec )
+    let $nodes := ( $nodes[not(name() = ("s_ra", "s_dec"))], $s_ra[text()], $s_dec[text()] )
 
     (: and nb_vis/nb_t3  we encountered N.0 in CHARA data :)
 
@@ -194,7 +194,7 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
 
     let $obs_release_date :=    if( $granule/obs_release_date ) then
                                     () (: keep verbatim metadata  :)
-                                else if( ($granule/data_rights, $data_rights)="secure" ) then
+                                else if( exists($granule/t_max) and ($granule/data_rights, $data_rights)="secure" ) then
                                     (: FIXME try to get release_date from L0 or fall back to next basic computation relying on t_max :)
                                     let $embargo := if (granule:is-science($granule)) then $embargo else xs:yearMonthDuration('P0Y')
                                     return
