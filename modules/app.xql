@@ -230,6 +230,8 @@ declare function app:td-cell($cell as node(), $row as node()*) as element()
                     case "nb_vis2"
                     case "nb_t3"
                         return if($cell = "" or data($cell) = -1) then '-' else data($cell)
+                    case "note"
+                            return <span>{data($cell)}</span>
                     case "obs_id"
                         return <a href="search.html?obs_id={data($cell)}">{translate(data($cell)," ","&#160;")}</a>
                     default
@@ -1326,7 +1328,7 @@ declare function app:show-granule-summary($node as node(), $model as map(*), $ke
                 <table class="table table-striped table-bordered table-hover">
                 {
                     let $row := ($granule//tr[td], $granule)[1] (: use tr if votable is provided else the given node is supposed to be a tr :)
-                    let $columns := ($app:main-metadata , "obs_creator_name", "quality_level", "obs_collection", "progid")
+                    let $columns := ($app:main-metadata , "obs_creator_name", "quality_level", "obs_collection", "progid", "note")
                     return app:tr-cells($row, $columns)
                 }
                 </table>
