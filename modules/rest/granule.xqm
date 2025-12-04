@@ -14,10 +14,10 @@ import module namespace http = "http://expath.org/ns/http-client";
 
 declare namespace rest="http://exquery.org/ns/restxq";
 
- 
+
 (:~
  : Return a granule given its granule ID.
- : 
+ :
  : @param $id the id of the granule to find
  : @return a <granule> element or a 404 status if not found
  :)
@@ -34,7 +34,7 @@ function granule:get-granule($id as xs:integer) {
 
 (:~
  : Update the granule with the given id.
- : 
+ :
  : @param $id the id of the granule to update
  : @param $granule-doc the new data for the granule
  : @return ignore, see HTTP status code
@@ -52,8 +52,8 @@ function granule:put-granule($id as xs:integer, $granule-doc as document-node())
         } catch gran:unauthorized {
             401 (: Unauthorized :)
         } catch * {
-            let $msg := "can't update "||$id||" : "|| string-join( ($err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" ), ", ") 
-            return 
+            let $msg := "can't update "||$id||" : "|| string-join( ($err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" ), ", ")
+            return
              ( 500 (: Internal Server Error :) , util:log("error", $msg) )
         }
 
@@ -62,16 +62,16 @@ function granule:put-granule($id as xs:integer, $granule-doc as document-node())
 
 (:~
  : Push one or more XML granules into the database.
- : 
+ :
  : The set of granules is passed as an XML document either as data in the
  : POST request or as a multipart/form-data content from a HTML form where
  : each granule is serialized as a 'granule' element with children elements
  : whose names are table columns and texts their respective values.
- : 
+ :
  : It returns a <response> element containing either a <success> or <error>
  : element. In the first case, the message also contains the ids of the
  : saved granules as <id> elements.
- : 
+ :
  : @param $granules the XML granules (may be empty for catalogues without oifits)
  : @return a <response/> document with status for uploaded granules.
  : @error see HTTP status code
@@ -88,7 +88,8 @@ function granule:save-granules($granules as document-node()?) {
                     function($handle as xs:long) as element(id)* {
                         for $granule in $granules//granule
                         let $id := gran:create($granule, $handle)
-                        return <id>{ $id }</id>
+                        let $g := gran:retrieve($id, $handle)
+                        return (<id>{ $id }</id>, $g)
                     }),
                     <success>Successfully uploaded {count($granules//granule)} granule(s)</success>
             } catch gran:error {
@@ -106,12 +107,13 @@ function granule:save-granules($granules as document-node()?) {
                 <error>{ $err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" }  </error>
             }
         } </response>
+    let $log := util:log("info", $response)
     return ( log:submit($response), $response )
 };
 
 (:~
  : Delete the granule with the given ID from the database.
- : 
+ :
  : @param $id the id of the granule to delete
  : @return ignore, see HTTP status code
  :)
