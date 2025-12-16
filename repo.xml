@@ -39,7 +39,8 @@
             <ul>
               <li>Smaller and filtered table of dataPIS</li>
               <li>Extract more metadata on file upload (progid, proposal_subid, quality_level)</li>
-              <li>Collections may have a release_date that retains data before classical embargo period.</li>
+              <li>Collections may have a release_date that retains data before classical embargo period</li>
+              <li>Replace iau-c54.wikispaces.com by publications.olbin.org in the top right menu external links</li>
               <li>BugFixes and technical improvements</li>
             </ul>
         </change>
