@@ -24,9 +24,9 @@ declare variable $collection:SIMULATION_COLTYPE := "simulation";
 
 (:~
  : Save a new collection under the specified ID.
- : 
+ :
  : If no id is provided, the function creates one from a generated UUID.
- : 
+ :
  : @param $id         the id of the new collection or empty
  : @param $collection the collection contents
  : @return the path to the new resource for the collection
@@ -57,7 +57,7 @@ declare function collection:create($id as xs:string?, $collection as node()) as 
 
 (:~
  : Return a collection given its ID.
- : 
+ :
  : @param $id the id of the collection to find
  : @return the <collection> element with the given ID or empty if not found
  :)
@@ -67,7 +67,7 @@ declare function collection:retrieve($id as xs:string) as node()? {
 
 (:~
  : Modify an existing collection identified by its ID.
- : 
+ :
  : @param $id         the id of the collection to modify
  : @param $collection the collection new contents
  : @return the path to the updated resource or empty if modification failed.
@@ -95,9 +95,9 @@ declare function collection:update($id as xs:string, $collection as node()) {
 
 (:~
  : Remove a collection given its ID with associated granules in SQL db.
- : 
+ :
  : The XML resource for the collection and sql records are deleted.
- : 
+ :
  : @param $id the id of the collection to delete
  : @return empty
  : @error failed to delete, collection not found, not authorized
@@ -118,7 +118,7 @@ declare function collection:delete($id as xs:string) {
 
 (:~
  : Format an SQL DELETE request with the given collection id to remove associated datalinks & granules.
- : 
+ :
  : @param $collection-id the id of the collection to delete
  : @return a SQL DELETE statement
  :)
@@ -131,7 +131,7 @@ declare %private function collection:delete-granules-statement($collection-id as
 
 (:~
  : Get the granules associated to the given collection ID.
- : 
+ :
  : @param @param $collection-id the id of the collection to list
  : @return granules element
  :)
@@ -141,7 +141,7 @@ declare function collection:get-granules($collection-id as xs:string)  {
 
 (:~
  : Get the granules associated to the given collection ID.
- : 
+ :
  : @param @param $collection-id the id of the collection to list
  : @param $handle the SQL database handle
  : @return granules element
@@ -160,7 +160,7 @@ declare function collection:get-granules($collection-id as xs:string, $handle as
 
  (:~
  : Remove the granules associated to the given collection ID.
- : 
+ :
  : @param @param $collection-id the id of the collection to delete
  : @return empty
  : @error failed to delete
@@ -171,7 +171,7 @@ declare function collection:delete-granules($collection-id as xs:string)  {
 
 (:~
  : Remove the granules associated to the given collection ID.
- : 
+ :
  : @param @param $collection-id the id of the collection to delete
  : @param $handle the SQL database handle
  : @return empty
@@ -192,9 +192,9 @@ declare function collection:delete-granules($collection-id as xs:string, $handle
 
 (:~
  : Return all collections.
- : 
+ :
  : It returns only the collections that are readable by the current user.
- : 
+ :
  : @return a sequence of <collection> elements.
  :)
 declare function collection:list() as element(collection)* {
@@ -216,7 +216,7 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
         error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
     else
         (: check access to collection XML file :)
-        let $path := document-uri(root($collection)) 
+        let $path := document-uri(root($collection))
         return app:user-admin() or  ( if(exists($path)) then  sm:has-access($path , $mode) else false() )
 };
 
@@ -225,7 +225,7 @@ declare function collection:has-access($id-or-collection as item(), $mode as xs:
  :
  : @param $c a <collection> element
  : @return true if the collection is from a VizieR catalog
- : 
+ :
  : Note: first catalogs have no coltype. OiDB V2.0.9 now replace source by coltype.
  :   We may update db content to avoir strats-with test
  :)
@@ -244,12 +244,12 @@ declare function collection:get-type($id-or-collection as item()) as xs:string {
         error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
     else
         let $type := $collection/coltype
-        let $type := 
-            if ($type) then 
-                $type 
-            else if (collection:vizier-collection($collection)) then 
-                $collection:VIZIER_COLTYPE 
-            else 
+        let $type :=
+            if ($type) then
+                $type
+            else if (collection:vizier-collection($collection)) then
+                $collection:VIZIER_COLTYPE
+            else
                 $collection:PUBLIC_COLTYPE
         return $type[1]
 };
@@ -266,7 +266,7 @@ declare function collection:get($id-or-collection) {
 (:~
  : Get collection embargo period.
  : @param $id-or-collection the id of the collection to test or the collection as XML fragment
- : @return the duration of embargo or P0Y when collection is public 
+ : @return the duration of embargo or P0Y when collection is public
  :)
 declare function collection:get-embargo($id-or-collection as item()) as xs:duration {
     switch (collection:get-type($id-or-collection))
@@ -275,5 +275,23 @@ declare function collection:get-embargo($id-or-collection as item()) as xs:durat
         case "eso" return xs:yearMonthDuration('P1Y')
         case "chara" return xs:yearMonthDuration('P1Y6M')
         default return xs:yearMonthDuration('P0Y')
+};
+
+(:~
+ : Get optional collection release_date.
+ : This date is used as minimum date of release creating a new granule.
+ : @param $id-or-collection the id of the collection to test or the collection as XML fragment
+ : @return the release date if provided
+ :)
+declare function collection:get-release-date($id-or-collection as item()) as xs:dateTime? {
+    let $collection := collection:get($id-or-collection)
+    return if (empty($collection)) then
+        error(xs:QName('collection:error'), 'No such collection.('||$id-or-collection||')')
+    else
+        let $release-date := $collection/release_date
+        return
+            if ($release-date castable as xs:dateTime)
+            then xs:dateTime($release-date)
+            else xs:dateTime($release-date||"T23:59:59")
 };
 

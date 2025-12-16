@@ -184,6 +184,7 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
 
     let $embargo := collection:get-embargo ($collection)
     let $coltype := collection:get-type($collection)
+    let $col_release_date := collection:get-release-date ($collection)
 
     let $data_rights :=         if( $granule/data_rights ) then
                                     () (: keep verbatim metadata  :)
@@ -205,6 +206,8 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
                                     util:log("info", "obs_release_date not present ?? data_rights="||$data_rights)
                                     (: TODO check that this empty case is normal :)
 
+    (: use oldest release_date according collection one and obs one with embargo period :)
+    let $obs_release_date := <obs_release_date>{max( ($col_release_date, $obs_release_date) ! xs:dateTime(.) )}</obs_release_date>
 
     let $release_date := if( $obs_release_date ) then $obs_release_date else $granule/obs_release_date
 
