@@ -10,6 +10,7 @@ module namespace obsportal="http://apps.jmmc.fr/exist/apps/oidb/obsportal";
 import module namespace collection="http://apps.jmmc.fr/exist/apps/oidb/collection" at "/db/apps/oidb/modules/collection.xqm";
 import module namespace granule="http://apps.jmmc.fr/exist/apps/oidb/granule" at "granule.xqm";
 import module namespace sql-utils="http://apps.jmmc.fr/exist/apps/oidb/sql-utils" at "sql-utils.xql";
+import module namespace app="http://apps.jmmc.fr/exist/apps/oidb/templates" at "app.xql";
 
 declare namespace votable="http://www.ivoa.net/xml/VOTable/v1.4";
 
