@@ -4,10 +4,10 @@ xquery version "3.0";
  : Perform an upload of all observations from VizierTap service querying B/eso catalog (ESO/VLTI).
  :
  : The observations previously imported by the same way are deleted.
- : 
- : All database operations in this script are executed within a 
+ :
+ : All database operations in this script are executed within a
  : transaction: if any failure occurs, the database is left unchanged.
- : 
+ :
  : It returns a <response> fragment with the status of the operation.
  :)
 
@@ -36,7 +36,7 @@ declare variable $local:collection := 'eso_vlti_import';
 
 (:~
  : Push observation logs from votable in the database.
- : 
+ :
  : @param $handle a database connection handle
  : @param $votable observation logs from TapVizier:B/eso
  : @return a list of the ids of the new granules
@@ -45,13 +45,13 @@ declare function local:upload($handle as xs:long, $votable as node()*) as item()
     let $col-indexes := map:merge(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
     let $rows := $votable//votable:TR
     let $nb-rows := count($rows)
-    
+
     (: insert new granules in db :)
 (:    for $tr at $pos in subsequence($votable//votable:TR,1,10) :)
     for $tr at $pos in $rows
     return try {
         let $log := if ( ( $pos mod 100 ) = 0 ) then util:log("info", "add new meta for eso ("|| $pos || "/" || $nb-rows || ")") else ()
-        return 
+        return
         <id>{ granule:create(vizier:l0-metadata($tr, $col-indexes, $local:collection), $handle) }</id>
     } catch * {
         <warning>Failed to convert observation log to granule (row[{$pos}]:{  serialize($tr) }): { $err:description } { $err:value }</warning>
@@ -75,13 +75,13 @@ declare function local:update-max-recno($votable as node()) as xs:integer{
 
 declare function local:get-votable($max-recno){
     let $query := "SELECT * FROM &quot;B/eso/eso_arc&quot; as e WHERE e.ObsTech LIKE '%INTERFEROMETRY%' AND e.recno > "||$max-recno
-    return 
+    return
         jmmc-vizier:tap-adql-query($jmmc-vizier:TAP-SYNC, $query )
 };
 
 (:~
  : Push observation logs from votable in the database.
- : 
+ :
  : @param $handle a database connection handle
  : @param $votable observation logs from TapVizier:B/eso
  : @return a list of the ids of the new granules
@@ -92,13 +92,13 @@ declare function local:upload($handle as xs:long, $votable as node()) as item()*
     let $col-indexes := map:merge(  for $f at $pos in $votable//*:FIELD return map:entry(data($f/@name), $pos)  )
     let $rows := $votable//votable:TR
     let $nb-rows := count($rows)
-    
+
     (: insert new granules in db :)
     (:    for $tr at $pos in subsequence($votable//votable:TR,1,10) :)
     for $tr at $pos in $rows
     return try {
         let $log := if ( ( $pos mod 100 ) = 0 ) then util:log("info", "add new meta for eso ("|| $pos || "/" || $nb-rows || ")") else ()
-        return 
+        return
 (:            <id>FAKE</id>:)
         <id>{ granule:create(vizier:l0-metadata($tr, $col-indexes, $local:collection), $handle) }</id>
     } catch * {
@@ -114,12 +114,12 @@ let $response :=
         try {
             <success> {
                 let $check-access := if(collection:has-access($local:collection, 'w')) then true() else error(xs:QName('granule:unauthorized'), 'Permission denied, can not write into '|| $local:collection ||'.')
-                
-                let $max-recno := local:get-max-recno() 
+
+                let $max-recno := local:get-max-recno()
                 let $log := util:log("info", "maxrecno="||$max-recno)
                 let $votable  := local:get-votable($max-recno)
-                
-                let $ids := <ids>{sql-utils:within-transaction(local:upload(?, $votable))}</ids> 
+
+                let $ids := <ids>{sql-utils:within-transaction(local:upload(?, $votable))}</ids>
                 let $new-max-recno := if( count($ids/*)>0 ) then local:update-max-recno($votable) else ()
                 let $log := util:log("info", "newmaxrecno="||$new-max-recno)
 
@@ -131,4 +131,5 @@ let $response :=
         }
     } </response>
 
+let $clear-cache :=  app:clear-cache()
 return ( log:submit($response), $response )

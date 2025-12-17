@@ -4,10 +4,10 @@ xquery version "3.0";
  : Perform an upload of all observations from VegaObs service.
  :
  : The observations previously imported by the same way are deleted.
- : 
- : All database operations in this script are executed within a 
+ :
+ : All database operations in this script are executed within a
  : transaction: if any failure occurs, the database is left unchanged.
- : 
+ :
  : It returns a <response> fragment with the status of the operation.
  :)
 
@@ -45,7 +45,7 @@ declare variable $local:cache-destroy  := function() { () (: xmldb:remove($confi
 
 (:~
  : Remove all Vega records from a previous import.
- : 
+ :
  : @param $handle a database connection handle
  :)
 declare function local:delete-collection($handle as xs:long) {
@@ -55,7 +55,7 @@ declare function local:delete-collection($handle as xs:long) {
 
 (:~
  : Search for a target by name.
- : 
+ :
  : @param $name a target name
  : @return a target description
  : @error unknown target
@@ -78,7 +78,7 @@ declare function local:resolve-target($name as xs:string) {
 
 (:~
  : Turn a Vega observation into a metadata fragment for upload.
- : 
+ :
  : @param $observation an observation
  : @return a 'metadata' element for the observation
  :)
@@ -93,13 +93,13 @@ declare function local:metadata($observation as node()) as node() {
     let $target      := local:resolve-target($target-name)
     let $ra          := data($target/target/@s_ra)
     let $dec         := data($target/target/@s_dec)
-    let $date        := jmmc-dateutil:ISO8601toMJD( 
+    let $date        := jmmc-dateutil:ISO8601toMJD(
         (: change the time delimiter in Date for ISO8601 :)
         xs:dateTime(translate($observation/Date, ' ', 'T')))
     let $ins-mode    := vega:instrument-mode($observation)
 (:    let $tel-conf    := vega:telescopes-configuration($observation):)
     let $program     := $observation/ProgNumber
-    
+
     return <metadata> {
         (: all entries are L0, even dataStatus=Published :)
         <calib_level>0</calib_level>,
@@ -132,7 +132,7 @@ declare function local:metadata($observation as node()) as node() {
 
 (:~
  : Push observation logs in the database.
- : 
+ :
  : @param $handle a database connection handle
  : @param $observations observation logs from VegaObs
  : @return a list of the ids of the new granules
@@ -142,7 +142,7 @@ declare function local:upload($handle as xs:long, $observations as node()*) as i
     let $delete := local:delete-collection($handle)
     let $log := util:log("info", "delete vega collection")
     (: insert new granules in db :)
-    
+
     let $ret := for $o in $observations
     return try {
         <id>{ granule:create(local:metadata($o), $handle) }</id>
@@ -153,7 +153,7 @@ declare function local:upload($handle as xs:long, $observations as node()*) as i
 	util:log("error", serialize(<warning>Failed to convert observation log to granule (VegaObs ID { $o/ID/text() }): { $err:description } { $err:value }</warning>))
 	)
     }
-    
+
     let $log := util:log("info", "vega collection upload end")
     return $ret
 };
@@ -172,5 +172,7 @@ let $response :=
             <error> { $err:code, $err:description } </error>
         }
     } </response>
+
+let $clear-cache :=  app:clear-cache()
 
 return ( $local:cache-destroy(), log:submit($response), $response )

@@ -2,15 +2,15 @@ xquery version "3.0";
 
 (:~
  : Perform an upload of observation logs from CHARA data.
- : 
+ :
  : The observations previously imported by the same way are deleted.
- : 
- : All database operations in this script are executed within a 
+ :
+ : All database operations in this script are executed within a
  : transaction: if any failure occurs, the database is left unchanged.
- : 
+ :
  : It returns a <response> fragment with the status of the operation.
- : 
- : WARNING: This is a basic importer with a crude parser for the current 
+ :
+ : WARNING: This is a basic importer with a crude parser for the current
  : format of observation logs: the data is extracted from a CSV file sent in
  : the request and mapped to the columns of the OiDB model. The definition of
  : the input format is a work in progress by Theo ten Brummelaar at CHARA.
@@ -71,7 +71,7 @@ declare variable $local:cache-destroy  := function() { true() (: xmldb:remove($c
 
 (:~
  : Remove all CHARA records from a previous import.
- : 
+ :
  : @param $handle a database connection handle
  :)
 declare function local:delete-collection($handle as xs:long) {
@@ -81,10 +81,10 @@ declare function local:delete-collection($handle as xs:long) {
 
 (:~
  : Search for a target by name.
- : 
+ :
  : It makes use of a temporary cache of previous name resolutions to avoid
  : excessive requests to Sesame.
- : 
+ :
  : @param $name a target name
  : @return a target description
  : @error unknown target
@@ -98,12 +98,12 @@ declare function local:resolve-target($name as xs:string) {
         else
             (: miss, resolve by name and cache the results for next time :)
             let $target := try { sesame:resolve($name)/target } catch sesame:resolve { () }
-            let $target :=  if( $target ) then 
-                                $target 
-                            else if(ends-with($name, "_A")) then 
-                                try { sesame:resolve(substring-before($name,"_A"))/target } catch sesame:resolve { () } 
-                            else if(ends-with($name, "Ab")) then 
-                                try { sesame:resolve(substring-before($name,"Ab"))/target } catch sesame:resolve { () } 
+            let $target :=  if( $target ) then
+                                $target
+                            else if(ends-with($name, "_A")) then
+                                try { sesame:resolve(substring-before($name,"_A"))/target } catch sesame:resolve { () }
+                            else if(ends-with($name, "Ab")) then
+                                try { sesame:resolve(substring-before($name,"Ab"))/target } catch sesame:resolve { () }
                             else ()
             return ( $local:cache-insert($name, $target), $target )
     return if($target) then $target else error(xs:QName('error'), 'Unknown target - '|| $name, $name)
@@ -111,7 +111,7 @@ declare function local:resolve-target($name as xs:string) {
 
 (:~
  : Match fingerprint from CHARA observation log to full ASPRO description.
- : 
+ :
  : @param $insname a combiner name from CHARA obs log
  : @param $modname a filter name from CHARA obs log
  : @return the mode description from ASPRO conf
@@ -124,7 +124,7 @@ declare function local:resolve-mode($insname as xs:string, $modname as xs:string
 
 (:~
  : Return the PI name from CHARA observation log data.
- : 
+ :
  : @param $pi a PI description from CHARA obs log
  : @return the PI name
  :)
@@ -137,11 +137,11 @@ declare function local:resolve-pi($pi as xs:string) as xs:string {
 
 (:~
  : Check main validity point of CHARA observation log.
- : 
+ :
  : @param $type object type
  : @param $b1 baseline length
- : @param $b2 baseline length 
- : @param $b3 baseline length 
+ : @param $b2 baseline length
+ : @param $b3 baseline length
  : @return true() if all test passes else throw an error
  : @error unsupported object type, missing baseline, non numeric baseline value, negative baseline value
  :)
@@ -157,14 +157,14 @@ declare function local:check-validity($type as xs:string, $b1 as xs:double, $b2 
 
 (:~
  : Turn a CHARA observation into a metadata fragment for upload.
- : 
+ :
  : @param $observation an observation
  : @return a 'metadata' element for the observation
  :)
 declare function local:metadata($observation as xs:string*) as node() {
     (: leading and trailing whitespaces significant in CSV (RFC4180) but annoying here :)
     let $observation := for $e in $observation return normalize-space($e)
-    
+
     let $type        := $observation[$local:TYPE]
     let $b1          := $observation[$local:B1]
     let $b2          := $observation[$local:B2]
@@ -215,9 +215,9 @@ declare function local:metadata($observation as xs:string*) as node() {
 
 (:~
  : Return records from CSV data.
- : 
+ :
  : @note It does not support multi line records.
- : 
+ :
  : @param $data the CSV content
  : @return a sequence of CSV records
  :)
@@ -227,7 +227,7 @@ declare function local:csv-records($data as xs:string) as xs:string* {
 
 (:~
  : Return items of the first escaped field from a tokenized CSV record.
- : 
+ :
  : @param $tokens remaining items from a tokenized record
  : @return the items of a CSV escaped field
  :)
@@ -241,7 +241,7 @@ declare function local:csv-escaped-field($tokens as xs:string*) as xs:string* {
 
 (:~
  : Parse a tokenized CSV record.
- : 
+ :
  : @params $tokens a tokenized CSV record
  : @return a sequence of CSV fields
  :)
@@ -258,7 +258,7 @@ declare function local:csv-fields($tokens as xs:string*) as xs:string* {
 
 (:~
  : Push observation logs in the database.
- : 
+ :
  : @param $handle a database connection handle
  : @param $observations observation logs from CHARA
  : @return a list of the ids of the new granules
@@ -305,5 +305,7 @@ let $response :=
             <error> { $err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" } </error>
         }
     } </response>
+
+let $clear-cache :=  app:clear-cache()
 
 return ( $local:cache-destroy(), log:submit($response), $response )

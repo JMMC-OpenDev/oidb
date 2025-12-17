@@ -249,8 +249,8 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
             error(xs:QName('granule:error'), 'Failed to upload: ' || $result//sql:message/text() || ', query: ' || $insert-statement || $info)
         else
 	    (: may cause an issue if called too quickly :)
-            let $clear-cache :=  app:clear-cache()
-            return
+            (: let $clear-cache :=  app:clear-cache()
+            return :)
                 (: return the id of the inserted row :)
                 $result//sql:field[@name='id'][1]
     let $datalinks := for $datalink in $granule/datalink

@@ -190,7 +190,7 @@ declare function obsportal:upload($handle as xs:long, $collection as xs:string, 
     } catch * {
         <warning>Failed to convert observation log to granule (ObsPortal ID { $o/exp_id/text() }): { $err:description } { $err:value }</warning>
     }
-
+    let $clear-cache :=  app:clear-cache()
     let $log := util:log("info", "end of obsportal collection upload ("|| $nb-observations ||" observations)")
     return $ret
 };
