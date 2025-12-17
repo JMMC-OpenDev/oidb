@@ -64,6 +64,7 @@
             <exclude name="data/**"/>
             <!-- do not bundle aspro-conf -->
             <exclude name="aspro-conf/**"/>
+            <exclude name="instruments/AsproConf/skytable_mean_atm.fits"/>
             <!-- ignore local config... -->
             <exclude name="modules/config.xqm"/>
             <!-- ignore local node-modules -->
@@ -76,6 +77,6 @@
             </mappedresources>
         </zip>
         <delete file="${build.dir}/config.xqm" />
-        <delete dir="instruments"/>
+              <!--        <delete dir="instruments"/> -->
     </target>
 </project>
