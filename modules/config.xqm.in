@@ -12,10 +12,10 @@ import module namespace lib="http://exist-db.org/xquery/html-templating/lib";
 declare namespace repo="http://exist-db.org/xquery/repo";
 declare namespace expath="http://expath.org/ns/pkg";
 
-(: 
+(:
     Determine the application root collection from the current module load path.
 :)
-declare variable $config:app-root := 
+declare variable $config:app-root :=
     let $rawPath := system:get-module-load-path()
     let $modulePath :=
         (: strip the xmldb: part :)
@@ -128,7 +128,11 @@ declare variable $config:sql-datalink-table := "oidb_datalink";
 (:~
  : TAP request URLs
  :)
-declare variable $config:TAP_BASEURL := "@tap-baseurl@";
+declare variable $config:TAP_BASEURL := switch ( $config:repo-descriptor/repo:status/text() )
+    case "stable" return "@tap-baseurl-stable@"
+    case "beta" return "@tap-baseurl-beta@"
+    case "alpha" return "@tap-baseurl-alpha@"
+    default return "missing_tap_url";
 declare variable $config:TAP_SYNC := $config:TAP_BASEURL || "/sync";
 declare variable $config:TAP_TABLES := $config:TAP_BASEURL || "/tables";
 
