@@ -291,7 +291,12 @@ declare function collection:get-release-date($id-or-collection as item()) as xs:
         let $release-date := $collection/release_date
         return
             if ($release-date castable as xs:dateTime)
-            then xs:dateTime($release-date)
-            else xs:dateTime($release-date||"T23:59:59")
+            then
+                xs:dateTime($release-date)
+            else if ( $release-date castable as xs:date)
+            then
+                xs:dateTime($release-date||"T23:59:59")
+            else
+                ()
 };
 
