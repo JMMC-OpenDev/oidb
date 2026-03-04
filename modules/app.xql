@@ -542,18 +542,21 @@ declare
     %templates:wrap
 function app:user-collections-options($node as node(), $model as map(*), $calib_level as xs:integer?) as map(*) {
     let $data := tap:retrieve-or-execute($app:collections-query)
-    let $ids := data($data//*:TD)
-    let $collections := collection("/db/apps/oidb-data/collections")/collection
-    return map {
+    (: keep only ids of rows that have the right calib_level :)
+    let $ids := data($data//*:TR[./*:TD[2]=$calib_level]/*:TD[1])
+    let $collections := collection:list()
+    let $col-map := map {
         'user-collections' : map:merge(
             for $id in $ids[.=$collections/@id]
             return
                 let $col := $collections[@id=$id]
                 let $valid-level := if(exists($calib_level)) then if($calib_level>2) then exists($col//bibcode/text()) else empty($col//bibcode/text()) else true()
                 let $name := $col/name/text() || " - " || $col/datapi/text()
+                let $log := util:log("info" , $name || " is writable : " || collection:has-access($col, "w"))
                 return if( $valid-level and collection:has-access($col, "w")  ) then map:entry($id, $name) else () (: TODO improve calib_level filtering :)
         )
     }
+    return $col-map
 };
 
 (:~
