@@ -21,7 +21,9 @@
         <replace file="${build.dir}/config.xqm" propertyFile="config.properties">
             <replacefilter token="@jndi-name@" property="jndi-name"/>
             <replacefilter token="@sql-table@" property="sql-table"/>
-            <replacefilter token="@tap-baseurl@" property="tap-baseurl"/>
+            <replacefilter token="@tap-baseurl-stable@" property="tap-baseurl-stable"/>
+            <replacefilter token="@tap-baseurl-beta@" property="tap-baseurl-beta"/>
+            <replacefilter token="@tap-baseurl-alpha@" property="tap-baseurl-alpha"/>
         </replace>
     </target>
 
