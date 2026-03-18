@@ -33,6 +33,12 @@
           - use obsportal records (L0) to retrieve datapis
           - fix persistance of SCI/CAL checkboxes in the search form
         -->
+        <change xmlns="" version="2.3.2" release-date="2026-03-18T12:34">
+            <h3>2026-03-18</h3>
+            <ul>
+              <li>Fix plotly dependancy to get <a href="./stats.html">stats.html</a> back.</li>
+            </ul>
+        </change>
         <change xmlns="" version="2.3.1" release-date="2026-03-04T12:34">
             <h3>2026-03-04</h3>
             <ul>

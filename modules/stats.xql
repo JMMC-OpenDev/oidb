@@ -63,7 +63,10 @@ function stats:show($node as node(), $model as map(*)) {
     let $colid-pos := index-of(data($rows[1]/sql:field/@name), "obs_collection")
     let $trs := for $row in $rows
         let $c := collection:get(""||$row/sql:field[@name="obs_collection"])
-        return <tr>{for $field at $pos in $row/sql:field return <td>{if ($pos=$colid-pos ) then <a href="search.html?collection={$field}">{$id2colname(data($field))}</a> else data($field)}</td>}<td>{data($c/datapi)}</td><td>{collection:get-type($c)}</td> </tr>
+
+        let $coltype := try{ collection:get-type($c) } catch * { "unknown_type" }
+        return <tr>{
+            for $field at $pos in $row/sql:field return <td>{if ($pos=$colid-pos ) then <a href="search.html?collection={$field}">{$id2colname(data($field))}</a> else data($field)}</td>}<td>{data($c/datapi)}</td><td>{$coltype}</td> </tr>
     let $table :=
     <table class="table table-striped table-bordered table-hover table-condensed datatable">
             <thead><tr>{for $field in $rows[1]/sql:field return <th>{data($field/@name)}</th>}<th>obsCreator/dataPI</th><th>Type</th></tr></thead>
@@ -86,7 +89,7 @@ function stats:show($node as node(), $model as map(*)) {
         group by $year := data($row/sql:field[@name="subdate_year"])
         return
             map:entry($year,map:merge((
-                for $row2 in $row group by $coltype := collection:get-type(""||$row2/sql:field[@name="obs_collection"])
+                for $row2 in $row group by $coltype := try{collection:get-type(""||$row2/sql:field[@name="obs_collection"])}catch *{"unknown_type"}
                 return
                     map:entry($coltype, count($row2))
             )))
@@ -150,6 +153,7 @@ function stats:show($node as node(), $model as map(*)) {
             <div id='collectionCalibLevels'/>,
             <div id='collectionTypes'/>,
             <div id='collectionFacilities'/>,
+            <script type="text/javascript" src="resources/scripts/plotly.min.js"/>,
             $script,
             $table
         )

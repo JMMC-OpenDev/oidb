@@ -4,3 +4,9 @@ node_modules
 aspro-conf
 package-lock.json
 .existdb.json
+resources/css/dataTables.bootstrap.min.css
+resources/scripts/dataTables.bootstrap.min.js
+resources/scripts/jquery.dataTables.min.js
+resources/scripts/jquery.min.js
+resources/scripts/plotly.min.js
+
