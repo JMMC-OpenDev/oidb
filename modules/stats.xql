@@ -35,7 +35,7 @@ function stats:show($node as node(), $model as map(*)) {
         for $c in $collections return map:entry(data($c/@id),data($c/name) )
         ))
 
-    let $res := sql-utils:execute("SELECT DATE_PART('Year', subdate) as subdate_year, obs_collection, facility_name FROM oidb WHERE calib_level > 0 group by DATE_PART('Year', subdate), obs_collection, facility_name ORDER by subdate_year DESC;", false())
+    let $res := sql-utils:execute("SELECT DATE_PART('Year', subdate) as subdate_year, obs_collection, facility_name FROM oidb GROUP BY DATE_PART('Year', subdate), obs_collection, facility_name;", false())
     let $rows := $res//sql:row
     let $rows := for $row in $rows return
         <e>
@@ -57,18 +57,18 @@ function stats:show($node as node(), $model as map(*)) {
         ))
 
     let $log := util:log("info", $by-facility)
-    let $res := sql-utils:execute("SELECT DATE_PART('Year', subdate) as subdate_year ,calib_level, obs_collection, count(*) FROM oidb WHERE calib_level > 0 group by DATE_PART('Year', subdate), calib_level,obs_collection ORDER by subdate_year DESC;", false())
+    let $res := sql-utils:execute("SELECT DATE_PART('Year', subdate) as subdate_year ,calib_level, obs_collection, count(*) FROM oidb GROUP BY DATE_PART('Year', subdate), calib_level,obs_collection;", false())
     let $rows := $res//sql:row
 
     let $colid-pos := index-of(data($rows[1]/sql:field/@name), "obs_collection")
     let $trs := for $row in $rows
         let $c := collection:get(""||$row/sql:field[@name="obs_collection"])
-
         let $coltype := try{ collection:get-type($c) } catch * { "unknown_type" }
+        order by $coltype
         return <tr>{
             for $field at $pos in $row/sql:field return <td>{if ($pos=$colid-pos ) then <a href="search.html?collection={$field}">{$id2colname(data($field))}</a> else data($field)}</td>}<td>{data($c/datapi)}</td><td>{$coltype}</td> </tr>
     let $table :=
-    <table class="table table-striped table-bordered table-hover table-condensed datatable">
+    <table id="statsTable" class="table table-striped table-bordered table-hover table-condensed datatable">
             <thead><tr>{for $field in $rows[1]/sql:field return <th>{data($field/@name)}</th>}<th>obsCreator/dataPI</th><th>Type</th></tr></thead>
         {$trs}
     </table>
@@ -135,13 +135,13 @@ function stats:show($node as node(), $model as map(*)) {
         }
 
         var data = [{string-join( (for $calib_level in $calib_levels return "data_"||$calib_level) , ", " )}];
-        var layout = {{ barmode: "stack", title: "Collections count by calibration level"}};
+        var layout = {{ barmode: "stack", title: {{ text:"Collections count by calibration level"}} }};
 
         var typedata = [{string-join( (for $col_type in $col_types return "typedata_"||$col_type) , ", " )}];
-        var typelayout = {{ barmode: "stack", title: "Collections count by type"}};
+        var typelayout = {{ barmode: "stack", title:  {{ text:"Collections count by type"}} }};
 
         var facilitydata = [{string-join( (for $t in $facilities return "facilitydata_"||$t) , ", " )}];
-        var facilitylayout = {{ barmode: "stack", title: "Collections count by facility"}};
+        var facilitylayout = {{ barmode: "stack", title:  {{ text:"Collections count by facility"}} }};
 
         Plotly.newPlot('collectionCalibLevels', data, layout);
         Plotly.newPlot('collectionTypes', typedata, typelayout);
@@ -150,11 +150,14 @@ function stats:show($node as node(), $model as map(*)) {
 
     return
         (
-            <div id='collectionCalibLevels'/>,
-            <div id='collectionTypes'/>,
-            <div id='collectionFacilities'/>,
+            <div id='collectionCalibLevels' style="width: 100%; height: 50%;"/>,
+            <div id='collectionTypes' style="width: 100%; height: 50%;"/>,
+            <div id='collectionFacilities' style="width: 100%; height: 50%;"/>,
             <script type="text/javascript" src="resources/scripts/plotly.min.js"/>,
             $script,
-            $table
+            $table,
+            <script type="text/javascript">
+                // works but throws an error : $('#statsTable').dataTable({{retrieve:true}}).api().order([[0, 'desc'], [1, 'desc']]).draw();
+            </script>
         )
 };
