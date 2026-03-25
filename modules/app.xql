@@ -1269,8 +1269,9 @@ declare function app:datalink($node as node(), $model as map(*)) as map(*) {
  : @param $id the row identifier
  : @return a <table> filled with data from the raw row
  :)
-declare function app:show($node as node(), $model as map(*), $id as xs:integer) {
-    let $query := "SELECT * FROM " || $config:sql-table || " AS t WHERE t.id='" || $id || "'"
+declare function app:show($node as node(), $model as map(*), $id as xs:integer*) {
+    let $q-id := string-join($id, ", ")
+    let $query := "SELECT * FROM " || $config:sql-table || " AS t WHERE t.id in (" || $q-id || ")"
     (: send query by TAP :)
     let $votable := tap:execute($query)
     let $data := app:transform-votable($votable, 1, count($votable//*:TR),"&#160;") (: leave header on a single line :)
@@ -1280,6 +1281,21 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
             <div class="alert alert-warning fade in">
                 <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
                 <strong>No granule found with id={$id}</strong>
+            </div>
+        else if ($nb-granules>1) then
+            <div><h2>{$nb-granules} granule found </h2>
+                {
+                    <table class="table table-striped table-bordered table-hover table-condensed">
+                {
+                    for $th at $i in $data//th
+                        let $tds := $data//td[position()=index-of($data//th, $th)]
+                        let $tr := $tds[1]/..
+                        let $tt := data($th/@description)
+                        let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
+                        return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> { for $td in $tds return app:td-cell($td, $tr) } </tr>
+                }
+                </table>
+                }
             </div>
         else
             let $objtype := if ( $data//td[@colname="calib_level"][1] >=1 ) then "Granule" else "Observation log"
@@ -1308,7 +1324,7 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer) 
                     let $td := $data//td[position()=index-of($data//th, $th)]
                     let $tr := $td/..
                     let $tt := data($th/@description)
-                    let $tt := if($th/@unit) then $tt || " co[" || $th/@unit || "]" else $tt
+                    let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
                     return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> {app:td-cell($td, $tr) } </tr>
                 }
                 </table>
@@ -1367,7 +1383,7 @@ declare function app:show-granule-siblings($node as node(), $model as map(*), $k
                         let $td := $data//td[position()=index-of($data//th, $th)]
                         let $tr := $td/..
                         let $tt := data($th/@description)
-                        let $tt := if($th/@unit) then $tt || " co[" || $th/@unit || "]" else $tt
+                        let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
                         return  <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th>
                 }</tr>
                 {
