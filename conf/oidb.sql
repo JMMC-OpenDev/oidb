@@ -77,7 +77,11 @@ CREATE TABLE oidb (
     id                      bigint DEFAULT nextval('oidb_id_seq') PRIMARY KEY,
 
     progid                  text,
+    proposal_subid          text,
+    dataproduct_category    text,
+    procsoft                text,
     datapi                  text,
+    note                    text,
 
     access_md5              VARCHAR(32)
 
