@@ -1288,11 +1288,10 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer*)
                     <table class="table table-striped table-bordered table-hover table-condensed">
                 {
                     for $th at $i in $data//th
-                        let $tds := $data//td[position()=index-of($data//th, $th)]
-                        let $tr := $tds[1]/..
+                        let $tds := $data//td[$i]
                         let $tt := data($th/@description)
                         let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
-                        return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> { for $td in $tds return app:td-cell($td, $tr) } </tr>
+                        return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> { for $td in $tds return app:td-cell($td, $td/..) } </tr>
                 }
                 </table>
                 }
@@ -1322,10 +1321,9 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer*)
                 {
                     for $th at $i in $data//th[@name!='id']
                     let $td := $data//td[position()=index-of($data//th, $th)]
-                    let $tr := $td/..
                     let $tt := data($th/@description)
                     let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
-                    return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> {app:td-cell($td, $tr) } </tr>
+                    return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> {app:td-cell($td, $td/..) } </tr>
                 }
                 </table>
             </div>
@@ -1381,7 +1379,6 @@ declare function app:show-granule-siblings($node as node(), $model as map(*), $k
                 {
                     for $th at $i in $data//th[@name]
                         let $td := $data//td[position()=index-of($data//th, $th)]
-                        let $tr := $td/..
                         let $tt := data($th/@description)
                         let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
                         return  <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th>
