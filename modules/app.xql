@@ -1283,15 +1283,16 @@ declare function app:show($node as node(), $model as map(*), $id as xs:integer*)
                 <strong>No granule found with id={$id}</strong>
             </div>
         else if ($nb-granules>1) then
-            <div><h2>{$nb-granules} granule found </h2>
+            <div><h2>{$nb-granules} granules found </h2>
                 {
                     <table class="table table-striped table-bordered table-hover table-condensed">
                 {
                     for $th at $i in $data//th
                         let $tds := $data//td[$i]
+                        let $bold := count(distinct-values($tds))>1
                         let $tt := data($th/@description)
                         let $tt := if($th/@unit) then $tt || " [" || $th/@unit || "]" else $tt
-                        return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> { for $td in $tds return app:td-cell($td, $td/..) } </tr>
+                        return <tr> <th> <i class="glyphicon glyphicon-question-sign" rel="tooltip" data-original-title="{$tt}"/> &#160; { $th/node() } </th> { for $td in $tds return if ($bold) then <td><b>{app:td-cell($td, $td/..)/*}</b></td> else app:td-cell($td, $td/..) } </tr>
                 }
                 </table>
                 }
