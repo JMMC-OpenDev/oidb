@@ -6,9 +6,10 @@ xquery version "3.1";
  : It outputs a .htaccess file that would allow access to public files of the
  : collection when this file is saved to the directory of the machine serving
  : the files.
- : It opens released oifits and associated datalinks. Public datalink have a post filter so we do not publish these which also are associated to a private oifits ( PIONIER's pdf e.g. ).
  :
- : Another approach could be to add release_date to datalinks so we can generate the list much faster.
+ : Collection owners, datapis and their delegations are used to complete the htaccess user values. datapi is split accross multiple values separated by /.
+ :
+ : It opens released oifits and associated datalinks. Public datalink have a post filter so we do not publish these which also are associated to a private oifits ( PIONIER's pdf e.g. ).
  :)
 
 import module namespace adql="http://apps.jmmc.fr/exist/apps/oidb/adql" at "adql.xqm";
@@ -26,6 +27,7 @@ declare option output:omit-xml-declaration "yes";
 let $collection := request:get-parameter("obs_collection", "", true())
 let $xml-collection := collection:get($collection)
 
+let $log := util:log("info", "collect data to protect")
 let $all := map:merge(
     for $public in (true(), false())
     return
@@ -47,7 +49,6 @@ let $all := map:merge(
                 }&#10;</p>,
                         <p># Normal query : { $query }&#10;&#10;</p>,
                                                                    <p># Join query : { $datalink-query }&#10;&#10;</p>)
-        let $log := util:log("info", "return "||count($rows//*:TR))
         return map { $public :
                         map{ "header" : $header,
                         "rows": $rows//*:TR,
@@ -56,40 +57,38 @@ let $all := map:merge(
                 }
         )
 
+let $log := util:log("info", "compute diff")
 let $ok := $all(true())("datalink-rows")/*/*:TD[5]
 let $bad := $all(false())("datalink-rows")/*/*:TD[5]
 let $common := $bad[. = $ok]
+let $has-common := exists($common)
 let $log := util:log("info", "common : "||count($common))
 
 
 for $public in (true(), false())
 return
     let $yesno := if ($public) then "yes" else "no"
-    let $log  := util:log("info", "do " || $yesno)
+    let $log  := util:log("info", "mode public=" || $yesno)
     let $rows := $all($public)("rows")
     let $datalink-rows := $all($public)("datalink-rows")
     let $log := util:log("info", "before filtering:" || count($datalink-rows))
-    let $datalink-access_urls := $datalink-rows/*:TD[5]
 
     (: Fix shared permissions:
        a datalink may be linked to two oifits . avoid giving access if still under embargo by another one but leave access with auth :)
     let $datalink-rows :=
-        if ($public) then
-            $datalink-rows[not(./*:TD[5] = $all(not($public))("datalink-rows")/*/datalink-rows/*/*:TD[5])]
+        if ( $has-common ) then $datalink-rows
+        else if ($public) then
+            $datalink-rows[not(./*:TD[5] = $common)]
         else
-            $datalink-rows | $all(not($public))("datalink-rows")[./*:TD[5] = $datalink-rows/*/*:TD[5]]
+            $datalink-rows | $all(not($public))("datalink-rows")[./*:TD[5] = $common]
 
-(:    let $new-datalink-access_urls := $datalink-rows/*:TD[5]:)
- let $log  := util:log("info", "after filtering:" || count($datalink-rows))
-(: let $log  := util:log("info", "common:" || count($common)) :)
-(: let $log  := util:log("info", count($datalink-access_urls)||" non filtered (" ||count(distinct-values($datalink-access_urls))||" distinct)") :)
-(: let $log  := util:log("info", count($new-datalink-access_urls)||" filtered (" ||count(distinct-values($new-datalink-access_urls))||" distinct)") :)
+    let $log  := util:log("info", "after filtering:" || count($datalink-rows))
 
-(: Prepare oifits access list :)
+    (: Prepare oifits access list :)
     let $oifits-lines := for $group-row at $pos in $rows  group  by $access_url := tokenize($group-row/*:TD[1] , "/")[last()]
         let $row := $group-row[1]
-(:  avoid group by if 'distinct on' (see before) is set up :)
-(:    let $row-lines := for $row at $pos in $rows :)
+        (:  avoid group by if 'distinct on' (see before) is set up :)
+        (:    let $row-lines := for $row at $pos in $rows :)
         let $data := $row/*:TD
         let $access_url := $data[1]
         let $obs_release_date := $data[2]
@@ -108,9 +107,10 @@ return
                 if($public) then
                     <p>    Allow from all&#10;    Satisfy any</p>
                 else
-                    <p>    Require user {string-join( ($xml-collection/@owner, $datapi, $emails), " ")}</p>,
+                    <p>    Require user {string-join( ($xml-collection/@owner, tokenize($datapi, "/"), $emails), " ")}</p>,
                 <p>&#10;&lt;/Files&gt;&#10;</p>
             )
+    let $log  := util:log("info", "oifits done")
 
 (: Prepare datalink access list :)
     let $datalink-lines := for $row at $pos in $datalink-rows
@@ -133,9 +133,10 @@ return
                 if($public) then
                     <p>    Allow from all&#10;    Satisfy any</p>
                 else
-                    <p>    Require user {string-join( ($xml-collection/@owner, $datapi, $emails), " ")}</p>,
+                    <p>    Require user {string-join( ($xml-collection/@owner, tokenize($datapi, "/"), $emails), " ")}</p>,
                 <p>&#10;&lt;/Files&gt;&#10;</p>
             )
+    let $log  := util:log("info", "datalinks done")
 
     return
         ($all($public)("header"), $oifits-lines, $datalink-lines)
