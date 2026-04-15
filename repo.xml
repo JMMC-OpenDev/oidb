@@ -33,6 +33,18 @@
           - use obsportal records (L0) to retrieve datapis
           - fix persistance of SCI/CAL checkboxes in the search form
         -->
+        <change xmlns="" version="2.3.4" release-date="2026-04-15T12:34">
+            <h3>2026-03-25</h3>
+            <ul>
+              <li>Support pi/cois and speedup protection files processing.</li>
+            </ul>
+        </change>
+        <change xmlns="" version="2.3.3" release-date="2026-03-25T12:34">
+            <h3>2026-03-25</h3>
+            <ul>
+              <li>Show granule detail page supports multiple ids to help comparison.</li>
+            </ul>
+        </change>
         <change xmlns="" version="2.3.2" release-date="2026-03-18T12:34">
             <h3>2026-03-18</h3>
             <ul>
