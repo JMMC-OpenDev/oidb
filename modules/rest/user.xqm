@@ -143,8 +143,9 @@ function user:check($name as xs:string?) {
 };
 
 declare function user:get-email($names as xs:string*){
+    (: split names with multiple values separated by / :)
+    let $names := for $name in $names return tokenize($name, "/") ! normalize-space(.)
     let $email := for $name in $names return ($user:people-doc//person[alias[lower-case(normalize-space(.)) = lower-case(normalize-space($name))]]//@email)[1]
-    
     return  data($email)
 };
 
@@ -157,9 +158,12 @@ declare
     %rest:GET("")
     %rest:path("/oidb/user/{$alias-or-email}/delegations")
 function user:get-delegations($alias-or-email){
-    let $v := lower-case(normalize-space($alias-or-email))
+    (: support multiple values separated by / :)
+    let $values := tokenize(lower-case($alias-or-email), "/") ! normalize-space(.)
     return
     <delegations>{
-        $user:people-doc//person[ alias[ (lower-case(normalize-space(.)),lower-case(normalize-space(./@email))) = $v ] ]//delegation
+        for $v in $values
+        return
+            $user:people-doc//person[ alias[ (lower-case(normalize-space(.)),lower-case(normalize-space(./@email))) = $v ] ]//delegation
     }</delegations>
 };
