@@ -107,7 +107,7 @@ function granule:save-granules($granules as document-node()?) {
                 <error>{ $err:code, $err:description, $err:value, " module: ", $err:module, "(", $err:line-number, ",", $err:column-number, ")" }  </error>
             }
         } </response>
-    let $log := util:log("info", $response)
+    (: let $log := util:log("info", $response) :)
     return ( log:submit($response), $response )
 };
 
