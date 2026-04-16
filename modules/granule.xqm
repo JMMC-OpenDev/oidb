@@ -261,7 +261,6 @@ declare function granule:do-create($granule as node(), $try-update-on-conflict a
                     error(xs:QName('granule:error'), 'Failed to upload datalink: ' || $result//sql:message/text() || ', query: ' || $insert-statement)
                 else
                     ()
-
     return $id
 };
 
@@ -463,6 +462,6 @@ declare function granule:has-access($id-or-granule as item(), $mode as xs:string
  : @return true if dataproduct_category is null or has SCIENCE value, else false
  :)
 declare function granule:is-science($granule){
-    let $dpcat := $granule/dataproduct_category
-    return empty($dpcat) or upper-case($dpcat)=("SCIENCE")
+    let $dpcat := normalize-space($granule/dataproduct_category)
+    return string-length($dpcat)=0 or upper-case($dpcat)=("SCIENCE")
 };
