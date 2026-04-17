@@ -1440,9 +1440,11 @@ declare function app:show-granule-contact($node as node(), $model as map(*), $ke
                                 else
                                     let $datapi-email := user:get-email($datapi)
                                     return
-                                    if($datapi-email) then
-                                    let $js :=  jmmc-web:get-encoded-email-array($datapi-email)
-                                    return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
+                                    if(exists($datapi-email)) then
+                                        for $datapi in tokenize($datapi, "/")
+                                            let $datapi-email := user:get-email($datapi)
+                                            let $js :=  jmmc-web:get-encoded-email-array($datapi-email)
+                                            return <a href="#" data-contarr="{$js}">{$datapi}&#160;<i class="glyphicon glyphicon-envelope"/></a>
                                     else
                                         <span>Sorry, no contact information have been found into the OiDB user list for <em>{data($datapi)}</em><br/>
                                     If you are the associated datapi and get an account, please <a href="feedback.html"> contact the webmasters </a> to fix missing links. If you have no account, please <a href="https://apps.jmmc.fr/account/#register" target="_blank" class="btn btn-default active" role="button">Register</a> before. <br/> In the meantime every user may contact the creator of the resource just below.</span>
